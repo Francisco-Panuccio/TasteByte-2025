@@ -1,0 +1,7 @@
+{
+  "name": "TasteByte",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
