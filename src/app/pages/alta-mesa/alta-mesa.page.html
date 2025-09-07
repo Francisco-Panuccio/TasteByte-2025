@@ -1,0 +1,44 @@
+@if(loading) {
+  <app-loading/>
+} @else {
+  <ion-header>
+    <ion-toolbar>
+      <ion-title>Agregar Mesa</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content class="ion-padding">
+    <form [formGroup]="formAltaMesa" novalidate>
+      <ion-item>
+        <ion-input type="number" label="Número" labelPlacement="floating" formControlName="numero"></ion-input>
+      </ion-item>
+      @if(!!f['numero'].touched && !!f['numero'].invalid) { <app-form-errors [control]="f['numero']"/> }
+
+      <ion-item>
+        <ion-input type="number" label="Capacidad" labelPlacement="floating" formControlName="capacidad"></ion-input>
+      </ion-item>
+      @if(!!f['capacidad'].touched && !!f['capacidad'].invalid) { <app-form-errors [control]="f['capacidad']"/> }
+
+      <ion-item>
+        <ion-select label="Tipo" labelPlacement="floating" formControlName="tipo" interface="action-sheet">
+          @for (t of tipos; track t) { <ion-select-option [value]="t">{{ t }}</ion-select-option> }
+        </ion-select>
+      </ion-item>
+      @if(!!f['tipo'].touched && !!f['tipo'].invalid) { <app-form-errors [control]="f['tipo']"/> }
+
+      <div class="foto">
+        @if(!!f['foto_url'].value) { <img [src]="f['foto_url'].value" alt="foto mesa"> }
+        <div class="acciones">
+          <ion-button size="small" (click)="elegirFoto('cam')">Cámara</ion-button>
+          <ion-button size="small" fill="outline" (click)="elegirFoto('gal')">Galería</ion-button>
+        </div>
+      </div>
+      @if(!!f['foto_url'].touched && !!f['foto_url'].invalid) { <app-form-errors [control]="f['foto_url']"/> }
+
+      <ion-button expand="block" [disabled]="formAltaMesa.invalid" (click)="enviar()">Guardar</ion-button>
+
+      @if(err) { <ion-item lines="none"><ion-label color="danger">{{ err }}</ion-label></ion-item> }
+      @if(ok)  { <ion-item lines="none"><ion-label color="success">Mesa Creada</ion-label></ion-item> }
+    </form>
+  </ion-content>
+}

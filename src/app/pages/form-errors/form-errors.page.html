@@ -1,0 +1,3 @@
+@if ((!!control?.touched || !!control?.dirty) && !!control?.invalid) {
+  <span class="span_error" aria-live="polite">{{ errorMessages() }}</span>
+}
