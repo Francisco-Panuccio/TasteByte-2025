@@ -20,6 +20,12 @@ export class Mesas {
     return data ?? null
   }
 
+  async existsByNumero(numero: number): Promise<boolean> {
+    const { data, error } = await supabase.from(this.table).select('id').eq('numero', numero).limit(1);
+    if (error) throw error;
+    return (data?.length ?? 0) > 0;
+  }
+
   async create(payload: Mesa): Promise<Mesa> {
     const { data, error } = await supabase.from(this.table).insert(payload).select('*').single()
     if (error) throw error
@@ -35,5 +41,27 @@ export class Mesas {
   async remove(id: number): Promise<void> {
     const { error } = await supabase.from(this.table).delete().eq('id', id)
     if (error) throw error
+  }
+
+  async uploadPhotoBlob(fileName: string, blob: Blob): Promise<string> {
+    const { data: u } = await supabase.auth.getUser();
+    if (!u?.user) throw new Error('Sin sesión');
+    const path = `${u.user.id}/${fileName}`;
+    const { error: upErr } = await supabase.storage.from('mesas').upload(path, blob, {
+      contentType: blob.type || 'image/jpeg',
+      upsert: true
+    });
+    if (upErr) throw upErr;
+    const { data } = supabase.storage.from('mesas').getPublicUrl(path);
+    return data.publicUrl;
+  }
+
+  async setQr(id: number, numero: number): Promise<void> {
+    const contenido = `mesa:${id}:${numero}`;
+    const { error } = await supabase
+      .from(this.table)
+      .update({ qr_contenido: contenido, qr_generado_en: new Date().toISOString() })
+      .eq('id', id);
+    if (error) throw error;
   }
 }

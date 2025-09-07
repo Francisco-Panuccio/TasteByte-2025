@@ -1,0 +1,74 @@
+@if(loading) {
+  <app-loading></app-loading>
+} @else {
+  <ion-header>
+    <ion-toolbar>
+      <ion-title>Agregar Plato</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content class="ion-padding">
+    <form [formGroup]="formAltaPlato" novalidate>
+      <ion-item>
+        <ion-input label="Nombre" labelPlacement="floating" formControlName="nombre"></ion-input>
+      </ion-item>
+      @if(f.nombre.touched && f.nombre.invalid) {
+        <ng-container>
+          <app-form-errors [control]="f.nombre"></app-form-errors>
+        </ng-container>
+      }
+
+      <ion-item>
+        <ion-textarea label="Descripción" labelPlacement="floating" formControlName="descripcion" autoGrow="true"></ion-textarea>
+      </ion-item>
+      @if(f.descripcion.touched && f.descripcion.invalid) {
+        <ng-container>
+          <app-form-errors [control]="f.descripcion"></app-form-errors>
+        </ng-container>
+      }
+
+      <ion-item>
+        <ion-input type="number" label="Tiempo (min)" labelPlacement="floating" formControlName="tiempo_elaboracion_min"></ion-input>
+      </ion-item>
+      @if(f.tiempo_elaboracion_min.touched && f.tiempo_elaboracion_min.invalid) {
+        <ng-container>
+          <app-form-errors [control]="f.tiempo_elaboracion_min"></app-form-errors>
+        </ng-container>
+      }
+
+      <ion-item>
+        <ion-input type="number" inputmode="decimal" label="Precio" labelPlacement="floating" formControlName="precio"></ion-input>
+      </ion-item>
+      @if(f.precio.touched && f.precio.invalid) {
+        <ng-container>
+          <app-form-errors [control]="f.precio"></app-form-errors>
+        </ng-container>
+      }
+
+      <div class="fotos">
+        @for (c of fotosFA.controls; track $index; let i = $index) {
+          <div class="slot">
+            @if(!!c.value) { <img [src]="c.value" alt="foto {{ i + 1 }}"> }
+            <div class="acciones">
+              <ion-button size="small" (click)="elegirFoto(i,'cam')">Cámara</ion-button>
+              <ion-button size="small" fill="outline" (click)="elegirFoto(i,'gal')">Galería</ion-button>
+            </div>
+          </div>
+        }
+      </div>
+      @if((!!fotosFA.touched || !!fotosFA.dirty) && !!fotosFA.invalid) {
+        <app-form-errors [control]="fotosFA"></app-form-errors>
+      }
+
+      <ion-button expand="block" [disabled]="formAltaPlato.invalid" (click)="enviar()">Guardar</ion-button>
+
+      @if(err) {
+        <ion-item lines="none"><ion-label color="danger">{{ err }}</ion-label></ion-item>
+      }
+
+      @if(ok) {
+        <ion-item lines="none"><ion-label color="success">Plato Creado</ion-label></ion-item>
+      }
+    </form>
+  </ion-content>
+}

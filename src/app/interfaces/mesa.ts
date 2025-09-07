@@ -1,4 +1,4 @@
-type TipoMesa = 'VIP'|'estándar'|'movilidad_reducida'
+export type TipoMesa = 'VIP'|'estándar'|'movilidad_reducida'
 
 export interface Mesa {
   id?: number
