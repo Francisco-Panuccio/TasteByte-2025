@@ -9,7 +9,7 @@
 * Panuccio
 - Objetivos: Integración con BD, Servicios, Item 2 y 4
 - Fecha Inicial: 06/09/2025
-- Fecha Final:
+- Fecha Final: 08/09/2025
 - Branch: panuccio
 
 * Roman
