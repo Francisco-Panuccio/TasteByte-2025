@@ -8,19 +8,19 @@ import { AuthService } from 'src/app/services/auth';
   standalone: false,
   templateUrl: './register.page.html',
   styleUrls: ['./register.page.scss'],
-  
+
 })
 export class RegisterPage {
   errorMsg: boolean = false;
 
-  fullName = '';
-  email = '';
-  password = '';
-  errorMessage = '';
-  successMessage = '';
+  fullname = "";
+  email = "";
+  password = "";
+  errorMessage = "";
+  successMessage = "";
   loading = false;
 
-  constructor(private fb: FormBuilder,private auth: AuthService, private router: Router) {}
+  constructor(private fb: FormBuilder, private auth: AuthService, private router: Router) { }
 
   passwordsMatch: ValidatorFn = (group: AbstractControl): ValidationErrors | null => {
     const pass = group.get("password")?.value ?? "";
@@ -39,13 +39,14 @@ export class RegisterPage {
       return null;
     }
   };
-  
+
   formRegister = this.fb.group({
+    fullname: ["", [Validators.required]],
     email: ["", [Validators.required, Validators.email]],
     password: ["", [Validators.required, Validators.minLength(6)]],
     confirm: ["", [Validators.required]],
   }, { validators: this.passwordsMatch });
-  
+
   async onRegister() {
     this.loading = true;
     this.errorMsg = false;
@@ -53,9 +54,8 @@ export class RegisterPage {
     this.formRegister.updateValueAndValidity({ emitEvent: true });
     if (this.formRegister.invalid) return;
 
-
-    this.errorMessage = '';
-    this.successMessage = '';
+    this.errorMessage = "";
+    this.successMessage = "";
     this.loading = false;
 
     if (this.formRegister.invalid) return;
@@ -73,7 +73,9 @@ export class RegisterPage {
     } else {
       this.router.navigateByUrl("/login", { replaceUrl: true });
     }
+  }
 
-    
+  goToLogin() {
+    this.router.navigateByUrl("/login", { replaceUrl: true });
   }
 }

@@ -3,32 +3,40 @@
   justify-content: center;
   align-items: center;
   height: 100%;
-  background-color: #bb714e; // fondo principal
+  background-color: #bb714e;
   padding: 1rem;
 }
 
 .auth-card {
-  background: #f8f5f0; // tarjeta clara
+  background: #f8f5f0;
   padding: 2rem;
   border-radius: 20px;
   width: 100%;
   max-width: 400px;
   text-align: center;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
+form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
 .title {
   font-size: 2rem;
-  color: #554738; // texto oscuro
+  color: #554738;
   font-weight: 700;
   margin: 0;
 }
 
 .input-field {
-  --background: transparent; // ¡ESTO ES CLAVE!
+  --background: transparent;
   --border-width: 0px;
   --padding-start: 0;
   --inner-padding-end: 0;
@@ -36,24 +44,19 @@
   width: 100%;
 }
 
-ion-label {
-  color: #5d4b3c;
-  font-weight: 600;
-  margin-bottom: 0.3rem;
-  font-size: 0.95rem;
-}
-
 ion-input {
-  --background: #ffffff; // Un blanco puro para diferenciar
   --color: #554738;
   --placeholder-color: #a1887f;
   border-radius: 12px;
-  padding: 0.75rem 1rem !important; // Usa !important para sobreescribir estilos de Ionic
+  padding: 0.75rem 1rem !important;
   border: 1px solid #d7b899;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
   font-size: 1rem;
 }
 
+ion-item:first-child {
+  margin-bottom: 10px;
+}
 
 .btn-primary {
   --background: #c5a076;
@@ -75,14 +78,14 @@ ion-input {
 .error-message {
   color: #e76f51;
   font-size: 0.9rem;
-  margin: -0.5rem 0 1rem; // Ajuste de márgenes para que se vea mejor
+  margin: -0.5rem 0 1rem;
 }
 
 .quick-logins {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  
+
   .subtitle {
     font-weight: 600;
     color: #5d4b3c;
@@ -103,7 +106,7 @@ ion-input {
 
   ion-button {
     --background: transparent;
-    --background-activated: rgba(215, 184, 153, 0.2); // Un efecto sutil al presionar
+    --background-activated: rgba(215, 184, 153, 0.2);
     --color: #554738;
     --border-color: #554738;
     --border-style: solid;

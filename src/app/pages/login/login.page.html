@@ -6,7 +6,7 @@
       <form (ngSubmit)="onLogin()" [formGroup]="formLogin">
         <ion-item class="input-field">
           <ion-input
-            placeholder="Correo"
+            placeholder="Correo Electrónico"
             type="email"
             formControlName="email"
           ></ion-input>
@@ -69,7 +69,7 @@
 
       <div class="register-link">
         <p>¿No tenés cuenta?</p>
-        <ion-button class="btn-secondary" (click)="goToRegister()">
+        <ion-button type = "button" class="btn-secondary" (click)="goToRegister()">
           Crear cuenta
         </ion-button>
       </div>

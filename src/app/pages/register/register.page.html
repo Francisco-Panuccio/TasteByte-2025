@@ -5,11 +5,15 @@
 
       <form (ngSubmit)="onRegister()" [formGroup]="formRegister" >
         <ion-item class="input-field">
-          <ion-input placeholder="Nombre" formControlName="fullname"></ion-input>
+          <ion-input placeholder="Nombre" type="text" formControlName="fullname"></ion-input>
         </ion-item>
+        @if((formRegister.get("fullname")?.hasError("required")) &&
+        formRegister.get("fullname")?.touched) {
+          <app-form-errors [control]="formRegister.controls.fullname"/>
+        }
 
         <ion-item class="input-field">
-          <ion-input placeholder="Correo" type="email" formControlName="email"></ion-input>
+          <ion-input placeholder="Correo Electrónico" type="email" formControlName="email"></ion-input>
         </ion-item>
         <div class="error">
         @if((formRegister.get("email")?.hasError("email") ||
@@ -44,6 +48,9 @@
 
         <ion-button type="button" expand="block" type="submit" class="btn-primary" [disabled]="loading">
           {{ loading ? 'Registrando...' : 'Registrarse' }}
+        </ion-button>
+        <ion-button type="button" expand="block" class="btn-primary" [disabled]="loading" (click)="goToLogin()">
+          Iniciar Sesión
         </ion-button>
       </form>
     </div>
