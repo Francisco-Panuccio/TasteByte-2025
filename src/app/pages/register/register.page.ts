@@ -42,6 +42,9 @@ export class RegisterPage {
 
   formRegister = this.fb.group({
     fullname: ["", [Validators.required]],
+    lastname: ["", [Validators.required]], 
+    documentNumber: ["", [Validators.required]], 
+    profile: ["", [Validators.required]], 
     email: ["", [Validators.required, Validators.email]],
     password: ["", [Validators.required, Validators.minLength(6)]],
     confirm: ["", [Validators.required]],
