@@ -65,7 +65,7 @@ export class Splash implements OnInit {
       if (this.lottieAnimation) {
         this.lottieAnimation.destroy(); 
       }
-      this.router.navigate(['/splash']);
+      this.router.navigate(['/login']);
     }, 5000);
   }
 }

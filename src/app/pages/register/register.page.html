@@ -1,13 +1,51 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>register</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content>
+  <div class="auth-container">
+    <div class="auth-card">
+      <h1 class="title">Registro</h1>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">register</ion-title>
-    </ion-toolbar>
-  </ion-header>
+      <form (ngSubmit)="onRegister()" [formGroup]="formRegister" >
+        <ion-item class="input-field">
+          <ion-input placeholder="Nombre" formControlName="fullname"></ion-input>
+        </ion-item>
+
+        <ion-item class="input-field">
+          <ion-input placeholder="Correo" type="email" formControlName="email"></ion-input>
+        </ion-item>
+        <div class="error">
+        @if((formRegister.get("email")?.hasError("email") ||
+        formRegister.get("email")?.hasError("required")) &&
+        formRegister.get("email")?.touched) {
+          <app-form-errors [control]="formRegister.controls.email"/>
+        }
+      </div>
+ 
+        <ion-item class="input-field">
+          <ion-input placeholder="Contraseña" type="password" formControlName="password"></ion-input>
+        </ion-item>
+        <div class="error">
+        @if((formRegister.get("password")?.hasError("minlength") ||
+        formRegister.get("password")?.hasError("required")) &&
+        formRegister.get("password")?.touched) {
+          <app-form-errors [control]="formRegister.controls.password"/>
+        }
+      </div>
+
+      <ion-item class="input-field">
+        <ion-input placeholder="Repetir Contraseña" type="password" formControlName="confirm" >
+        </ion-input>
+      </ion-item>
+      <div class="error">
+        @if((formRegister.get("confirm")?.hasError("passwordmatch") ||
+        formRegister.get("confirm")?.hasError("required")) &&
+        formRegister.get("confirm")?.touched) {
+          <app-form-errors [control]="formRegister.controls.confirm"/>
+        }
+      </div>
+
+        <ion-button type="button" expand="block" type="submit" class="btn-primary" [disabled]="loading">
+          {{ loading ? 'Registrando...' : 'Registrarse' }}
+        </ion-button>
+      </form>
+    </div>
+  </div>
 </ion-content>
