@@ -1,0 +1,154 @@
+import { Component, inject } from '@angular/core';
+import { FormBuilder, Validators } from '@angular/forms';
+import { Capacitor } from '@capacitor/core';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { supabase } from 'src/supabase.client';
+import { Cliente } from 'src/app/interfaces/cliente';
+import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
+import { Filesystem } from '@capacitor/filesystem';
+
+@Component({
+  selector: 'app-alta-cliente',
+  templateUrl: './alta-cliente.page.html',
+  styleUrls: ['./alta-cliente.page.scss'],
+  standalone: false
+})
+export class AltaClientePage {
+  private fb = inject(FormBuilder);
+  private readonly platform = Capacitor.getPlatform();
+
+  loading = false;
+  ok = false;
+  err: string | null = null;
+  escaneando = false;
+
+  formAltaCliente = this.fb.group({
+    nombres: ['', [Validators.required, Validators.minLength(2)]],
+    apellidos: ['', [Validators.required, Validators.minLength(2)]],
+    dni: ['', [Validators.required, Validators.pattern(/^\d{7,10}$/)]],
+    correo: ['', [Validators.required, Validators.email]],
+    clave: ['', [Validators.required, Validators.minLength(6)]],
+    foto: ['', [Validators.required]]
+  });
+
+  get f() { return this.formAltaCliente.controls; }
+
+  // ------------------ Escaneo DNI ------------------
+  async escanearDNI() {
+    this.err = null;
+    this.escaneando = true;
+
+    try {
+      const result = await BarcodeScanner.scan();
+
+      if (result.barcodes && result.barcodes.length > 0) {
+        const valor = result.barcodes[0].displayValue || '';
+        const partes = valor.split('@');
+
+        if (partes.length >= 8) {
+          const [numTramite, apellido, nombre, sexo, dni] = partes;
+
+          this.formAltaCliente.patchValue({
+            nombres: nombre || '',
+            apellidos: apellido || '',
+            dni: dni || ''
+          });
+        } else {
+          this.err = 'QR inválido o incompleto';
+        }
+      } else {
+        this.err = 'No se detectó ningún código';
+      }
+
+    } catch (e) {
+      console.error(e);
+      this.err = 'Error al escanear el DNI';
+    } finally {
+      this.escaneando = false;
+    }
+  }
+
+  // ------------------ Tomar Foto ------------------
+  async sacarFoto() {
+  this.err = null;
+
+  try {
+    // Tomar la foto desde la cámara
+    const photo = await Camera.getPhoto({
+      resultType: CameraResultType.Base64, // Base64 está bien
+      quality: 85,
+      source: CameraSource.Camera
+    });
+
+    if (!photo.base64String) throw new Error('Foto inválida');
+
+    // Convertir a Blob
+    const blob = this.base64ToBlob(photo.base64String, 'image/jpeg');
+    const fileName = `cliente_${Date.now()}.jpg`;
+    const filePath = `clientes/${fileName}`;
+
+    // Subir a Supabase
+    const { error } = await supabase.storage
+      .from('clientes')
+      .upload(filePath, blob, {
+        contentType: 'image/jpeg',
+        upsert: true
+      });
+
+    if (error) throw error;
+
+    // Obtener URL pública
+    const { data } = supabase.storage.from('clientes').getPublicUrl(filePath);
+    this.formAltaCliente.patchValue({ foto: data.publicUrl });
+
+  } catch (e) {
+    console.error(e);
+    this.err = 'Error al tomar la foto';
+  }
+}
+
+// Función para convertir Base64 a Blob
+private base64ToBlob(base64: string, type = 'application/octet-stream') {
+  const byteCharacters = atob(base64);
+  const byteNumbers = new Array(byteCharacters.length);
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  }
+  const byteArray = new Uint8Array(byteNumbers);
+  return new Blob([byteArray], { type });
+}
+
+
+  // ------------------ Enviar ------------------
+  async enviar() {
+    this.err = null; this.ok = false;
+    if (this.formAltaCliente.invalid) {
+      this.formAltaCliente.markAllAsTouched();
+      return;
+    }
+
+    this.loading = true;
+    try {
+      const payload: Cliente = {
+        nombres: String(this.f['nombres'].value).trim(),
+        apellidos: String(this.f['apellidos'].value).trim(),
+        dni: String(this.f['dni'].value).trim(),
+        correo: String(this.f['correo'].value).trim(),
+        clave: String(this.f['clave'].value).trim(),
+        perfil: 'cliente',
+        estado: 'pendiente',
+        foto: String(this.f['foto'].value)
+      };
+
+      const { error } = await supabase.from('clientes').insert(payload);
+      if (error) throw error;
+
+      this.ok = true;
+      this.formAltaCliente.reset();
+    } catch {
+      this.err = 'No se pudo registrar el cliente';
+    } finally {
+      this.loading = false;
+    }
+  }
+}

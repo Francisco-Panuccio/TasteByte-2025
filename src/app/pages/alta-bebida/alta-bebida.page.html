@@ -1,0 +1,82 @@
+@if(loading) {
+  <app-loading></app-loading>
+} @else {
+  <ion-header>
+    <ion-toolbar>
+      <ion-title>Agregar Bebida</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content class="ion-padding">
+    <form [formGroup]="formAltaBebida" novalidate>
+      
+      <!-- Nombre -->
+      <ion-item>
+        <ion-input label="Nombre" labelPlacement="floating" formControlName="nombre"></ion-input>
+      </ion-item>
+      @if(f.nombre.touched && f.nombre.invalid) {
+        <app-form-errors [control]="f.nombre"></app-form-errors>
+      }
+
+      <!-- Descripción -->
+      <ion-item>
+        <ion-textarea label="Descripción" labelPlacement="floating" formControlName="descripcion" autoGrow="true"></ion-textarea>
+      </ion-item>
+      @if(f.descripcion.touched && f.descripcion.invalid) {
+        <app-form-errors [control]="f.descripcion"></app-form-errors>
+      }
+
+      <!-- Tiempo -->
+      <ion-item>
+        <ion-input type="number" label="Tiempo (min)" labelPlacement="floating" formControlName="tiempo_elaboracion_min"></ion-input>
+      </ion-item>
+      @if(f.tiempo_elaboracion_min.touched && f.tiempo_elaboracion_min.invalid) {
+        <app-form-errors [control]="f.tiempo_elaboracion_min"></app-form-errors>
+      }
+
+      <!-- Precio -->
+      <ion-item>
+        <ion-input type="number" inputmode="decimal" label="Precio" labelPlacement="floating" formControlName="precio"></ion-input>
+      </ion-item>
+      @if(f.precio.touched && f.precio.invalid) {
+        <app-form-errors [control]="f.precio"></app-form-errors>
+      }
+
+      <!-- Fotos -->
+      <div class="fotos">
+        @for (c of fotosFA.controls; track $index; let i = $index) {
+          <div class="slot">
+            @if(!!c.value) {
+              <img [src]="c.value" alt="foto {{ i + 1 }}">
+            }
+            <div class="acciones">
+              <ion-button size="small" (click)="elegirFoto(i,'cam')">Cámara</ion-button>
+              <ion-button size="small" fill="outline" (click)="elegirFoto(i,'gal')">Galería</ion-button>
+            </div>
+          </div>
+        }
+      </div>
+      @if(fotosFA.invalid && (fotosFA.dirty || fotosFA.touched)) {
+        <ion-item lines="none">
+          <ion-label color="danger">Debes cargar las 3 fotos</ion-label>
+        </ion-item>
+      }
+
+      <!-- Botón Guardar -->
+      <ion-button expand="block" [disabled]="formAltaBebida.invalid" (click)="enviar()">Guardar</ion-button>
+
+      <!-- Mensajes de error / éxito -->
+      @if(err) {
+        <ion-item lines="none">
+          <ion-label color="danger">{{ err }}</ion-label>
+        </ion-item>
+      }
+
+      @if(ok) {
+        <ion-item lines="none">
+          <ion-label color="success">Bebida creada con éxito 🍹</ion-label>
+        </ion-item>
+      }
+    </form>
+  </ion-content>
+}
