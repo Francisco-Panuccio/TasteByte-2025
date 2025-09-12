@@ -28,12 +28,22 @@ const routes: Routes = [
     loadChildren: () => import('./pages/loading/loading.module').then( m => m.LoadingPageModule)
   },
   {
+<<<<<<< HEAD
+    path: 'alta-bebida',
+    loadChildren: () => import('./pages/alta-bebida/alta-bebida.module').then( m => m.AltaBebidaPageModule)
+  },
+  {
+    path: 'alta-cliente',
+    loadChildren: () => import('./pages/alta-cliente/alta-cliente.module').then( m => m.AltaClientePageModule)
+  },
+  {
     path: 'login',
     loadChildren: () => import('./pages/login/login.module').then( m => m.LoginPageModule)
   },
   {
     path: 'register',
     loadChildren: () => import('./pages/register/register.module').then( m => m.RegisterPageModule)
+>>>>>>> main
   },
 
 

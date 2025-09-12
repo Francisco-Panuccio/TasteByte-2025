@@ -36,4 +36,6 @@ export class Bebidas {
     const { error } = await supabase.from(this.table).delete().eq('id', id)
     if (error) throw error
   }
+
+
 }
