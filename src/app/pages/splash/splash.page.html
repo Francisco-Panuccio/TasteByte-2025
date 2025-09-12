@@ -1,35 +1,54 @@
-
 <ion-content [fullscreen]="true" class="splash-container">
+  
+  <!-- Textura sutil -->
+  <div class="textura-sutil"></div>
+
   <div class="contenido-centrado">
-
+    
+    <!-- Logo de la aplicación -->
     <div class="logo-container">
-      <img src="./assets/icon/logo.png" class="logo" alt="Logo Restaurante">
+      <img src="./assets/icon/logo.png" class="logo" alt="Logo TasteByte">
     </div>
 
+    <!-- Título y subtítulo -->
     <h1 class="titulo">TasteByte</h1>
+    <div class="subtitulo">Experiencia gastronómica única</div>
 
+    <!-- Integrantes del grupo -->
     <div class="integrantes">
-      <h3>Integrantes:</h3>
-      <ion-list lines="none">
-        <ion-item>
-          <ion-avatar slot="start">
-            <img src="assets/integrantes/logo.png">
+      <h3>Integrantes</h3>
+      <div class="lista-integrantes">
+        <div class="integrante-item">
+          <ion-avatar>
+            <img src="./assets/images/chef.png" alt="Roman">
           </ion-avatar>
-          <ion-label>Roman Tomas</ion-label>
-        </ion-item>
-        <ion-item>
-          <ion-avatar slot="start">
-            <img src="assets/integrantes/logo.png">
+          <div class="contenedor-nombre">
+            <span class="integrante-nombre">Roman Tomas</span>
+          </div>
+        </div>
+        <div class="integrante-item">
+          <ion-avatar>
+            <img src="./assets/images/chef.png" alt="Francisco">
           </ion-avatar>
-          <ion-label>Panuccio Fransisco</ion-label>
-        </ion-item>
-        <ion-item>
-          <ion-avatar slot="start">
-            <img src="assets/integrantes/logo.png">
+          <div class="contenedor-nombre">
+            <span class="integrante-nombre">Panuccio Francisco</span>
+          </div>
+        </div>
+        <div class="integrante-item">
+          <ion-avatar>
+            <img src="./assets/images/chef.png" alt="Joaquín">
           </ion-avatar>
-          <ion-label>Avallone Joaquin</ion-label>
-        </ion-item>
-      </ion-list>
+          <div class="contenedor-nombre">
+            <span class="integrante-nombre">Avalone Joaquín</span>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <!-- Loading indicator -->
+    <div class="loading-indicator">
+      <div class="loading-bar"></div>
+    </div>
+
   </div>
 </ion-content>
