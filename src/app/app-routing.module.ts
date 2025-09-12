@@ -28,7 +28,6 @@ const routes: Routes = [
     loadChildren: () => import('./pages/loading/loading.module').then( m => m.LoadingPageModule)
   },
   {
-<<<<<<< HEAD
     path: 'alta-bebida',
     loadChildren: () => import('./pages/alta-bebida/alta-bebida.module').then( m => m.AltaBebidaPageModule)
   },
@@ -43,10 +42,7 @@ const routes: Routes = [
   {
     path: 'register',
     loadChildren: () => import('./pages/register/register.module').then( m => m.RegisterPageModule)
->>>>>>> main
   },
-
-
 ];
 
 @NgModule({
