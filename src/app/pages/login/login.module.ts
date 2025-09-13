@@ -8,6 +8,7 @@ import { LoginPageRoutingModule } from './login-routing.module';
 
 import { LoginPage } from './login.page';
 import { FormErrorsPage } from '../form-errors/form-errors.page';
+import { LoadingPage } from '../loading/loading.page';
 
 @NgModule({
   imports: [
@@ -16,7 +17,8 @@ import { FormErrorsPage } from '../form-errors/form-errors.page';
     IonicModule,
     FormErrorsPage,
     ReactiveFormsModule,
-    LoginPageRoutingModule
+    LoginPageRoutingModule,
+    LoadingPage
   ],
   declarations: [LoginPage]
 })

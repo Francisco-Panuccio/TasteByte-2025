@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
@@ -15,12 +15,12 @@ import { Perfil } from 'src/app/interfaces/perfil';
   styleUrls: ['./alta-mesa.page.scss'],
   standalone: false
 })
-export class AltaMesaPage {
+export class AltaMesaPage implements OnInit{
   private fb = inject(FormBuilder);
   private mesasSvc = inject(Mesas);
   private auth = inject(AuthService);
 
-  loading = false;
+  loading = true;
   ok = false;
   err: string | null = null;
 
@@ -35,6 +35,10 @@ export class AltaMesaPage {
   });
 
   get f() { return this.formAltaMesa.controls; }
+
+  ngOnInit() {
+    setTimeout(() => this.loading = false, 2000);
+  }
 
   private tipoValido(): ValidatorFn {
     return (c: AbstractControl) =>

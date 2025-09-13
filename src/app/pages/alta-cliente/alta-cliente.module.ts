@@ -8,6 +8,7 @@ import { AltaClientePageRoutingModule } from './alta-cliente-routing.module';
 
 import { AltaClientePage } from './alta-cliente.page';
 import { FormErrorsPage } from '../form-errors/form-errors.page';
+import { LoadingPage } from '../loading/loading.page';
 
 
 @NgModule({
@@ -17,7 +18,8 @@ import { FormErrorsPage } from '../form-errors/form-errors.page';
     IonicModule,
     FormErrorsPage,
     ReactiveFormsModule,
-    AltaClientePageRoutingModule
+    AltaClientePageRoutingModule,
+    LoadingPage
   ],
   declarations: [AltaClientePage]
 })
