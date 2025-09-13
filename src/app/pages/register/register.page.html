@@ -1,0 +1,128 @@
+<ion-content>
+  <div class="auth-container">
+    <div class="auth-card">
+      <h1 class="title">Registro</h1>
+
+      <form (ngSubmit)="onRegister()" [formGroup]="formRegister">
+        <ion-item class="input-field">
+          <ion-input
+            placeholder="Apellido"
+            type="text"
+            formControlName="lastname"
+          ></ion-input>
+        </ion-item>
+        @if((formRegister.get("lastname")?.hasError("required")) &&
+        formRegister.get("lastname")?.touched) {
+          <app-form-errors [control]="formRegister.controls.lastname" />
+        }
+
+        <ion-item class="input-field">
+          <ion-input
+            placeholder="Nombre"
+            type="text"
+            formControlName="fullname"
+          ></ion-input>
+        </ion-item>
+        @if((formRegister.get("fullname")?.hasError("required")) &&
+        formRegister.get("fullname")?.touched) {
+          <app-form-errors [control]="formRegister.controls.fullname" />
+        }
+
+        <ion-item class="input-field">
+          <ion-input
+            placeholder="Correo Electrónico"
+            type="email"
+            formControlName="email"
+          ></ion-input>
+        </ion-item>
+        <div class="error">
+          @if((formRegister.get("email")?.hasError("email") ||
+          formRegister.get("email")?.hasError("required")) &&
+          formRegister.get("email")?.touched) {
+            <app-form-errors [control]="formRegister.controls.email" />
+          }
+        </div>
+
+        <ion-item class="input-field">
+          <ion-input
+            placeholder="Contraseña"
+            type="password"
+            formControlName="password"
+          ></ion-input>
+        </ion-item>
+        <div class="error">
+          @if((formRegister.get("password")?.hasError("minlength") ||
+          formRegister.get("password")?.hasError("required")) &&
+          formRegister.get("password")?.touched) {
+            <app-form-errors [control]="formRegister.controls.password" />
+          }
+        </div>
+
+        <ion-item class="input-field">
+          <ion-input
+            placeholder="Repetir Contraseña"
+            type="password"
+            formControlName="confirm"
+          >
+          </ion-input>
+        </ion-item>
+        <div class="error">
+          @if((formRegister.get("confirm")?.hasError("passwordmatch") ||
+          formRegister.get("confirm")?.hasError("required")) &&
+          formRegister.get("confirm")?.touched) {
+            <app-form-errors [control]="formRegister.controls.confirm" />
+          }
+        </div>
+
+        <ion-item class="input-field">
+          <ion-input
+            placeholder="Número de Documento"
+            type="number"
+            formControlName="documentNumber"
+          ></ion-input>
+        </ion-item>
+        @if((formRegister.get("documentNumber")?.hasError("required")) &&
+        formRegister.get("documentNumber")?.touched) {
+          <app-form-errors [control]="formRegister.controls.documentNumber" />
+        }
+
+        <ion-item class="input-field">
+          <select formControlName="profile" class="profile-select">
+            <option value="" disabled selected>Selecciona un Perfil</option>
+            <option value="dueño">Dueño</option>
+            <option value="supervisor">Supervisor</option>
+            <option value="maître">Maître</option>
+            <option value="mozo">Mozo</option>
+            <option value="cocinero">Cocinero</option>
+            <option value="bartender">Bartender</option>
+            <option value="cliente-registrado">Cliente Registrado</option>
+            <option value="cliente-anonimo">Cliente Anónimo</option>
+          </select>
+        </ion-item>
+        @if((formRegister.get("profile")?.hasError("required")) &&
+        formRegister.get("profile")?.touched) {
+          <app-form-errors [control]="formRegister.controls.profile"/>
+        }
+
+        <ion-button
+          type="button"
+          expand="block"
+          type="submit"
+          class="btn-primary"
+          [disabled]="loading"
+        >
+          {{ loading ? 'Registrando...' : 'Registrarse' }}
+        </ion-button>
+        <ion-button
+          type="button"
+          expand="block"
+          class="btn-primary"
+          [disabled]="loading"
+          (click)="goToLogin()"
+        >
+          Iniciar Sesión
+        </ion-button>
+      </form>
+    </div>
+  </div>
+</ion-content>
