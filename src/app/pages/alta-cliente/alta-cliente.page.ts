@@ -5,7 +5,6 @@ import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { supabase } from 'src/supabase.client';
 import { Cliente } from 'src/app/interfaces/cliente';
 import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
-import { Filesystem } from '@capacitor/filesystem';
 
 @Component({
   selector: 'app-alta-cliente',

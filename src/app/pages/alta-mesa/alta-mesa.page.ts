@@ -4,9 +4,9 @@ import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem } from '@capacitor/filesystem';
 import { Mesa, TipoMesa } from 'src/app/interfaces/mesa';
-import { Mesas } from 'src/app/services/mesas';
+import { Mesas } from 'src/app/services/mesas/mesas';
 import { b64ToBlob } from '../../functions';
-import { AuthService } from 'src/app/services/auth';
+import { AuthService } from 'src/app/services/auth/auth';
 import { Perfil } from 'src/app/interfaces/perfil';
 
 @Component({
