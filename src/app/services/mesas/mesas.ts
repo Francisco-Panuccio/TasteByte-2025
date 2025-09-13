@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { supabase } from '../../supabase.client';
-import { Mesa } from '../interfaces/mesa';
+import { supabase } from '../../../supabase.client';
+import { Mesa } from '../../interfaces/mesa';
 
 @Injectable({
   providedIn: 'root'

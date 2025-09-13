@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { supabase } from '../../supabase.client';
-import { Plato } from '../interfaces/plato';
+import { supabase } from '../../../supabase.client';
+import { Plato } from '../../interfaces/plato';
 
 const BUCKET = 'platos';
 

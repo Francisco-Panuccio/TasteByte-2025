@@ -3,7 +3,7 @@ import { AbstractControl, AsyncValidatorFn, FormArray, FormBuilder, ValidatorFn,
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
 import { Bebida } from 'src/app/interfaces/bebida';
-import { Bebidas } from 'src/app/services/bebidas';
+import { Bebidas } from 'src/app/services/bebidas/bebidas';
 import { Perfil } from 'src/app/interfaces/perfil';
 import {supabase} from '../../../supabase.client';
 
