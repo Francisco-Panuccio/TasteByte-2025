@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { Capacitor } from '@capacitor/core';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
@@ -13,11 +13,11 @@ import { Filesystem } from '@capacitor/filesystem';
   styleUrls: ['./alta-cliente.page.scss'],
   standalone: false
 })
-export class AltaClientePage {
+export class AltaClientePage implements OnInit{
   private fb = inject(FormBuilder);
   private readonly platform = Capacitor.getPlatform();
 
-  loading = false;
+  loading = true;
   ok = false;
   err: string | null = null;
   escaneando = false;
@@ -32,6 +32,10 @@ export class AltaClientePage {
   });
 
   get f() { return this.formAltaCliente.controls; }
+
+  ngOnInit() {
+    setTimeout(() => this.loading = false, 2000);
+  }
 
   // ------------------ Escaneo DNI ------------------
   async escanearDNI() {

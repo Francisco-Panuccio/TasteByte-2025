@@ -1,10 +1,7 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from 'src/app/services/auth';
 import { FormBuilder, Validators } from '@angular/forms';
-
 
 @Component({
   selector: 'app-login',
@@ -12,19 +9,26 @@ import { FormBuilder, Validators } from '@angular/forms';
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss']
 })
-export class LoginPage {
+export class LoginPage implements OnInit {
+  loading: boolean = true;
   errorMsg: boolean = false;
-  email = '';
-  password = '';
-  errorMessage = '';
-  loading = false;
 
-  constructor(private fb: FormBuilder, private auth: AuthService, private router: Router) {}
+  formLogin: ReturnType<FormBuilder['group']>
 
-  formLogin = this.fb.group({
-    email: ["", [Validators.required, Validators.email]],
-    password: ["", [Validators.required, Validators.minLength(6)]],
-  });
+  constructor(private fb: FormBuilder, private auth: AuthService, private router: Router) {
+    this.formLogin = this.fb.group({
+      email: ["", [Validators.required, Validators.email]],
+      password: ["", [Validators.required, Validators.minLength(6)]],
+    })
+  }
+
+  async ngOnInit() {
+    const session = await this.auth.getSession();
+    if (session) {
+      this.router.navigateByUrl("/home", { replaceUrl: true });
+    }
+    setTimeout(() => this.loading = false, 2000);
+  }
 
   async onLogin() {
     this.errorMsg = false;
@@ -39,17 +43,13 @@ export class LoginPage {
       this.errorMsg = true;
       return;
     }
-
+    
     this.router.navigateByUrl("/home", { replaceUrl: true });
   }
 
   async quickLogin(user: { email: string, password: string }) {
-    this.formLogin.controls["email"].setValue(user.email);
-    this.formLogin.controls["password"].setValue(user.password);
+    this.formLogin.patchValue(user)
   }
 
-  goToRegister() {
-  this.router.navigate(['/register']);
-  }
-
+  closeError() { this.errorMsg = false; }
 }

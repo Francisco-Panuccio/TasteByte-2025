@@ -1,82 +1,86 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>Alta Cliente</ion-title>
-  </ion-toolbar>
-</ion-header>
+@if(loading) {
+  <app-loading/>
+} @else {
+  <ion-header [translucent]="true">
+    <ion-toolbar>
+      <ion-title>Alta Cliente</ion-title>
+    </ion-toolbar>
+  </ion-header>
 
-<ion-content [fullscreen]="true" class="ion-padding">
+  <ion-content [fullscreen]="true" class="ion-padding">
 
-  <form [formGroup]="formAltaCliente" (ngSubmit)="enviar()">
+    <form [formGroup]="formAltaCliente" (ngSubmit)="enviar()">
 
-    <!-- Nombres -->
-    <ion-item>
-      <ion-label position="floating">Nombres</ion-label>
-      <ion-input type="text" formControlName="nombres"></ion-input>
-    </ion-item>
-    <ion-text color="danger" *ngIf="f['nombres'].touched && f['nombres'].invalid">
-      <p *ngIf="f['nombres'].errors?.['required']">El nombre es obligatorio</p>
-      <p *ngIf="f['nombres'].errors?.['minlength']">Mínimo 2 caracteres</p>
-    </ion-text>
+      <!-- Nombres -->
+      <ion-item>
+        <ion-label position="floating">Nombres</ion-label>
+        <ion-input type="text" formControlName="nombres"></ion-input>
+      </ion-item>
+      <ion-text color="danger" *ngIf="f['nombres'].touched && f['nombres'].invalid">
+        <p *ngIf="f['nombres'].errors?.['required']">El nombre es obligatorio</p>
+        <p *ngIf="f['nombres'].errors?.['minlength']">Mínimo 2 caracteres</p>
+      </ion-text>
 
-    <!-- Apellidos -->
-    <ion-item>
-      <ion-label position="floating">Apellidos</ion-label>
-      <ion-input type="text" formControlName="apellidos"></ion-input>
-    </ion-item>
-    <ion-text color="danger" *ngIf="f['apellidos'].touched && f['apellidos'].invalid">
-      <p *ngIf="f['apellidos'].errors?.['required']">El apellido es obligatorio</p>
-      <p *ngIf="f['apellidos'].errors?.['minlength']">Mínimo 2 caracteres</p>
-    </ion-text>
+      <!-- Apellidos -->
+      <ion-item>
+        <ion-label position="floating">Apellidos</ion-label>
+        <ion-input type="text" formControlName="apellidos"></ion-input>
+      </ion-item>
+      <ion-text color="danger" *ngIf="f['apellidos'].touched && f['apellidos'].invalid">
+        <p *ngIf="f['apellidos'].errors?.['required']">El apellido es obligatorio</p>
+        <p *ngIf="f['apellidos'].errors?.['minlength']">Mínimo 2 caracteres</p>
+      </ion-text>
 
-    <!-- DNI -->
-    <ion-item>
-      <ion-label position="floating">DNI</ion-label>
-      <ion-input type="text" formControlName="dni"></ion-input>
-      <ion-button slot="end" (click)="escanearDNI()" type="button">📷 Escanear QR</ion-button>
-    </ion-item>
-    <ion-text color="danger" *ngIf="f['dni'].touched && f['dni'].invalid">
-      <p *ngIf="f['dni'].errors?.['required']">El DNI es obligatorio</p>
-      <p *ngIf="f['dni'].errors?.['pattern']">DNI inválido</p>
-    </ion-text>
+      <!-- DNI -->
+      <ion-item>
+        <ion-label position="floating">DNI</ion-label>
+        <ion-input type="text" formControlName="dni"></ion-input>
+        <ion-button slot="end" (click)="escanearDNI()" type="button">📷 Escanear QR</ion-button>
+      </ion-item>
+      <ion-text color="danger" *ngIf="f['dni'].touched && f['dni'].invalid">
+        <p *ngIf="f['dni'].errors?.['required']">El DNI es obligatorio</p>
+        <p *ngIf="f['dni'].errors?.['pattern']">DNI inválido</p>
+      </ion-text>
 
-    <!-- Correo -->
-    <ion-item>
-      <ion-label position="floating">Correo</ion-label>
-      <ion-input type="email" formControlName="correo"></ion-input>
-    </ion-item>
-    <ion-text color="danger" *ngIf="f['correo'].touched && f['correo'].invalid">
-      <p *ngIf="f['correo'].errors?.['required']">El correo es obligatorio</p>
-      <p *ngIf="f['correo'].errors?.['email']">Correo inválido</p>
-    </ion-text>
+      <!-- Correo -->
+      <ion-item>
+        <ion-label position="floating">Correo</ion-label>
+        <ion-input type="email" formControlName="correo"></ion-input>
+      </ion-item>
+      <ion-text color="danger" *ngIf="f['correo'].touched && f['correo'].invalid">
+        <p *ngIf="f['correo'].errors?.['required']">El correo es obligatorio</p>
+        <p *ngIf="f['correo'].errors?.['email']">Correo inválido</p>
+      </ion-text>
 
-    <!-- Clave -->
-    <ion-item>
-      <ion-label position="floating">Contraseña</ion-label>
-      <ion-input type="password" formControlName="clave"></ion-input>
-    </ion-item>
-    <ion-text color="danger" *ngIf="f['clave'].touched && f['clave'].invalid">
-      <p *ngIf="f['clave'].errors?.['required']">La contraseña es obligatoria</p>
-      <p *ngIf="f['clave'].errors?.['minlength']">Mínimo 6 caracteres</p>
-    </ion-text>
+      <!-- Clave -->
+      <ion-item>
+        <ion-label position="floating">Contraseña</ion-label>
+        <ion-input type="password" formControlName="clave"></ion-input>
+      </ion-item>
+      <ion-text color="danger" *ngIf="f['clave'].touched && f['clave'].invalid">
+        <p *ngIf="f['clave'].errors?.['required']">La contraseña es obligatoria</p>
+        <p *ngIf="f['clave'].errors?.['minlength']">Mínimo 6 caracteres</p>
+      </ion-text>
 
-    <!-- Foto -->
-    <ion-item>
-      <ion-label position="floating">Foto</ion-label>
-      <ion-input type="text" formControlName="foto" readonly></ion-input>
-      <ion-button slot="end" type="button" (click)="sacarFoto()">📸 Tomar foto</ion-button>
-    </ion-item>
-    <ion-text color="danger" *ngIf="f['foto'].touched && f['foto'].invalid">
-      <p>La foto es obligatoria</p>
-    </ion-text>
+      <!-- Foto -->
+      <ion-item>
+        <ion-label position="floating">Foto</ion-label>
+        <ion-input type="text" formControlName="foto" readonly></ion-input>
+        <ion-button slot="end" type="button" (click)="sacarFoto()">📸 Tomar foto</ion-button>
+      </ion-item>
+      <ion-text color="danger" *ngIf="f['foto'].touched && f['foto'].invalid">
+        <p>La foto es obligatoria</p>
+      </ion-text>
 
-    <!-- Errores generales -->
-    <ion-text color="danger" *ngIf="err">{{ err }}</ion-text>
-    <ion-text color="success" *ngIf="ok">Cliente registrado correctamente!</ion-text>
+      <!-- Errores generales -->
+      <ion-text color="danger" *ngIf="err">{{ err }}</ion-text>
+      <ion-text color="success" *ngIf="ok">Cliente registrado correctamente!</ion-text>
 
-    <ion-button expand="block" type="submit" [disabled]="loading">
-      {{ loading ? 'Guardando...' : 'Registrar Cliente' }}
-    </ion-button>
+      <ion-button expand="block" type="submit" [disabled]="loading">
+        {{ loading ? 'Guardando...' : 'Registrar Cliente' }}
+      </ion-button>
 
-  </form>
+    </form>
 
-</ion-content>
+  </ion-content>
+}

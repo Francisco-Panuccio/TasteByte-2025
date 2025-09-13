@@ -38,6 +38,10 @@ export class AltaPlatoPage {
   get f() { return this.formAltaPlato.controls; }
   get fotosFA(): FormArray { return this.formAltaPlato.get('fotos') as FormArray; }
 
+  ngOnInit() {
+    setTimeout(() => this.loading = false, 2000);
+  }
+
   // Perfil
   private getPerfilActual(): Perfil | null {
     const p = localStorage.getItem('perfil')?.toLowerCase() as Perfil | undefined;

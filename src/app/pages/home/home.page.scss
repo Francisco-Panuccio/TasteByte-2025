@@ -1,6 +1,5 @@
 #container {
   text-align: center;
-
   position: absolute;
   left: 0;
   right: 0;
@@ -14,14 +13,24 @@
 }
 
 #container p {
-  font-size: 16px;
-  line-height: 22px;
-
-  color: #8c8c8c;
-
-  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #554738;
+  margin: 10px 0;
 }
 
 #container a {
   text-decoration: none;
+}
+
+.ion_btns {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.btn_logged {
+  font-size: 20px;
+  font-weight: 600;
+  font-family: 'Times New Roman', Times, serif;
 }

@@ -4,20 +4,21 @@
   align-items: center;
   height: 100%;
   background-color: #bb714e;
-  padding: 1rem;
+  padding: 20px;
 }
 
 .auth-card {
-  background: #f8f5f0;
+  display: flex;
+  flex-direction: column;
+  background: #f8f5f0d2;
   padding: 2rem;
   border-radius: 20px;
   width: 100%;
   max-width: 400px;
   text-align: center;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-  display: flex;
-  flex-direction: column;
   gap: 1.5rem;
+  border: 2px solid black;
 }
 
 form {
@@ -37,29 +38,47 @@ form {
 
 .input-field {
   --background: transparent;
+  width: 100%;
   --border-width: 0px;
   --padding-start: 0;
   --inner-padding-end: 0;
   --highlight-color-focused: transparent;
-  width: 100%;
+}
+
+.div_error {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  border: 2px solid #554738;
+  width: fit-content;
+  padding: 20px 10px;
+  font-size: 20px;
+  text-align: center;
+  border-radius: 20px;
+  margin: 120px auto 0 auto;
+  background-color: #c5a076;
+  color: #554738;
+  letter-spacing: 2px;
 }
 
 ion-input {
   --color: #554738;
-  --placeholder-color: #a1887f;
+  --placeholder-color: #554738;
   border-radius: 12px;
   padding: 0.75rem 1rem !important;
-  border: 1px solid #d7b899;
+  border: 1px solid #d3a87c;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
   font-size: 1rem;
 }
 
 .btn-primary {
-  --background: #c5a076;
-  --color: #ffffff;
+  --background: #d7b899;
+  --color: #bb714e;
   --border-radius: 12px;
-  margin-top: 1rem;
-  font-weight: 600;
+  margin: 10px 0;
+  font-weight: 800;
   height: 48px;
 }
 
@@ -68,13 +87,9 @@ ion-input {
   --color: #554738;
   --border-radius: 12px;
   margin-top: 0.5rem;
-  font-weight: 500;
-}
-
-.error-message {
-  color: #e76f51;
-  font-size: 0.9rem;
-  margin: -0.5rem 0 1rem;
+  font-weight: 600;
+  width: 50%;
+  align-self: center;
 }
 
 .quick-logins {
@@ -85,7 +100,8 @@ ion-input {
   .subtitle {
     font-weight: 600;
     color: #5d4b3c;
-    margin-bottom: 0;
+    margin: 0 0 0 0;
+    text-decoration: underline;
   }
 }
 
@@ -118,7 +134,7 @@ ion-input {
     --border-style: solid;
     --border-width: 1px;
     --border-radius: 12px;
-    font-weight: 500;
+    font-weight: 600;
     height: 44px;
   }
 }
