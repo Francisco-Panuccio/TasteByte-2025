@@ -49,7 +49,7 @@ export class AltaClientePage implements OnInit{
         const partes = valor.split('@');
 
         if (partes.length >= 8) {
-          const [numTramite, apellido, nombre, sexo, dni] = partes;
+          const [, apellido, nombre, , dni] = partes;
 
           this.formAltaCliente.patchValue({
             nombres: nombre || '',
@@ -62,7 +62,6 @@ export class AltaClientePage implements OnInit{
       } else {
         this.err = 'No se detectó ningún código';
       }
-
     } catch (e) {
       console.error(e);
       this.err = 'Error al escanear el DNI';
@@ -73,54 +72,67 @@ export class AltaClientePage implements OnInit{
 
   // ------------------ Tomar Foto ------------------
   async sacarFoto() {
-  this.err = null;
+    this.err = null;
 
-  try {
-    // Tomar la foto desde la cámara
-    const photo = await Camera.getPhoto({
-      resultType: CameraResultType.Base64, // Base64 está bien
-      quality: 85,
-      source: CameraSource.Camera
-    });
+    try {
+      // Pedir permisos en Android/iOS
+      if (this.platform !== 'web') {
+        const status = await Camera.requestPermissions({ permissions: ['camera'] });
+        if (status.camera !== 'granted') {
+          this.err = 'Permiso de cámara denegado';
+          return;
+        }
+      }
 
-    if (!photo.base64String) throw new Error('Foto inválida');
-
-    // Convertir a Blob
-    const blob = this.base64ToBlob(photo.base64String, 'image/jpeg');
-    const fileName = `cliente_${Date.now()}.jpg`;
-    const filePath = `clientes/${fileName}`;
-
-    // Subir a Supabase
-    const { error } = await supabase.storage
-      .from('clientes')
-      .upload(filePath, blob, {
-        contentType: 'image/jpeg',
-        upsert: true
+      // Tomar foto
+      const photo = await Camera.getPhoto({
+        resultType: CameraResultType.Uri,
+        quality: 85,
+        source: CameraSource.Camera
       });
 
-    if (error) throw error;
+      let blob: Blob;
+      let ext = 'jpg';
 
-    // Obtener URL pública
-    const { data } = supabase.storage.from('clientes').getPublicUrl(filePath);
-    this.formAltaCliente.patchValue({ foto: data.publicUrl });
+      if (photo.webPath) {
+        // WebPath funciona en web y mobile
+        const response = await fetch(photo.webPath);
+        blob = await response.blob();
+        ext = blob.type.includes('png') ? 'png' : 'jpg';
+      } else if (photo.base64String) {
+        blob = this.base64ToBlob(photo.base64String, 'image/jpeg');
+      } else {
+        throw new Error('No se pudo obtener la imagen');
+      }
 
-  } catch (e) {
-    console.error(e);
-    this.err = 'Error al tomar la foto';
+      // Subir a Supabase
+      const fileName = `cliente_${Date.now()}.${ext}`;
+      const filePath = `clientes/${fileName}`;
+
+      const { error } = await supabase.storage
+        .from('clientes')
+        .upload(filePath, blob, { contentType: blob.type, upsert: true });
+
+      if (error) throw error;
+
+      const { data } = supabase.storage.from('clientes').getPublicUrl(filePath);
+      this.formAltaCliente.patchValue({ foto: data.publicUrl });
+
+    } catch (e: any) {
+      console.error('Error al tomar la foto:', e);
+      this.err = `Error al tomar la foto: ${e.message || e}`;
+    }
   }
-}
 
-// Función para convertir Base64 a Blob
-private base64ToBlob(base64: string, type = 'application/octet-stream') {
-  const byteCharacters = atob(base64);
-  const byteNumbers = new Array(byteCharacters.length);
-  for (let i = 0; i < byteCharacters.length; i++) {
-    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  // ------------------ Utilidad ------------------
+  private base64ToBlob(base64: string, type = 'application/octet-stream') {
+    const byteCharacters = atob(base64);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    return new Blob([new Uint8Array(byteNumbers)], { type });
   }
-  const byteArray = new Uint8Array(byteNumbers);
-  return new Blob([byteArray], { type });
-}
-
 
   // ------------------ Enviar ------------------
   async enviar() {
@@ -148,7 +160,8 @@ private base64ToBlob(base64: string, type = 'application/octet-stream') {
 
       this.ok = true;
       this.formAltaCliente.reset();
-    } catch {
+    } catch (e) {
+      console.error(e);
       this.err = 'No se pudo registrar el cliente';
     } finally {
       this.loading = false;
