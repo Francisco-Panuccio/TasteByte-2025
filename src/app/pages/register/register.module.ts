@@ -8,6 +8,7 @@ import { RegisterPageRoutingModule } from './register-routing.module';
 
 import { RegisterPage } from './register.page';
 import { FormErrorsPage } from '../form-errors/form-errors.page';
+import { LoadingPage } from '../loading/loading.page';
 
 @NgModule({
   imports: [
@@ -16,7 +17,8 @@ import { FormErrorsPage } from '../form-errors/form-errors.page';
     ReactiveFormsModule,
     FormErrorsPage,
     IonicModule,
-    RegisterPageRoutingModule
+    RegisterPageRoutingModule,
+    LoadingPage
   ],
   declarations: [RegisterPage]
 })

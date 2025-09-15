@@ -1,30 +1,28 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>
-      Blank
-    </ion-title>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
+@if(loading) {
+  <app-loading/>
+} @else {
+  <ion-header>
     <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
+      <ion-title style="font-size: 30px;">
+        TasteByte
+      </ion-title>
     </ion-toolbar>
   </ion-header>
 
-  <div id="container">
-    <p routerLink="/alta-plato">Alta Platos</p>
-    <p routerLink="/alta-mesa">Alta Mesas</p>
-    <p  routerLink="/alta-bebida">Alta Bebidas</p>
-    <p routerLink="/alta-cliente">Alta Clientes</p>
-  </div>
-</ion-content>
+  <ion-content>
+    <div id="container">
+      <p routerLink="/alta-plato">Alta Platos</p>
+      <p routerLink="/alta-mesa">Alta Mesas</p>
+      <p routerLink="/alta-bebida">Alta Bebidas</p>
+      <p routerLink="/alta-cliente">Alta Clientes</p>
+    </div>
+  </ion-content>
 
-<ion-footer>
-  <ion-toolbar>
-    <ion-buttons class="ion_btns">
-      <ion-button class="btn_logged" style="font-size:28px;" (click)="logOut()">Salir</ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-footer>
+  <ion-footer>
+    <ion-toolbar>
+      <ion-buttons class="ion_btns">
+        <ion-button class="btn_logged" (click)="logOut()">Salir</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-footer>
+}

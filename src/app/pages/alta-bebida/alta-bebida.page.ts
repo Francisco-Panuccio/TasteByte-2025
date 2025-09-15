@@ -1,9 +1,9 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { AbstractControl, AsyncValidatorFn, FormArray, FormBuilder, ValidatorFn, Validators } from '@angular/forms';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
 import { Bebida } from 'src/app/interfaces/bebida';
-import { Bebidas } from 'src/app/services/bebidas';
+import { Bebidas } from 'src/app/services/bebidas/bebidas';
 import { Perfil } from 'src/app/interfaces/perfil';
 import {supabase} from '../../../supabase.client';
 
@@ -13,12 +13,12 @@ import {supabase} from '../../../supabase.client';
   styleUrls: ['./alta-bebida.page.scss'],
   standalone: false
 })
-export class AltaBebidaPage {
+export class AltaBebidaPage implements OnInit{
   private fb = inject(FormBuilder);
   private bebidas = inject(Bebidas);
   private readonly platform = Capacitor.getPlatform();
 
-  loading = false;
+  loading = true;
   ok = false;
   err: string | null = null;
   accesoRestringido = false;
@@ -42,6 +42,10 @@ export class AltaBebidaPage {
 
   get f() { return this.formAltaBebida.controls; }
   get fotosFA(): FormArray { return this.formAltaBebida.get('fotos') as FormArray; }
+
+  ngOnInit() {
+    setTimeout(() => this.loading = false, 2000);
+  }
 
   constructor() {
     if (!this.esBartender()) {

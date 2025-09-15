@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { AuthService } from '../../services/auth';
+import { Component, OnInit } from '@angular/core';
+import { AuthService } from '../../services/auth/auth';
 import { Router } from '@angular/router';
 
 @Component({
@@ -8,9 +8,14 @@ import { Router } from '@angular/router';
   styleUrls: ['home.page.scss'],
   standalone: false,
 })
-export class HomePage {
-
+export class HomePage implements OnInit{
+  loading: boolean = true;
+  
   constructor(private auth : AuthService, private router : Router) {}
+
+  async ngOnInit() {
+    setTimeout(() => this.loading = false, 2000);
+  }
 
   async logOut() {
     try {

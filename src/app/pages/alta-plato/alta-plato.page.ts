@@ -4,7 +4,7 @@ import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Filesystem } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
 import { Plato } from 'src/app/interfaces/plato';
-import { Platos } from 'src/app/services/platos';
+import { Platos } from 'src/app/services/platos/platos';
 import { b64ToBlob } from '../../functions';
 import { Perfil } from 'src/app/interfaces/perfil';
 
@@ -37,6 +37,10 @@ export class AltaPlatoPage {
 
   get f() { return this.formAltaPlato.controls; }
   get fotosFA(): FormArray { return this.formAltaPlato.get('fotos') as FormArray; }
+
+  ngOnInit() {
+    setTimeout(() => this.loading = false, 2000);
+  }
 
   // Perfil
   private getPerfilActual(): Perfil | null {

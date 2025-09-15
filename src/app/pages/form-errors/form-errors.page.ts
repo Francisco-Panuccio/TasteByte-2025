@@ -21,6 +21,8 @@ export class FormErrorsPage {
     if (errors['max']) return `El valor máximo es ${errors['max'].max}`;
     if (errors['passwordmatch']) return 'Las contraseñas no coinciden';
     if (errors['nombreExistente']) return 'Ya existe en la carta';
+    if (errors['dni']) return 'DNI inválido';
+    if (errors['cuil']) return 'CUIL inválido';
     if (errors['fotosIncompletas']) return 'Debes subir las 3 fotos';
 
     return 'Error desconocido';
