@@ -1,17 +1,17 @@
 @if(loading) {
   <app-loading/>
 } @else {
-  @if(errorMsg) {
-    <ion-content class="ion-padding">
-      <div class="div_error">
-        <span>Usuario ya existente</span>
-        <ion-button fill="clear" expand="block" class="btn_close" (click)="closeError()">Cerrar</ion-button>
-      </div>
+    @if(errorMsg) {
+      <ion-content class="ion-padding">
+        <div class="div_error">
+          <span>Usuario ya existente</span>
+          <ion-button expand="block" class="btn_close" (click)="closeError()">Cerrar</ion-button>
+        </div>
 
-      <div class="img_background">
-        <ion-img src="assets/images/fondo.png" class="img"/>
-      </div>
-    </ion-content>
+        <div class="img_background">
+          <ion-img src="assets/icon/logo.png" class="img"/>
+        </div>
+      </ion-content>
   } @else {
     <ion-content>
       <div class="auth-container">
@@ -72,13 +72,28 @@
               }
             </div>
 
-            <ion-item class="input-field" lines="none">
-              <ion-input placeholder="Número de Documento" formControlName="documentNumber"></ion-input>
-            </ion-item>
+            <div class="div_dni_items">
+              <ion-item class="input-field-dni" lines="none">
+                <ion-input
+                  [placeholder]="formRegister.get('documentType')?.value === 'dni' ? 'Número de DNI' : 'Número de CUIL'"
+                  inputmode="numeric"
+                  formControlName="documentNumber">
+                </ion-input>
+              </ion-item>
+
+              <ion-item class="input-select-dni" lines="none">
+                <ion-select formControlName="documentType" interface="popover" placeholder="Tipo de Documento">
+                  <ion-select-option value="dni">DNI</ion-select-option>
+                  <ion-select-option value="cuil">CUIL</ion-select-option>
+                </ion-select>
+              </ion-item>
+            </div>
             <div class="error">
-              @if((formRegister.get("documentNumber")?.hasError("required")) &&
-              formRegister.get("documentNumber")?.touched) {
-                <app-form-errors [control]="formRegister.get('documentNumber')" />
+              @if(formRegister.get("documentNumber")?.touched &&
+                  (formRegister.get("documentNumber")?.hasError("required")
+                  || formRegister.get("documentNumber")?.hasError("dni")
+                  || formRegister.get("documentNumber")?.hasError("cuil"))) {
+                <app-form-errors [control]="formRegister.get('documentNumber')"/>
               }
             </div>
 

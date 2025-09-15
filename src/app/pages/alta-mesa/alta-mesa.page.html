@@ -35,7 +35,8 @@
       </div>
       @if(!!f['foto_url'].touched && !!f['foto_url'].invalid) { <app-form-errors [control]="f['foto_url']"/> }
 
-      <ion-button expand="block" [disabled]="formAltaMesa.invalid" (click)="enviar()">Guardar</ion-button>
+      <ion-button expand="block" [disabled]="formAltaMesa.invalid" (click)="enviar()">Guardar</ion-button>.
+      <ion-button expand="block" routerLink="/home">Volver</ion-button> 
 
       @if(err) { <ion-item lines="none"><ion-label color="danger">{{ err }}</ion-label></ion-item> }
       @if(ok)  { <ion-item lines="none"><ion-label color="success">Mesa Creada</ion-label></ion-item> }

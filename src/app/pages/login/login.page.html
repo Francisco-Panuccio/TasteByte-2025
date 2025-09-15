@@ -46,12 +46,20 @@
     
           <div class="quick-logins">
             <p class="subtitle">Accesos Rápidos:</p>
-            <ion-button expand="block" class="btn-secondary" (click)="quickLogin({email: 'tomas@hotmail.com', password: 'tomas12345'})">Admin</ion-button>
-            <ion-button expand="block" class="btn-secondary" (click)="quickLogin({email: 'tomas@hotmail.com', password: 'tomas12345'})">Usuario</ion-button>
+            <div class="quick_btns">
+              <ion-button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'tomas@hotmail.com', password: 'tomas12345'})">Ad</ion-button>
+              <ion-button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'dueno@hotmail.com', password: 'dueño12345'})">Dñ</ion-button>
+              <ion-button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'supervisor@hotmail.com', password: 'supervisor12345'})">Sv</ion-button>
+              <ion-button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'maitre@hotmail.com', password: 'maitre12345'})">Mt</ion-button>
+              <ion-button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'mozo@hotmail.com', password: 'mozo12345'})">Mz</ion-button>
+              <ion-button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'cocinero@hotmail.com', password: 'cocinero12345'})">Cc</ion-button>
+              <ion-button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'bartender@hotmail.com', password: 'bartender12345'})">Bt</ion-button>
+              <ion-button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'clienteregistrado@hotmail.com', password: 'clienteregistrado12345'})">CR</ion-button>
+            </div>
           </div>
     
           <div class="register-link">
-            <p style="text-decoration: underline; margin: 0 0 5px 0; font-weight: 600;">¿No tenés cuenta?</p>
+            <p style="text-decoration: underline; margin: -5px 0 5px 0; font-weight: 600;">¿No tenés cuenta?</p>
             <ion-button expand="block" routerLink="/register" style="--background: #554738; --color: white;">Crear Cuenta</ion-button>
           </div>
         </div>
