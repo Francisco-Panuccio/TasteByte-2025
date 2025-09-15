@@ -135,36 +135,50 @@ export class AltaClientePage implements OnInit{
   }
 
   // ------------------ Enviar ------------------
-  async enviar() {
-    this.err = null; this.ok = false;
-    if (this.formAltaCliente.invalid) {
-      this.formAltaCliente.markAllAsTouched();
-      return;
+ // ------------------ Enviar ------------------
+async enviar() {
+  this.err = null; 
+  this.ok = false;
+
+  if (this.formAltaCliente.invalid) {
+    this.formAltaCliente.markAllAsTouched();
+    return;
+  }
+
+  this.loading = true;
+  try {
+    const payload: Cliente = {
+      nombres: String(this.f['nombres'].value).trim(),
+      apellidos: String(this.f['apellidos'].value).trim(),
+      dni: String(this.f['dni'].value).trim(),
+      correo: String(this.f['correo'].value).trim(),
+      clave: String(this.f['clave'].value).trim(),
+      perfil: 'cliente',
+      estado: 'pendiente',
+      foto: String(this.f['foto'].value)
+    };
+
+    const { error } = await supabase.from('clientes').insert(payload);
+
+    if (error) {
+      if (error.message.includes('dni')) {
+        throw new Error('El DNI ya está registrado');
+      }
+      if (error.message.includes('correo')) {
+        throw new Error('El correo ya está registrado');
+      }
+      throw error;
     }
 
-    this.loading = true;
-    try {
-      const payload: Cliente = {
-        nombres: String(this.f['nombres'].value).trim(),
-        apellidos: String(this.f['apellidos'].value).trim(),
-        dni: String(this.f['dni'].value).trim(),
-        correo: String(this.f['correo'].value).trim(),
-        clave: String(this.f['clave'].value).trim(),
-        perfil: 'cliente',
-        estado: 'pendiente',
-        foto: String(this.f['foto'].value)
-      };
+    this.ok = true;
+    this.formAltaCliente.reset();
 
-      const { error } = await supabase.from('clientes').insert(payload);
-      if (error) throw error;
-
-      this.ok = true;
-      this.formAltaCliente.reset();
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      this.err = 'No se pudo registrar el cliente';
+      this.err = e.message || 'No se pudo registrar el cliente';
     } finally {
       this.loading = false;
     }
   }
+
 }
