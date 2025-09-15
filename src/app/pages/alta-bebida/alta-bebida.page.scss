@@ -1,0 +1,115 @@
+/* Fondo general */
+ion-content {
+  --background: #bb714e;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+/* Card contenedor */
+form {
+  background: #f8f5f0d2;
+  padding: 2rem;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  border: 2px solid black;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+/* Inputs */
+ion-item {
+  --background: transparent;
+  border-radius: 12px;
+  --border-width: 0px;
+  --inner-padding-end: 0;
+  --highlight-color-focused: transparent;
+}
+
+ion-input, ion-textarea {
+  --color: #554738;
+  --placeholder-color: #554738;
+  border-radius: 12px;
+  padding: 0.75rem 1rem !important;
+  border: 1px solid #d3a87c;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+  font-size: 1rem;
+}
+
+/* Bloque de fotos */
+.fotos {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.slot {
+  flex: 1;
+  background: #fffdf9;
+  border: 1px dashed #d3a87c;
+  border-radius: 12px;
+  padding: 10px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.slot img {
+  width: 100%;
+  max-height: 120px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 2px solid #d3a87c;
+}
+
+/* Botones cámara/galería */
+.acciones ion-button {
+  --background: #d7b899;
+  --color: #554738;
+  --border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  height: 36px;
+}
+
+/* Botón principal */
+ion-button[expand="block"] {
+  --background: #d7b899;
+  --color: #bb714e;
+  --border-radius: 12px;
+  font-weight: 800;
+  height: 48px;
+  margin-top: 10px;
+}
+
+/* Mensajes de error */
+ion-label[color="danger"] {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #bb2d3b !important;
+}
+
+/* Mensaje de éxito */
+ion-label[color="success"] {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2e7d32 !important;
+  text-align: center;
+  margin-top: 5px;
+}
+
+.volver{
+--background: #d7b899;
+--color: #bb714e;
+--border-radius: 12px;
+font-weight: 800;
+height: 48px;
+margin-top: 0px;
+}

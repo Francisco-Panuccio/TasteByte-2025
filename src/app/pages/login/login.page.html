@@ -1,80 +1,3 @@
-<<<<<<< HEAD
-<ion-content>
-  <div class="auth-container">
-    <div class="auth-card">
-      <h1 class="title">Iniciar Sesión</h1>
-
-      <form (ngSubmit)="onLogin()" [formGroup]="formLogin">
-        <ion-item class="input-field">
-          <ion-input
-            placeholder="Correo Electrónico"
-            type="email"
-            formControlName="email"
-          ></ion-input>
-        </ion-item>
-        <div class="error_email">
-          @if((formLogin.get("email")?.hasError("email") ||
-          formLogin.get("email")?.hasError("required")) &&
-          formLogin.get("email")?.touched) {
-          <app-form-errors [control]="formLogin.controls.email" />
-          }
-        </div>
-
-        <ion-item class="input-field" lines="none">
-          <ion-input
-            placeholder="Contraseña"
-            type="password"
-            formControlName="password"
-          ></ion-input>
-        </ion-item>
-        <div class="error_pass">
-          @if((formLogin.get("password")?.hasError("minlength") ||
-          formLogin.get("password")?.hasError("required")) &&
-          formLogin.get("password")?.touched) {
-          <app-form-errors [control]="formLogin.controls.password" />
-          }
-        </div>
-
-        <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
-
-        <ion-button
-          expand="block"
-          type="submit"
-          class="btn-primary"
-          [disabled]="loading"
-          [disabled]="formLogin.invalid"
-        >
-          {{ loading ? 'Ingresando...' : 'Ingresar' }}
-        </ion-button>
-      </form>
-
-      <div class="quick-logins">
-        <p class="subtitle">Accesos rápidos:</p>
-        <ion-button
-          type = "button"
-          expand="block"
-          class="btn-secondary"
-          (click)="quickLogin({email: 'tomas@hotmail.com', password: 'tomas12345'})"
-        >
-          Admin
-        </ion-button>
-        <ion-button
-          type = "button"
-          expand="block"
-          class="btn-secondary"
-          (click)="quickLogin({email: 'tomas@hotmail.com', password: 'tomas12345'})"
-        >
-          Usuario
-        </ion-button>
-      </div>
-
-      <div class="register-link">
-        <p>¿No tenés cuenta?</p>
-        <ion-button type = "button" class="btn-secondary" (click)="goToRegister()">
-          Crear cuenta
-        </ion-button>
-      </div>
-=======
 @if(loading) {
   <app-loading/>
 } @else {
@@ -83,7 +6,6 @@
     <div class="div_error">
       <span>Correo electrónico o contraseña inválidos</span>
       <ion-button fill="clear" expand="block" class="btn_close" (click)="closeError()">Cerrar</ion-button>
->>>>>>> main
     </div>
 
     <div class="img_background">

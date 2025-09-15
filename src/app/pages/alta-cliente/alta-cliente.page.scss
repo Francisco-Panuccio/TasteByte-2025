@@ -1,0 +1,103 @@
+/* Contenedor principal */
+ion-content {
+  --background: #bb714e;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+/* Card */
+form {
+  background: #f8f5f0d2;
+  padding: 2rem;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  border: 2px solid black;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Inputs */
+ion-item {
+  --background: transparent;
+  border-radius: 12px;
+  --border-width: 0px;
+  --inner-padding-end: 0;
+  --highlight-color-focused: transparent;
+  width: 100%;
+}
+
+ion-input {
+  --color: #554738;
+  --placeholder-color: #554738;
+  border-radius: 12px;
+  padding: 0.75rem 1rem !important;
+  border: 1px solid #d3a87c;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+  font-size: 1rem;
+}
+
+/* Botón registrar */
+ion-button[type="submit"] {
+  --background: #d7b899;
+  --color: #bb714e;
+  --border-radius: 12px;
+  font-weight: 800;
+  height: 48px;
+  margin-top: 10px;
+}
+
+/* Botón tomar foto y escanear */
+ion-button[type="button"] {
+  --background: #d7b899;
+  --color: #554738;
+  --border-radius: 12px;
+  font-weight: 600;
+  height: 40px;
+}
+
+/* Mensajes de error */
+ion-text[color="danger"] {
+  font-size: 0.9rem;
+  text-align: left;
+  color: #bb2d3b !important;
+}
+
+/* Mensaje de éxito */
+ion-text[color="success"] {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2e7d32 !important;
+  text-align: center;
+  margin-top: 10px;
+}
+
+/* Contenedor de preview */
+.preview-foto {
+  margin-top: 15px;
+  display: flex;
+  justify-content: center;
+}
+
+.preview-foto ion-img {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 2px solid #d3a87c;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.volver{
+--background: #d7b899;
+--color: #bb714e;
+--border-radius: 12px;
+font-weight: 800;
+height: 48px;
+margin-top: 0px;
+}

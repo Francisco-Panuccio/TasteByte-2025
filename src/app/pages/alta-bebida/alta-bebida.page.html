@@ -64,6 +64,7 @@
 
       <!-- Botón Guardar -->
       <ion-button expand="block" [disabled]="formAltaBebida.invalid" (click)="enviar()">Guardar</ion-button>
+      <ion-button class="volver" expand="block" routerLink="/home">Volver</ion-button>
 
       <!-- Mensajes de error / éxito -->
       @if(err) {
