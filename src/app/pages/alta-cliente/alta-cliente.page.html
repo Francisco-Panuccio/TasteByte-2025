@@ -62,6 +62,25 @@
         <p *ngIf="f['clave'].errors?.['minlength']">Mínimo 6 caracteres</p>
       </ion-text>
 
+    <!-- Foto -->
+    <ion-item>
+      <ion-label position="floating">Foto</ion-label>
+      <ion-input type="text" formControlName="foto" readonly></ion-input>
+      <ion-button slot="end" type="button" (click)="sacarFoto()">📸 Tomar foto</ion-button>
+    </ion-item>
+
+    <!-- Preview -->
+    <div *ngIf="f['foto'].value">
+      <ion-img [src]="f['foto'].value" alt="Foto cliente"></ion-img>
+    </div>
+
+    <ion-text color="danger" *ngIf="f['foto'].touched && f['foto'].invalid">
+      <p>La foto es obligatoria</p>
+    </ion-text>
+
+    <!-- Errores generales -->
+    <ion-text color="danger" *ngIf="err">{{ err }}</ion-text>
+    <ion-text color="success" *ngIf="ok">Cliente registrado correctamente!</ion-text>
       <!-- Foto -->
       <ion-item>
         <ion-label position="floating">Foto</ion-label>
