@@ -27,7 +27,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.splashAudio = this.media.create(src);
     try { this.splashAudio.play(); } catch { }
 
-    /*setTimeout(() => this.iniciarAnimacionesElementos(), 100);*/
+    setTimeout(() => this.iniciarAnimacionesElementos(), 100);
   }
 
   ngOnDestroy() {
@@ -35,7 +35,7 @@ export class AppComponent implements OnInit, OnDestroy {
     try { this.splashAudio?.release(); } catch { }
   }
 
-  /*private iniciarAnimacionesElementos() {
+  private iniciarAnimacionesElementos() {
     const logoElement = document.querySelector('.logo');
     const tituloElement = document.querySelector('.titulo');
     const integrantesElement = document.querySelector('.integrantes');
@@ -75,5 +75,5 @@ export class AppComponent implements OnInit, OnDestroy {
       this.showSplash = false,
       this.router.navigate(["/login"]);
     }, 5000);
-  }*/
+  }
 }
