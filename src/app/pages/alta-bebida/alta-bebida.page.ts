@@ -5,7 +5,9 @@ import { Capacitor } from '@capacitor/core';
 import { Bebida } from 'src/app/interfaces/bebida';
 import { Bebidas } from 'src/app/services/bebidas/bebidas';
 import { Perfil } from 'src/app/interfaces/perfil';
-import {supabase} from '../../../supabase.client';
+import { supabase } from '../../../supabase.client';
+import { AuthService } from 'src/app/services/auth/auth';
+
 
 @Component({
   selector: 'app-alta-bebida',
@@ -13,15 +15,15 @@ import {supabase} from '../../../supabase.client';
   styleUrls: ['./alta-bebida.page.scss'],
   standalone: false
 })
-export class AltaBebidaPage implements OnInit{
+export class AltaBebidaPage implements OnInit {
   private fb = inject(FormBuilder);
   private bebidas = inject(Bebidas);
+  private auth = inject(AuthService);
   private readonly platform = Capacitor.getPlatform();
 
   loading = true;
   ok = false;
   err: string | null = null;
-  accesoRestringido = false;
 
   formAltaBebida = this.fb.group({
     nombre: this.fb.control('', {
@@ -43,23 +45,43 @@ export class AltaBebidaPage implements OnInit{
   get f() { return this.formAltaBebida.controls; }
   get fotosFA(): FormArray { return this.formAltaBebida.get('fotos') as FormArray; }
 
-  ngOnInit() {
+  async ngOnInit() {
     setTimeout(() => this.loading = false, 2000);
-  }
 
-  constructor() {
-    if (!this.esBartender()) {
-      this.accesoRestringido = true;
-      this.formAltaBebida.disable();
-      this.err = 'Acceso restringido: solo bartender.';
+    const esBartender = await this.exigeBartender();
+    if (!esBartender) {
+      this.formAltaBebida.disable(); // bloquea todos los campos
     }
   }
 
-  private esBartender(): boolean {
-    const perfil = localStorage.getItem('perfil')?.toLowerCase() as Perfil | undefined;
-    return perfil === 'bartender';
+  // ------------------ Validar perfil ------------------
+  private async getPerfilActual(): Promise<Perfil | null> {
+    try {
+      const user = await this.auth.getUser();
+      if (!user?.email) return null;
+
+      const { data, error } = await supabase
+        .from('usuarios')
+        .select('perfil')
+        .eq('correo_electronico', user.email)
+        .single();
+
+      if (error || !data) return null;
+
+      return (data.perfil as string).toLowerCase() as Perfil;
+    } catch {
+      return null;
+    }
   }
 
+  private async exigeBartender(): Promise<boolean> {
+    const p = await this.getPerfilActual();
+    const ok = p === 'bartender';
+    if (!ok) this.err = 'Acceso restringido: solo bartender.';
+    return ok;
+  }
+
+  // ------------------ Validadores ------------------
   private nombreUnicoValidator(): AsyncValidatorFn {
     return async (control: AbstractControl) => {
       const v = String(control.value || '').trim();
@@ -72,14 +94,14 @@ export class AltaBebidaPage implements OnInit{
     };
   }
 
- private decimalesValidator(maxDecimales: number): ValidatorFn {
+  private decimalesValidator(maxDecimales: number): ValidatorFn {
     return (ctrl: AbstractControl) => {
-    const v = ctrl.value;
-    if (v == null || v === '') return null;
-    const regex = new RegExp(`^\\d+(\\.\\d{1,${maxDecimales}})?$`);
-    return regex.test(v) ? null : { decimales: true };
-  };
-}
+      const v = ctrl.value;
+      if (v == null || v === '') return null;
+      const regex = new RegExp(`^\\d+(\\.\\d{1,${maxDecimales}})?$`);
+      return regex.test(v) ? null : { decimales: true };
+    };
+  }
 
   private tresFotosCargadas(): ValidatorFn {
     return (fa: AbstractControl) => {
@@ -90,61 +112,59 @@ export class AltaBebidaPage implements OnInit{
     };
   }
 
+  // ------------------ Fotos ------------------
   async elegirFoto(slot: number, source?: 'cam' | 'gal') {
-    this.err = null;
-    try {
-      const photo = await Camera.getPhoto({
-        resultType: CameraResultType.Uri,
-        quality: 85,
-        source: source ? (source === 'cam' ? CameraSource.Camera : CameraSource.Photos) : CameraSource.Prompt
-      });
+  this.err = null;
+  if (!(await this.exigeBartender())) return;
 
-      let blob: Blob;
-      let ext = 'jpg';
+  try {
+    const photo = await Camera.getPhoto({
+      resultType: CameraResultType.Uri,
+      quality: 85,
+      source: source ? (source === 'cam' ? CameraSource.Camera : CameraSource.Photos) : CameraSource.Prompt
+    });
 
-      if (this.platform === 'web' && photo.webPath) {
-        const res = await fetch(photo.webPath);
-        blob = await res.blob();
-        ext = blob.type.includes('png') ? 'png' : 'jpg';
-      } else if (photo.base64String) {
+    let blob: Blob;
+    let ext = 'jpg';
 
-        const byteCharacters = atob(photo.base64String);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        blob = new Blob([new Uint8Array(byteNumbers)], { type: 'image/jpeg' });
-      } else {
-        throw new Error('sin datos de imagen');
-      }
-
-      const fileName = `bebida_${Date.now()}_${slot}.${ext}`;
-
-      const { error: uploadError } = await supabase
-        .storage
-        .from('bebidas')
-        .upload(fileName, blob, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase
-        .storage
-        .from('bebidas')
-        .getPublicUrl(fileName);
-
-      const publicUrl = data.publicUrl;
-
-
-      this.fotosFA.at(slot).setValue(publicUrl);
-      this.fotosFA.updateValueAndValidity();
-    } catch {
-      this.err = 'Error al cargar la foto';
+    if (photo.webPath) {
+      // WebPath funciona tanto en web como en móvil
+      const response = await fetch(photo.webPath);
+      blob = await response.blob();
+      ext = blob.type.includes('png') ? 'png' : 'jpg';
+    } else if (photo.base64String) {
+      // Si por algún motivo solo hay base64
+      blob = await fetch(`data:image/jpeg;base64,${photo.base64String}`).then(r => r.blob());
+    } else {
+      throw new Error('No se pudo obtener la imagen');
     }
-  }
 
+    const fileName = `bebida_${Date.now()}_${slot}.${ext}`;
+    const filePath = `bebidas/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('bebidas')
+      .upload(filePath, blob, { contentType: blob.type, upsert: true });
+
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage.from('bebidas').getPublicUrl(filePath);
+    this.fotosFA.at(slot).setValue(data.publicUrl);
+    this.fotosFA.updateValueAndValidity();
+
+  } catch (e: any) {
+    console.error('Error al cargar la foto:', e);
+    this.err = `Error al cargar la foto: ${e.message || e}`;
+  }
+}
+
+
+
+
+  // ------------------ Enviar ------------------
   async enviar() {
     this.err = null; this.ok = false;
-    if (this.accesoRestringido) return;
+    if (!(await this.exigeBartender())) return;
     if (this.formAltaBebida.invalid) { this.formAltaBebida.markAllAsTouched(); return; }
 
     this.loading = true;
@@ -167,7 +187,10 @@ export class AltaBebidaPage implements OnInit{
         precio: null,
         fotos: ['', '', '']
       });
-    } catch { this.err = 'No se pudo guardar la bebida'; }
-    finally { this.loading = false; }
+    } catch {
+      this.err = 'No se pudo guardar la bebida';
+    } finally {
+      this.loading = false;
+    }
   }
 }

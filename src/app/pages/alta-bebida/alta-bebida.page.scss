@@ -1,4 +1,4 @@
-/* Fondo general */
+/* ------------------ Fondo general ------------------ */
 ion-content {
   --background: #bb714e;
   display: flex;
@@ -7,27 +7,32 @@ ion-content {
   padding: 20px;
 }
 
-/* Card contenedor */
+/* ------------------ Formulario ------------------ */
 form {
   background: #f8f5f0d2;
-  padding: 2rem;
-  border-radius: 20px;
+  padding: 1rem;
+  border-radius: 15px;
   width: 100%;
-  max-width: 480px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-  border: 2px solid black;
+  max-width: 480px; /* Limita el ancho máximo del form */
+  box-sizing: border-box;
+  margin: 0 auto;
   display: flex;
-  flex-direction: column;
-  gap: 1.2rem;
+  flex-direction: column; /* Apila elementos verticalmente */
+  align-items: center;    /* Centra contenido horizontalmente */
 }
 
-/* Inputs */
+/* ------------------ Inputs ------------------ */
 ion-item {
   --background: transparent;
   border-radius: 12px;
   --border-width: 0px;
   --inner-padding-end: 0;
   --highlight-color-focused: transparent;
+  display: flex;
+  flex-direction: column; /* Label sobre input */
+  align-items: center;    /* Centrado horizontal */
+  width: 100%;
+  margin-bottom: 10px;
 }
 
 ion-input, ion-textarea {
@@ -38,78 +43,114 @@ ion-input, ion-textarea {
   border: 1px solid #d3a87c;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
   font-size: 1rem;
+  width: 90%; /* Anchura consistente y centrada */
 }
 
-/* Bloque de fotos */
+/* ------------------ Fotos contenedor ------------------ */
 .fotos {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 columnas */
+  justify-items: center; /* centra los slot-contenedor */
+  gap: 6px;
+  margin: 12px 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
-.slot {
-  flex: 1;
-  background: #fffdf9;
-  border: 1px dashed #d3a87c;
-  border-radius: 12px;
-  padding: 10px;
-  text-align: center;
+.slot-contenedor {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 4px; /* espacio entre slot y botones */
+  width: 100%;
+  max-width: 120px;
+}
+
+.slot {
+  width: 100%;
+  background: #fffdf9;
+  border: 1px dashed #d3a87c;
+  border-radius: 8px;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .slot img {
   width: 100%;
-  max-height: 120px;
-  border-radius: 12px;
+  height: 100%;
   object-fit: cover;
-  border: 2px solid #d3a87c;
+  border-radius: 5px;
+  border: 1px solid #d3a87c;
 }
 
-/* Botones cámara/galería */
+.slot ion-card-content {
+  padding: 0; /* elimina el padding que hace que la imagen no ocupe todo */
+  height: 100%;
+  display: flex;
+}
+
+
+/* ------------------ Botones fotos ------------------ */
+.acciones {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+}
+
 .acciones ion-button {
   --background: #d7b899;
   --color: #554738;
-  --border-radius: 12px;
+  --border-radius: 4px;
   font-weight: 600;
-  font-size: 0.8rem;
-  height: 36px;
+  font-size: 1rem;
+  height: 22px;
+  margin: 0 auto; /* Centrado horizontal */
+  --padding-start: 2px;
+  --padding-end: 2px;
+  width: 100%;
 }
 
-/* Botón principal */
+/* ------------------ Botón principal ------------------ */
 ion-button[expand="block"] {
   --background: #d7b899;
   --color: #bb714e;
   --border-radius: 12px;
   font-weight: 800;
   height: 48px;
-  margin-top: 10px;
+  margin: 10px auto 0 auto; /* Centrado */
 }
 
-/* Mensajes de error */
+/* ------------------ Mensajes ------------------ */
+ion-text {
+  text-align: center; /* Centrado de mensajes */
+}
+
 ion-label[color="danger"] {
   font-size: 0.9rem;
   font-weight: 600;
   color: #bb2d3b !important;
 }
 
-/* Mensaje de éxito */
 ion-label[color="success"] {
   font-size: 1rem;
   font-weight: 600;
   color: #2e7d32 !important;
-  text-align: center;
   margin-top: 5px;
 }
 
-.volver{
---background: #d7b899;
---color: #bb714e;
---border-radius: 12px;
-font-weight: 800;
-height: 48px;
-margin-top: 0px;
+/* ------------------ Botón volver ------------------ */
+.volver {
+  --background: #d7b899;
+  --color: #bb714e;
+  --border-radius: 12px;
+  font-weight: 800;
+  height: 48px;
+  margin-top: 0px;
 }
