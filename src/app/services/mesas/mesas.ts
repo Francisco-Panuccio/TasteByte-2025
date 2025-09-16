@@ -58,10 +58,7 @@ export class Mesas {
 
   async setQr(id: number, numero: number): Promise<void> {
     const contenido = `mesa:${id}:${numero}`;
-    const { error } = await supabase
-      .from(this.table)
-      .update({ qr_contenido: contenido, qr_generado_en: new Date().toISOString() })
-      .eq('id', id);
+    const { error } = await supabase.from(this.table).update({ qr_contenido: contenido, qr_generado_en: new Date().toISOString() }).eq('id', id);
     if (error) throw error;
   }
 }

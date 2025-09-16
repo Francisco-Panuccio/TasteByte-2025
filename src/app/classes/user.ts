@@ -1,13 +1,13 @@
 export class User {
-    id?: number;
+    id?: string;
     apellido: string;
     nombre: string;
-    dni?: number;
-    cuil?: number;
+    dni?: string;
+    cuil?: string;
     email: string;
     perfil: string;
 
-    constructor(apellido: string, nombre: string, email: string, perfil:string, dni?: number, cuil?: number, id?: number) {
+    constructor(apellido: string, nombre: string, email: string, perfil:string, dni?: string, cuil?: string, id?: string) {
         this.apellido = apellido;
         this.nombre = nombre;
         this.email = email;

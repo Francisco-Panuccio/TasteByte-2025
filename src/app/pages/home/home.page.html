@@ -9,14 +9,45 @@
     </ion-toolbar>
   </ion-header>
 
-  <ion-content>
-    <div id="container">
-      <p routerLink="/alta-plato">Alta Platos</p>
-      <p routerLink="/alta-mesa">Alta Mesas</p>
-      <p routerLink="/alta-bebida">Alta Bebidas</p>
-      <p routerLink="/alta-cliente">Alta Clientes</p>
-    </div>
-  </ion-content>
+  @if(isDuenoSupervisor) {
+    <ion-content>
+      <div id="container">
+        <p routerLink="/alta-plato">Alta Empleado</p>
+        <p routerLink="/alta-mesa">Alta Mesas</p>
+      </div>
+    </ion-content>
+  } @else if(isCocinero) {
+    <ion-content>
+      <div id="container">
+        <p routerLink="/alta-plato">Alta Platos</p>
+      </div>
+    </ion-content>
+  } @else if(isBartender) {
+    <ion-content>
+      <div id="container">
+        <p routerLink="/alta-bebida">Alta Bebidas</p>
+      </div>
+    </ion-content>
+  } @else if(isMaitreCliente) {
+    <ion-content>
+      <div id="container">
+        <p routerLink="/alta-cliente">Alta Clientes</p>
+      </div>
+    </ion-content>
+  } @else {
+    <ion-content>
+      <div id="container">
+        <div class="div_cont">
+          <p class="p_data">BIENVENIDO</p>
+          <span class="span_data">{{fullname}}</span>
+        </div>
+        <div class="div_cont">
+          <p class="p_data">PERFIL</p>
+          <span class="span_data">{{profile | titlecase}}</span>
+        </div>
+      </div>
+    </ion-content>
+  }
 
   <ion-footer>
     <ion-toolbar>

@@ -4,8 +4,8 @@ export interface Usuario {
     id?: number;
     apellidos: string;
     nombres: string;
-    numero_documento?: number | null;
-    numero_cuil?: number | null; 
+    numero_documento?: string | null; 
+    numero_cuil?: string | null;  
     correo_electronico: string;
     perfil: Perfil;
     foto_url?: string | null;

@@ -1,14 +1,10 @@
-export interface Cliente {
-    id?: number;
-    nombres: string;
-    apellidos: string;
-    dni: string;
-    cuil?: string | null;
-    correo: string;
-    clave: string;
-    perfil: "cliente" | "maitre";
-    foto: string;
-    estado: "pendiente" | "aprobado" | "rechazado";
-    creado_en?: string;
-    actualizado_en?: string;
+export interface ClienteRegistrado {
+  tipo: "cliente_registrado";
+  usuario_id: string;
+  estado: "pendiente" | "activo" | "rechazado";
+}
+
+export interface ClienteAnonimo {
+  tipo: "cliente_anonima";
+  estado: "pendiente" | "activo";
 }
