@@ -1,4 +1,3 @@
-// src/app/interfaces/perfil.ts
 export type Perfil =
   | 'dueño' | 'dueno'
   | 'supervisor'

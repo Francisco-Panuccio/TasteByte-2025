@@ -9,37 +9,46 @@
 
   <ion-content class="ion-padding">
     <form [formGroup]="formAltaMesa" novalidate>
-      <ion-item>
-        <ion-input type="number" label="Número" labelPlacement="floating" formControlName="numero"></ion-input>
+      <ion-item class="ion-item-input">
+        <ion-input type="number" placeholder="Número" formControlName="numero"></ion-input>
       </ion-item>
-      @if(!!f['numero'].touched && !!f['numero'].invalid) { <app-form-errors [control]="f['numero']"/> }
+      @if(!!f['numero'].touched && !!f['numero'].invalid) { <app-form-errors color="white" [control]="f['numero']"/> }
 
-      <ion-item>
-        <ion-input type="number" label="Capacidad" labelPlacement="floating" formControlName="capacidad"></ion-input>
+      <ion-item class="ion-item-input">
+        <ion-input type="number" placeholder="Capacidad" formControlName="capacidad"></ion-input>
       </ion-item>
-      @if(!!f['capacidad'].touched && !!f['capacidad'].invalid) { <app-form-errors [control]="f['capacidad']"/> }
+      @if(!!f['capacidad'].touched && !!f['capacidad'].invalid) { <app-form-errors color="white" [control]="f['capacidad']"/> }
 
-      <ion-item>
-        <ion-select label="Tipo" labelPlacement="floating" formControlName="tipo" interface="action-sheet">
-          @for (t of tipos; track t) { <ion-select-option [value]="t">{{ t }}</ion-select-option> }
-        </ion-select>
+      <ion-item class="ion-item-input">
+        <select formControlName="tipo" class="profile-select">
+          <option value="" disabled selected>Seleccionar Tipo de Mesa</option>
+          @for (t of tipos; track t.value) {
+            <option [value]="t.value">{{ t.label }}</option>
+          }
+        </select>
       </ion-item>
-      @if(!!f['tipo'].touched && !!f['tipo'].invalid) { <app-form-errors [control]="f['tipo']"/> }
+      @if(!!f['tipo'].touched && !!f['tipo'].invalid) { <app-form-errors color="white" [control]="f['tipo']"/> }
 
       <div class="foto">
         @if(!!f['foto_url'].value) { <img [src]="f['foto_url'].value" alt="foto mesa"> }
         <div class="acciones">
-          <ion-button size="small" (click)="elegirFoto('cam')">Cámara</ion-button>
-          <ion-button size="small" fill="outline" (click)="elegirFoto('gal')">Galería</ion-button>
+          <ion-button size="small" class="btn_slot_cam" (click)="elegirFoto('cam')">Cámara</ion-button>
+          <ion-button size="small" class="btn_slot_pho" (click)="elegirFoto('gal')">Galería</ion-button>
         </div>
       </div>
-      @if(!!f['foto_url'].touched && !!f['foto_url'].invalid) { <app-form-errors [control]="f['foto_url']"/> }
+      @if(!!f['foto_url'].touched && !!f['foto_url'].invalid) { 
+        <app-form-errors color="white" [control]="f['foto_url']"></app-form-errors> 
+      }
 
-      <ion-button expand="block" [disabled]="formAltaMesa.invalid" (click)="enviar()">Guardar</ion-button>.
-      <ion-button expand="block" routerLink="/home">Volver</ion-button> 
+      <ion-button class="btns_main" expand="block" [disabled]="formAltaMesa.invalid" (click)="enviar()">Guardar</ion-button>
+      <ion-button class="btns_main_back" expand="block" routerLink="/home">Volver</ion-button> 
 
-      @if(err) { <ion-item lines="none"><ion-label color="danger">{{ err }}</ion-label></ion-item> }
-      @if(ok)  { <ion-item lines="none"><ion-label color="success">Mesa Creada</ion-label></ion-item> }
+      @if(err) { <ion-item class="ion-error" lines="none">{{ err }}</ion-item> }
+      @if(ok)  { <ion-item class="ion-success" lines="none">Mesa Creada</ion-item> }
     </form>
+
+    <div class="div_img">
+      <img src="assets/icon/logo.png" alt="logo">
+    </div>
   </ion-content>
 }

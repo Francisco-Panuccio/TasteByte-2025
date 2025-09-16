@@ -1,6 +1,114 @@
+:host ion-content.ion-padding::part(scroll) {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.ion-item-input {
+  --background: #d7b899;
+  --border-width: 0px;
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  --highlight-color-focused: transparent;
+  border-radius: 12px;
+  width: 300px;
+  height: 60px;
+}
+
+ion-input,
+select {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  --color: #554738;
+  --placeholder-color: #554738;
+  border-radius: 12px;
+  padding: 0.75rem 1rem !important;
+  border: 1px solid #d3a87c;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+  font-size: 1rem;
+  font-weight: 600;
+  height: 60px;
+  opacity: 1;
+}
+
 .foto {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   gap: 12px;
-  margin: 16px 0
+  margin: 10px 0;
+}
+
+.foto img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 8px
+}
+
+.btn_slot_cam {
+  --background: #554738;
+}
+
+.btn_slot_pho {
+  --background: white;
+  color: #554738;
+  --border-color: white;
+}
+
+ion-button {
+  font-weight: 600;
+}
+
+.btns_main {
+  --background: #554738;
+  border: 2px solid white;
+  border-radius: 5px;
+}
+
+.btns_main_back {
+  color: #554738;
+  --background: white;
+  border: 2px solid #554738;
+  border-radius: 5px;
+}
+
+.ion-error,
+.ion-success {
+  font-weight: 600;
+  --background: transparent;
+  color: white;
+  text-align: center;
+}
+
+.ion-success {
+  color: green;
+}
+
+.acciones {
+  display: flex;
+  gap: 5px
+}
+
+.div_img {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0 10px 0;
+}
+
+.div_img img {
+  width: 200px;
+  height: 200px;
 }

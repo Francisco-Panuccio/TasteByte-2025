@@ -40,6 +40,7 @@ export class LoginPage implements OnInit {
     const { error } = await this.auth.signIn(email, password);
 
     if (error) {
+      console.log(error);
       this.errorMsg = true;
       return;
     }

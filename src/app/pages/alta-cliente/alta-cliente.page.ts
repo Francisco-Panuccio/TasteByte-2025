@@ -12,7 +12,7 @@ import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
   styleUrls: ['./alta-cliente.page.scss'],
   standalone: false
 })
-export class AltaClientePage implements OnInit{
+export class AltaClientePage implements OnInit {
   private fb = inject(FormBuilder);
   private readonly platform = Capacitor.getPlatform();
 
@@ -135,43 +135,42 @@ export class AltaClientePage implements OnInit{
   }
 
   // ------------------ Enviar ------------------
- // ------------------ Enviar ------------------
-async enviar() {
-  this.err = null; 
-  this.ok = false;
+  async enviar() {
+    this.err = null;
+    this.ok = false;
 
-  if (this.formAltaCliente.invalid) {
-    this.formAltaCliente.markAllAsTouched();
-    return;
-  }
-
-  this.loading = true;
-  try {
-    const payload: Cliente = {
-      nombres: String(this.f['nombres'].value).trim(),
-      apellidos: String(this.f['apellidos'].value).trim(),
-      dni: String(this.f['dni'].value).trim(),
-      correo: String(this.f['correo'].value).trim(),
-      clave: String(this.f['clave'].value).trim(),
-      perfil: 'cliente',
-      estado: 'pendiente',
-      foto: String(this.f['foto'].value)
-    };
-
-    const { error } = await supabase.from('clientes').insert(payload);
-
-    if (error) {
-      if (error.message.includes('dni')) {
-        throw new Error('El DNI ya está registrado');
-      }
-      if (error.message.includes('correo')) {
-        throw new Error('El correo ya está registrado');
-      }
-      throw error;
+    if (this.formAltaCliente.invalid) {
+      this.formAltaCliente.markAllAsTouched();
+      return;
     }
 
-    this.ok = true;
-    this.formAltaCliente.reset();
+    this.loading = true;
+    try {
+      const payload: Cliente = {
+        nombres: String(this.f['nombres'].value).trim(),
+        apellidos: String(this.f['apellidos'].value).trim(),
+        dni: String(this.f['dni'].value).trim(),
+        correo: String(this.f['correo'].value).trim(),
+        clave: String(this.f['clave'].value).trim(),
+        perfil: 'cliente',
+        estado: 'pendiente',
+        foto: String(this.f['foto'].value)
+      };
+
+      const { error } = await supabase.from('clientes').insert(payload);
+
+      if (error) {
+        if (error.message.includes('dni')) {
+          throw new Error('El DNI ya está registrado');
+        }
+        if (error.message.includes('correo')) {
+          throw new Error('El correo ya está registrado');
+        }
+        throw error;
+      }
+
+      this.ok = true;
+      this.formAltaCliente.reset();
 
     } catch (e: any) {
       console.error(e);
