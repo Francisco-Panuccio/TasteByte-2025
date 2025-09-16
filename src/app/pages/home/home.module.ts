@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, TitleCasePipe } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { HomePage } from './home.page';
@@ -14,7 +14,8 @@ import { LoadingPage } from "../loading/loading.page";
     FormsModule,
     IonicModule,
     HomePageRoutingModule,
-    LoadingPage
+    LoadingPage,
+    TitleCasePipe
 ],
   declarations: [HomePage]
 })

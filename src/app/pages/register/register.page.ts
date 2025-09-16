@@ -82,8 +82,8 @@ export class RegisterPage implements OnInit {
 
     const digits = String(v.documentNumber ?? "").replace(/\D/g, "");
     const isDni = v.documentType === "dni";
-    const dni = isDni ? Number(digits) : undefined;
-    const cuil = !isDni ? Number(digits) : undefined;
+    const dniStr = isDni ? digits : undefined;
+    const cuilStr = !isDni ? digits : undefined;
 
     try {
       if (await this.usuarios.existsByEmail(email)) {
@@ -92,15 +92,15 @@ export class RegisterPage implements OnInit {
         return;
       }
 
-      if (isDni && dni != null) {
-        const dup = await this.usuarios.existsByDni(dni);
+      if (isDni && dniStr) {
+        const dup = await this.usuarios.existsByDni(Number(dniStr));
         if (dup) {
           this.errorText = "DNI ya registrado";
           this.errorMsg = true;
           return;
         }
-      } else if (!isDni && cuil != null) {
-        const dup = await this.usuarios.existsByCuil(cuil);
+      } else if (!isDni && cuilStr) {
+        const dup = await this.usuarios.existsByCuil(Number(cuilStr));
         if (dup) {
           this.errorText = "CUIL ya registrado";
           this.errorMsg = true;
@@ -125,8 +125,8 @@ export class RegisterPage implements OnInit {
       v.fullname,
       v.email,
       v.profile,
-      dni,
-      cuil,
+      dniStr,
+      cuilStr,
       undefined
     );
 

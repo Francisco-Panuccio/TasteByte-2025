@@ -34,3 +34,22 @@
   font-weight: 1000;
   font-family: 'Times New Roman', Times, serif;
 }
+
+.div_cont {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 30px 0;
+}
+
+.p_data {
+  font-size: 30px !important;
+  text-decoration: underline;
+  color: #d7b899 !important;
+}
+
+.span_data {
+  font-size: 20px !important;
+  font-weight: 600;
+}

@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../../services/auth/auth';
 import { Router } from '@angular/router';
+import { Usuarios } from 'src/app/services/usuarios/usuarios';
+import { Usuario } from 'src/app/interfaces/usuario';
 
 @Component({
   selector: 'app-home',
@@ -8,13 +10,51 @@ import { Router } from '@angular/router';
   styleUrls: ['home.page.scss'],
   standalone: false,
 })
-export class HomePage implements OnInit{
+export class HomePage implements OnInit {
   loading: boolean = true;
-  
-  constructor(private auth : AuthService, private router : Router) {}
+  isDuenoSupervisor: boolean = false;
+  isCocinero: boolean = false;
+  isBartender: boolean = false;
+  isMaitreCliente: boolean = false;
+
+  fullname: string = "";
+  profile: string = "";
+
+  constructor(private auth: AuthService, private router: Router, private usuarios: Usuarios) { }
 
   async ngOnInit() {
-    setTimeout(() => this.loading = false, 2000);
+    try {
+      const user = await this.auth.getUser();
+      if (!user) {
+        this.router.navigateByUrl("/login", { replaceUrl: true });
+        return;
+      }
+
+      // obtenemos datos en tabla usuarios
+      const usuarioDB: Usuario | null = await this.usuarios.getByEmail(user.email!);
+      if (!usuarioDB) {
+        this.router.navigateByUrl("/login", { replaceUrl: true });
+        return;
+      }
+
+      this.fullname = `${usuarioDB.nombres} ${usuarioDB.apellidos}`.trim();
+      this.profile = usuarioDB.perfil;
+
+      // seteo de flags
+      const perfil = usuarioDB.perfil?.toLowerCase();
+      this.isDuenoSupervisor = perfil === "dueno" || perfil === "dueño" || perfil === "supervisor";
+      this.isCocinero = perfil === "cocinero";
+      this.isBartender = perfil === "bartender";
+      this.isMaitreCliente = perfil === "maître" || perfil === "cliente_registrado" || perfil === "cliente_anonimo" || perfil === "cliente_anónimo";
+
+    } catch (e) {
+      console.error(e);
+      this.router.navigateByUrl("/login", { replaceUrl: true });
+    } finally {
+      setTimeout(() => {
+        this.loading = false;
+      }, 2000);
+    }
   }
 
   async logOut() {
