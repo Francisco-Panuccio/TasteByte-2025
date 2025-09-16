@@ -51,16 +51,23 @@ form {
   justify-content: center;
   align-items: center;
   gap: 20px;
-  border: 2px solid #554738;
+  border: 2px solid #424242;
+  background-color: #d3a87c;
   width: fit-content;
-  padding: 20px 10px;
+  padding: 20px;
   font-size: 20px;
+  font-weight: 800;
   text-align: center;
   border-radius: 20px;
-  margin: 120px auto 0 auto;
-  background-color: #c5a076;
-  color: #554738;
+  margin: 150px auto 50px auto;
+  color: #424242;
   letter-spacing: 2px;
+}
+
+.btn_close {
+  color: white;
+  --background: #424242;
+  border-radius: 10px;
 }
 
 ion-input {

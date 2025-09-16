@@ -7,7 +7,7 @@ import { User } from 'src/app/classes/user';
   providedIn: 'root'
 })
 export class Usuarios {
-  private table = 'usuarios'
+  private table = "usuarios"
 
   async list(): Promise<Usuario[]> {
     const { data, error } = await supabase.from(this.table).select('*').order('apellidos', { ascending: true });
@@ -27,10 +27,22 @@ export class Usuarios {
     return data ?? null;
   }
 
-  async create(payload: Usuario): Promise<Usuario> {
-    const { data, error } = await supabase.from(this.table).insert(payload).select("*").single();
+  async existsByEmail(email: string): Promise<boolean> {
+    const { count, error } = await supabase.from(this.table).select("id", { count: "exact", head: true }).eq("correo_electronico", email);
     if (error) throw error;
-    return data as Usuario;
+    return (count ?? 0) > 0;
+  }
+
+  async existsByDni(dni: number): Promise<boolean> {
+    const { count, error } = await supabase.from(this.table).select("id", { count: "exact", head: true }).eq("numero_documento", dni);
+    if (error) throw error;
+    return (count ?? 0) > 0;
+  }
+
+  async existsByCuil(cuil: number): Promise<boolean> {
+    const { count, error } = await supabase.from(this.table).select("id", { count: "exact", head: true }).eq("numero_cuil", cuil);
+    if (error) throw error;
+    return (count ?? 0) > 0;
   }
 
   async createFromUser(user: User): Promise<Usuario> {
@@ -46,7 +58,10 @@ export class Usuarios {
       dni_qr_leido_en: null
     } as Usuario
 
-    return await this.create(row)
+    const { data, error } = await supabase.from(this.table).insert(row).select("*").single();
+
+    if (error) throw error;
+    return data as Usuario;
   }
 
   async update(id: number, patch: Partial<Usuario>): Promise<Usuario> {

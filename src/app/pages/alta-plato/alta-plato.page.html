@@ -9,39 +9,39 @@
 
   <ion-content class="ion-padding">
     <form [formGroup]="formAltaPlato" novalidate>
-      <ion-item>
-        <ion-input label="Nombre" labelPlacement="floating" formControlName="nombre"></ion-input>
+      <ion-item class="ion-item-input">
+        <ion-input placeholder="Nombre" formControlName="nombre"></ion-input>
       </ion-item>
       @if(f.nombre.touched && f.nombre.invalid) {
         <ng-container>
-          <app-form-errors [control]="f.nombre"></app-form-errors>
+          <app-form-errors color="white" [control]="f.nombre"></app-form-errors>
         </ng-container>
       }
 
-      <ion-item>
-        <ion-textarea label="Descripción" labelPlacement="floating" formControlName="descripcion" autoGrow="true"></ion-textarea>
+      <ion-item class="ion-item-text-area">
+        <ion-textarea placeholder="Descripción" formControlName="descripcion" autoGrow="true"></ion-textarea>
       </ion-item>
       @if(f.descripcion.touched && f.descripcion.invalid) {
         <ng-container>
-          <app-form-errors [control]="f.descripcion"></app-form-errors>
+          <app-form-errors color="white" [control]="f.descripcion"></app-form-errors>
         </ng-container>
       }
 
-      <ion-item>
-        <ion-input type="number" label="Tiempo (min)" labelPlacement="floating" formControlName="tiempo_elaboracion_min"></ion-input>
+      <ion-item class="ion-item-input">
+        <ion-input type="number" placeholder="Tiempo (min)" formControlName="tiempo_elaboracion_min"></ion-input>
       </ion-item>
       @if(f.tiempo_elaboracion_min.touched && f.tiempo_elaboracion_min.invalid) {
         <ng-container>
-          <app-form-errors [control]="f.tiempo_elaboracion_min"></app-form-errors>
+          <app-form-errors color="white" [control]="f.tiempo_elaboracion_min"></app-form-errors>
         </ng-container>
       }
 
-      <ion-item>
-        <ion-input type="number" inputmode="decimal" label="Precio" labelPlacement="floating" formControlName="precio"></ion-input>
+      <ion-item class="ion-item-input">
+        <ion-input type="number" inputmode="decimal" placeholder="Precio" formControlName="precio"></ion-input>
       </ion-item>
       @if(f.precio.touched && f.precio.invalid) {
         <ng-container>
-          <app-form-errors [control]="f.precio"></app-form-errors>
+          <app-form-errors color="white" [control]="f.precio"></app-form-errors>
         </ng-container>
       }
 
@@ -50,26 +50,22 @@
           <div class="slot">
             @if(!!c.value) { <img [src]="c.value" alt="foto {{ i + 1 }}"> }
             <div class="acciones">
-              <ion-button size="small" (click)="elegirFoto(i,'cam')">Cámara</ion-button>
-              <ion-button size="small" fill="outline" (click)="elegirFoto(i,'gal')">Galería</ion-button>
+              <ion-button class="btn_slot_cam" size="small" (click)="elegirFoto(i,'cam')">Cámara</ion-button>
+              <ion-button class="btn_slot_pho" size="small" (click)="elegirFoto(i,'gal')">Galería</ion-button>
             </div>
           </div>
         }
       </div>
       @if((!!fotosFA.touched || !!fotosFA.dirty) && !!fotosFA.invalid) {
-        <app-form-errors [control]="fotosFA"></app-form-errors>
+        <app-form-errors color="white" [control]="fotosFA"></app-form-errors>
       }
 
-      <ion-button expand="block" [disabled]="formAltaPlato.invalid" (click)="enviar()">Guardar</ion-button> 
-      <ion-button expand="block" routerLink="/home">Volver</ion-button> 
+      <ion-button class="btns_main" expand="block" [disabled]="formAltaPlato.invalid" (click)="enviar()">Guardar</ion-button> 
+      <ion-button class="btns_main_back" expand="block" routerLink="/home">Volver</ion-button> 
       
-      @if(err) {
-        <ion-item lines="none"><ion-label color="danger">{{ err }}</ion-label></ion-item>
-      }
+      @if(err) {<ion-item class="ion-error" lines="none">{{ err }}</ion-item>}
 
-      @if(ok) {
-        <ion-item lines="none"><ion-label color="success">Plato Creado</ion-label></ion-item>
-      }
+      @if(ok) {<ion-item class="ion-success" lines="none">Plato Creado</ion-item>}
     </form>
   </ion-content>
 }

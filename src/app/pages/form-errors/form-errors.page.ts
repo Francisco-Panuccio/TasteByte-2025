@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, HostBinding, Input } from '@angular/core';
 import { AbstractControl, ValidationErrors } from '@angular/forms';
 
 @Component({
@@ -8,6 +8,10 @@ import { AbstractControl, ValidationErrors } from '@angular/forms';
 })
 export class FormErrorsPage {
   @Input() control!: AbstractControl | null;
+  @Input() color: string | null = null;
+
+  @HostBinding("style.--fe-color")
+  get hostColor() { return this.color ?? null; }
 
   errorMessages(): string | null {
     if (!this.control || !this.control.errors) return null;

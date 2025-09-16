@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { AbstractControl, FormBuilder, FormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { User } from 'src/app/classes/user';
 import { AuthService } from 'src/app/services/auth/auth';
@@ -15,6 +15,7 @@ import { Usuarios } from 'src/app/services/usuarios/usuarios';
 export class RegisterPage implements OnInit {
   loading: boolean = true;
   errorMsg: boolean = false;
+  errorText = "Ocurrió un error";
 
   constructor(private fb: FormBuilder, private auth: AuthService, private router: Router, private usuarios: Usuarios) {
     this.formRegister = this.fb.group({
@@ -75,18 +76,49 @@ export class RegisterPage implements OnInit {
     this.formRegister.updateValueAndValidity({ emitEvent: true });
     if (this.formRegister.invalid) return;
 
-    const { email, password } = this.formRegister.value as any;
-    const { data, error } = await this.auth.signUp(email, password);
+    const v = this.formRegister.value as any;
+    const email: string = (v.email).trim().toLowerCase();
+    const password: string = v.password;
 
-    if (error) {
+    const digits = String(v.documentNumber ?? "").replace(/\D/g, "");
+    const isDni = v.documentType === "dni";
+    const dni = isDni ? Number(digits) : undefined;
+    const cuil = !isDni ? Number(digits) : undefined;
+
+    try {
+      if (await this.usuarios.existsByEmail(email)) {
+        this.errorText = "Correo ya registrado";
+        this.errorMsg = true;
+        return;
+      }
+
+      if (isDni && dni != null) {
+        const dup = await this.usuarios.existsByDni(dni);
+        if (dup) {
+          this.errorText = "DNI ya registrado";
+          this.errorMsg = true;
+          return;
+        }
+      } else if (!isDni && cuil != null) {
+        const dup = await this.usuarios.existsByCuil(cuil);
+        if (dup) {
+          this.errorText = "CUIL ya registrado";
+          this.errorMsg = true;
+          return;
+        }
+      }
+    } catch {
+      this.errorText = "Error Verificando Duplicados";
       this.errorMsg = true;
       return;
     }
 
-    const v = this.formRegister.value as any;
-    const digits = String(v.documentNumber ?? "").replace(/\D/g, "");
-    const dni = v.documentType === "dni" ? Number(digits) : undefined;
-    const cuil = v.documentType === "cuil" ? Number(digits) : undefined;
+    const { data, error } = await this.auth.signUp(email, password);
+    if (error) {
+      this.errorText = "Usuario Existente en Autenticación";
+      this.errorMsg = true;
+      return;
+    }
 
     const user = new User(
       v.lastname,
@@ -96,21 +128,32 @@ export class RegisterPage implements OnInit {
       dni,
       cuil,
       undefined
-    )
+    );
 
     try {
       await this.usuarios.createFromUser(user);
-    } catch (e) {
-      console.log(e);
+    } catch (e: any) {
+      const pgCode = e?.code as string | undefined;
+      const details = String(e?.details ?? "").toLowerCase();
+      if (pgCode === "23505" || details.includes("already exists")) {
+        if (details.includes("numero_documento")) {
+          this.errorText = "DNI ya registrado";
+        } else if (details.includes("numero_cuil")) {
+          this.errorText = "CUIL ya registrado";
+        } else if (details.includes("correo") || details.includes("email")) {
+          this.errorText = "Correo ya registrado";
+        } else {
+          this.errorText = "Registro duplicado";
+        }
+      } else {
+        console.log(e);
+        this.errorText = "Error guardando usuario";
+      }
       this.errorMsg = true;
       return;
     }
 
-    if (data.session) {
-      this.router.navigateByUrl("/home", { replaceUrl: true });
-    } else {
-      this.router.navigateByUrl("/login", { replaceUrl: true });
-    }
+    this.router.navigateByUrl(data.session ? "/home" : "/login", { replaceUrl: true });
   }
 
   closeError() { this.errorMsg = false; }
