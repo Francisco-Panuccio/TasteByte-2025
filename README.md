@@ -27,19 +27,19 @@
 
 ## Responsabilidades (Segunda Semana) 🛠️
 * Panuccio
-- Objetivos: Completar Estilos
+- Objetivos: Puntos 12 y 13
 - Fecha Inicial: 15/09/2025
 - Fecha Final: 
 - Branch: panuccio/altas
 
 * Roman
-- Objetivos: Completar Estilos
+- Objetivos: Puntos 9 y 10
 - Fecha Inicial: 15/09/2025
 - Fecha Final: 
 - Branch: roman
 
 * Avallone
-- Objetivos: Completar Estilos
+- Objetivos: Puntos 7 y 8
 - Fecha Inicial: 15/09/2025
 - Fecha Final: 
 - Branch: avallone
