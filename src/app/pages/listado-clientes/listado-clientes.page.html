@@ -1,0 +1,38 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Clientes Pendientes</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
+
+  <ion-text color="danger" *ngIf="err">{{ err }}</ion-text>
+  <ion-text color="success" *ngIf="ok">{{ ok }}</ion-text>
+
+  <ion-list *ngIf="!loading && clientes.length > 0">
+    <ion-item *ngFor="let c of clientes">
+      <ion-avatar slot="start">
+        <img [src]="c.usuario.foto_url || 'assets/avatar.png'" alt="foto cliente">
+      </ion-avatar>
+      <ion-label>
+        <h2>{{ c.usuario.apellidos }}, {{ c.usuario.nombres }}</h2>
+        <p>DNI: {{ c.usuario.numero_documento }}</p>
+        <p>Email: {{ c.usuario.correo_electronico }}</p>
+      </ion-label>
+      <ion-buttons slot="end">
+        <ion-button class="btn-success" (click)="aprobar(c.usuario_id)">Aprobar</ion-button>
+        <ion-button class="btn-danger" (click)="rechazar(c.usuario_id)">Rechazar</ion-button>
+      </ion-buttons>
+    </ion-item>
+  </ion-list>
+
+  
+  <ion-item *ngIf="!loading && clientes.length === 0">
+    <ion-label>No hay clientes pendientes</ion-label>
+  </ion-item>
+  <ion-button class="volver" expand="block" routerLink="/home">Volver</ion-button>
+  
+  
+</ion-content>

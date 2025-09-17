@@ -143,6 +143,7 @@ export class AltaClientePage implements OnInit {
     try {
       const email = String(this.f["correo"].value).trim().toLowerCase();
       const password = String(this.f["clave"].value).trim();
+      const nombres = String(this.f["nombres"].value).trim();
 
       const sign = await supabase.auth.signUp({ email, password });
       if (sign.error) { throw sign.error; }
@@ -171,7 +172,12 @@ export class AltaClientePage implements OnInit {
       });
 
       try {
-        await this.email.notifyRegistroPendiente(email, String(this.f["nombres"].value))
+        await this.email.sendEmail(
+        email,
+        "Registro Recibido - En Revisión",
+        "registro_pendiente",
+        { nombres }
+      );
       } catch { }
 
       this.ok = true;
