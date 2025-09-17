@@ -34,6 +34,7 @@
     "@capacitor/keyboard": "7.0.3",
     "@capacitor/status-bar": "7.0.3",
     "@ionic/angular": "^8.0.0",
+    "@ionic/pwa-elements": "^3.3.0",
     "@supabase/supabase-js": "^2.57.2",
     "@zxing/browser": "^0.1.5",
     "@zxing/ngx-scanner": "^20.0.0",
