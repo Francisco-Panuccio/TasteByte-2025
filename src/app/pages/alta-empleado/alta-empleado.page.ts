@@ -6,7 +6,7 @@ import { BarcodeFormat, BarcodeScanner } from '@capacitor-mlkit/barcode-scanning
 import { supabase } from 'src/supabase.client';
 import { Usuarios } from 'src/app/services/usuarios/usuarios';
 import { AuthService } from 'src/app/services/auth/auth';
-import { Perfil } from 'src/app/interfaces/perfil';
+import { Usuario } from 'src/app/interfaces/usuario';
 
 @Component({
   selector: 'app-alta-empleado',
@@ -26,6 +26,9 @@ export class AltaEmpleadoPage implements OnInit {
   escaneando = false;
   qrPayload: string | null = null;
 
+  isDuenoSupervisor: boolean = false;
+  perfilActual: string = "";
+
   // Formulario
   formAltaEmpleado = this.fb.group({
     nombres: ['', [Validators.required, Validators.minLength(2)]],
@@ -40,40 +43,62 @@ export class AltaEmpleadoPage implements OnInit {
 
   get f() { return this.formAltaEmpleado.controls; }
 
-  ngOnInit() {
-    this.loading = false;
+  async ngOnInit() {
     this.resetearFormulario();
-    this.exigeDueñoOSupervisor();
+    await this.verificarPermisos();
+    this.loading = false;
   }
 
-  // Lógica de validación de perfil basada en localStorage
-  private getPerfilActual(): Perfil | null {
-    const p = localStorage.getItem("perfil")?.toLowerCase() as Perfil | undefined;
-    return p ?? null;
-  }
-  
-  private exigeDueñoOSupervisor(): boolean {
-    const p = this.getPerfilActual();
-    const ok = p === "dueño" || p === "supervisor";
-  
-    return ok;
-  }
-  
-   ionViewWillEnter() {
+  ionViewWillEnter() {
     this.resetearFormulario();
   }
-  private resetearFormulario() {
-    this.formAltaEmpleado.reset(); // Restablece todos los valores a null o al estado inicial
-    this.formAltaEmpleado.markAsUntouched(); // Marca el formulario como no tocado
-    this.formAltaEmpleado.markAsPristine(); // Marca el formulario como prístino
-    this.err = null; // Limpia el mensaje de error
-    this.ok = false; // Limpia el mensaje de éxito
-    this.qrPayload = null; // Limpia el payload del QR
+
+  // ------------------ Validación de perfil ------------------
+  private async verificarPermisos() {
+    try {
+      const user = await this.auth.getUser();
+      if (!user) {
+        this.err = "Debe iniciar sesión";
+        this.isDuenoSupervisor = false;
+        return;
+      }
+
+      const usuarioDB: Usuario | null = await this.usuarios.getByEmail(user.email!);
+      if (!usuarioDB) {
+        this.err = "Usuario no encontrado en la base de datos";
+        this.isDuenoSupervisor = false;
+        return;
+      }
+
+      this.perfilActual = usuarioDB.perfil?.toLowerCase() || "";
+      this.isDuenoSupervisor =
+        this.perfilActual === "dueno" ||
+        this.perfilActual === "dueño" ||
+        this.perfilActual === "supervisor";
+
+      if (!this.isDuenoSupervisor) {
+        this.err = "No tiene permisos para dar de alta empleados";
+      }
+    } catch (e) {
+      console.error(e);
+      this.err = "Error verificando permisos";
+      this.isDuenoSupervisor = false;
+    }
   }
+
+  private resetearFormulario() {
+    this.formAltaEmpleado.reset();
+    this.formAltaEmpleado.markAsUntouched();
+    this.formAltaEmpleado.markAsPristine();
+    this.err = null;
+    this.ok = false;
+    this.qrPayload = null;
+  }
+
   // ------------------ Escaneo DNI ------------------
   async escanearDNI() {
     this.err = null;
-    if (!this.exigeDueñoOSupervisor()) return;
+    if (!this.isDuenoSupervisor) return;
     this.escaneando = true;
     try {
       const result = await BarcodeScanner.scan({ formats: [BarcodeFormat.Pdf417, BarcodeFormat.QrCode] });
@@ -101,7 +126,7 @@ export class AltaEmpleadoPage implements OnInit {
   // ------------------ Tomar Foto ------------------
   async sacarFoto() {
     this.err = null;
-    if (!this.exigeDueñoOSupervisor()) return;
+    if (!this.isDuenoSupervisor) return;
     try {
       if (this.platform !== "web") {
         const status = await Camera.requestPermissions({ permissions: ["camera"] });
@@ -138,7 +163,7 @@ export class AltaEmpleadoPage implements OnInit {
   async enviar() {
     this.err = null;
     this.ok = false;
-    if (!this.exigeDueñoOSupervisor()) return;
+    if (!this.isDuenoSupervisor) return;
 
     if (this.formAltaEmpleado.invalid) {
       this.formAltaEmpleado.markAllAsTouched();
@@ -169,7 +194,7 @@ export class AltaEmpleadoPage implements OnInit {
       });
       if (userError) throw userError;
 
-      // ¡CORRECCIÓN! Insertar en la tabla 'empleados'
+      // Insertar en la tabla 'empleados'
       const { error: empleadoError } = await supabase.from('empleados').insert({
         usuario_id: usuarioId,
         perfil: String(this.f["perfil"].value).trim(),

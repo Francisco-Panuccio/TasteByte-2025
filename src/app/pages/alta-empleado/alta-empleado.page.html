@@ -1,13 +1,13 @@
 @if(loading) {
   <app-loading />
 } @else {
-  <ion-header [translucent]="true">
+  <ion-header>
     <ion-toolbar>
       <ion-title>Alta Empleado</ion-title>
     </ion-toolbar>
   </ion-header>
 
-  <ion-content [fullscreen]="true" class="ion-padding">
+  <ion-content class="ion-padding">
     <form [formGroup]="formAltaEmpleado" (ngSubmit)="enviar()">
 
       <ion-item lines="none">
