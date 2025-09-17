@@ -5,38 +5,43 @@ const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   {
     path: 'home',
-    loadChildren: () => import('./pages/home/home.module').then( m => m.HomePageModule)
+    loadChildren: () => import('./pages/home/home.module').then(m => m.HomePageModule)
   },
   {
     path: 'alta-mesa',
-    loadChildren: () => import('./pages/alta-mesa/alta-mesa.module').then( m => m.AltaMesaPageModule)
+    loadChildren: () => import('./pages/alta-mesa/alta-mesa.module').then(m => m.AltaMesaPageModule)
   },
   {
     path: 'alta-plato',
-    loadChildren: () => import('./pages/alta-plato/alta-plato.module').then( m => m.AltaPlatoPageModule)
+    loadChildren: () => import('./pages/alta-plato/alta-plato.module').then(m => m.AltaPlatoPageModule)
   },
   {
     path: 'loading',
-    loadChildren: () => import('./pages/loading/loading.module').then( m => m.LoadingPageModule)
+    loadChildren: () => import('./pages/loading/loading.module').then(m => m.LoadingPageModule)
   },
   {
     path: 'alta-bebida',
-    loadChildren: () => import('./pages/alta-bebida/alta-bebida.module').then( m => m.AltaBebidaPageModule)
+    loadChildren: () => import('./pages/alta-bebida/alta-bebida.module').then(m => m.AltaBebidaPageModule)
   },
   {
     path: 'alta-cliente',
-    loadChildren: () => import('./pages/alta-cliente/alta-cliente.module').then( m => m.AltaClientePageModule)
+    loadChildren: () => import('./pages/alta-cliente/alta-cliente.module').then(m => m.AltaClientePageModule)
   },
   {
     path: 'login',
-    loadChildren: () => import('./pages/login/login.module').then( m => m.LoginPageModule)
+    loadChildren: () => import('./pages/login/login.module').then(m => m.LoginPageModule)
   },
   {
     path: 'register',
-    loadChildren: () => import('./pages/register/register.module').then( m => m.RegisterPageModule)
-  },  {
+    loadChildren: () => import('./pages/register/register.module').then(m => m.RegisterPageModule)
+  },
+  {
+    path: 'mesa-ocupada',
+    loadChildren: () => import('./pages/mesa-ocupada/mesa-ocupada.module').then(m => m.MesaOcupadaPageModule)
+  },
+  {
     path: 'alta-empleado',
-    loadChildren: () => import('./pages/alta-empleado/alta-empleado.module').then( m => m.AltaEmpleadoPageModule)
+    loadChildren: () => import('./pages/alta-empleado/alta-empleado.module').then(m => m.AltaEmpleadoPageModule)
   },
 
 ];

@@ -1,0 +1,66 @@
+@if(loading) {
+  <app-loading/>
+} @else {
+  <ion-header>
+    <ion-toolbar>
+      <ion-title>Mesa</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content>
+    <ion-segment [(ngModel)]="tab">
+      <ion-segment-button value="platos">Comidas</ion-segment-button>
+      <ion-segment-button value="bebidas">Bebidas</ion-segment-button>
+      <ion-segment-button value="postres">Postres</ion-segment-button>
+    </ion-segment>
+
+    <div class="grid">
+      @if(tab==="platos"){
+        @for(p of platos; track p.id){
+          <article class="card">
+            <div class="imgs">
+              <img *ngIf="p.fotos?.[0]" [src]="p.fotos[0]" alt="{{ p.nombre }}">
+              <img *ngIf="p.fotos?.[1]" [src]="p.fotos[1]" alt="{{ p.nombre }}">
+              <img *ngIf="p.fotos?.[2]" [src]="p.fotos[2]" alt="{{ p.nombre }}">
+            </div>
+            <h3>{{ p.nombre }}</h3>
+            <p class="desc">{{ p.descripcion }}</p>
+            <div class="meta">
+              <span class="precio">{{ p.precio | currency:"ARS":"symbol-narrow" }}</span>
+              <span class="tiempo">{{ p.tiempo_elaboracion_min }} min</span>
+            </div>
+          </article>
+        }
+      }
+      @if(tab==="bebidas"){
+        @for(b of bebidas; track b.id){
+          <article class="card">
+            <div class="imgs">
+              <img *ngIf="b.fotos?.[0]" [src]="b.fotos[0]" alt="{{ b.nombre }}">
+              <img *ngIf="b.fotos?.[1]" [src]="b.fotos[1]" alt="{{ b.nombre }}">
+              <img *ngIf="b.fotos?.[2]" [src]="b.fotos[2]" alt="{{ b.nombre }}">
+            </div>
+            <h3>{{ b.nombre }}</h3>
+            <p class="desc">{{ b.descripcion }}</p>
+            <div class="meta">
+              <span class="precio">{{ b.precio | currency:"ARS":"symbol-narrow" }}</span>
+              <span class="tiempo">{{ b.tiempo_elaboracion_min }} min</span>
+            </div>
+          </article>
+        }
+      }
+      @if(tab==="postres"){
+        <div class="vacio">Sin datos</div>
+      }
+    </div>
+  </ion-content>
+
+  <ion-footer>
+    <ion-toolbar>
+      <ion-buttons slot="end">
+        <ion-button [disabled]="!mesaAsignada" (click)="abrirChat()">Consulta al mozo</ion-button>
+        <ion-button routerLink="/home">Volver</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-footer>
+}
