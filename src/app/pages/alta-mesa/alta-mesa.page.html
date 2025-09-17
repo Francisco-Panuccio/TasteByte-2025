@@ -21,7 +21,7 @@
 
       <ion-item class="ion-item-input">
         <select formControlName="tipo" class="profile-select">
-          <option value="" disabled selected>Seleccionar Tipo de Mesa</option>
+          <option [ngValue]="null" disabled>Seleccionar Tipo de Mesa</option>
           @for (t of tipos; track t.value) {
             <option [value]="t.value">{{ t.label }}</option>
           }

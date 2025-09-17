@@ -1,0 +1,64 @@
+ion-segment {
+  margin: .5rem
+}
+
+.loading,
+.error,
+.vacio {
+  padding: 1rem;
+  text-align: center
+}
+
+.grid {
+  display: grid;
+  gap: .75rem;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  padding: .75rem
+}
+
+.card {
+  border: 2px solid #000;
+  border-radius: 16px;
+  background: #f8f5f0;
+  padding: .5rem;
+  cursor: pointer
+}
+
+.imgs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin-bottom: .5rem
+}
+
+.imgs img {
+  width: 100%;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  border: 1px solid #000;
+  border-radius: 8px
+}
+
+h3 {
+  margin: .25rem 0;
+  font-weight: 700
+}
+
+.desc {
+  font-size: .9rem;
+  color: #333;
+  min-height: 2.5em
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700
+}
+
+.precio {
+  border: 1px solid #000;
+  padding: .1rem .4rem;
+  border-radius: 8px;
+  background: #fff
+}

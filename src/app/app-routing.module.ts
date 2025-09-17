@@ -34,7 +34,11 @@ const routes: Routes = [
   {
     path: 'register',
     loadChildren: () => import('./pages/register/register.module').then( m => m.RegisterPageModule)
+  },  {
+    path: 'mesa-ocupada',
+    loadChildren: () => import('./pages/mesa-ocupada/mesa-ocupada.module').then( m => m.MesaOcupadaPageModule)
   },
+
 ];
 
 @NgModule({
