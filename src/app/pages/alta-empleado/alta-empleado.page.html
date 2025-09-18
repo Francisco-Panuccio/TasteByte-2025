@@ -9,7 +9,6 @@
 
   <ion-content class="ion-padding">
     <form [formGroup]="formAltaEmpleado" (ngSubmit)="enviar()">
-
       <ion-item lines="none">
         <ion-input type="text" label="Nombres" labelPlacement="floating" formControlName="nombres"></ion-input>
       </ion-item>
@@ -89,8 +88,7 @@
         {{ loading ? 'Guardando...' : 'Registrar Empleado' }}
       </ion-button>
 
-      <ion-button class="volver" expand="block" routerLink="/home" type="button">Volver</ion-button>
-
+      <ion-button class="volver" expand="block" href="/home" type="button">Volver</ion-button>
     </form>
   </ion-content>
 }

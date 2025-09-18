@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Capacitor } from '@capacitor/core';
 import { PushNotifications, Token, ActionPerformed, PushNotificationSchema } from '@capacitor/push-notifications';
+import { Subject } from 'rxjs';
 import { supabase } from 'src/supabase.client';
 
 @Injectable({
@@ -8,8 +9,10 @@ import { supabase } from 'src/supabase.client';
 })
 export class Push {
   private token: string | null = null;
+  private pushSubject = new Subject<Record<string, any>>();
+  readonly onPush$ = this.pushSubject.asObservable();
 
-  async init(userId?: string) {
+  async init(userId?: string, role?: "mozo" | "cliente") {
     if (Capacitor.getPlatform() === 'web') return;
 
     // Permisos
@@ -20,9 +23,9 @@ export class Push {
     await PushNotifications.register();
 
     // Token
-    PushNotifications.addListener('registration', async (t: Token) => {
+    PushNotifications.addListener("registration", async (t: Token) => {
       this.token = t.value;
-      await this.upsertToken(t.value, userId);
+      await this.upsertToken(t.value, userId, role);
     });
 
     // Errores
@@ -31,36 +34,37 @@ export class Push {
     });
 
     // Recibida en foreground
-    PushNotifications.addListener('pushNotificationReceived', (n: PushNotificationSchema) => {
-      // opcional: toast, vibración, etc.
-      console.log('Notif recibida', n);
+    PushNotifications.addListener("pushNotificationReceived", (n: PushNotificationSchema) => {
+      this.pushSubject.next(n.data ?? {});
+      console.log("[push][foreground]", n.data ?? {});
     });
 
     // Click
-    PushNotifications.addListener('pushNotificationActionPerformed', (a: ActionPerformed) => {
-      const data = a.notification?.data;
-      // navegar según data
-      console.log('Notif click', data);
+    PushNotifications.addListener("pushNotificationActionPerformed", (a: ActionPerformed) => {
+      const data = a.notification?.data ?? {};
+      this.pushSubject.next({ ...data, _action: "click" });
+      console.log("[push][action]", data);
     });
   }
 
   getToken() { return this.token; }
 
-  private async upsertToken(token: string, userId?: string) {
-    // Guardamos/actualizamos token en Supabase
+  private async upsertToken(token: string, userId?: string, role?: "mozo" | "cliente") { 
+    const payload: any = {
+      token,
+      usuario_id: userId ?? null,
+      plataforma: Capacitor.getPlatform()
+    };
+    if (role) payload.role = role;
+
     const { error } = await supabase
-      .from('push_tokens')
-      .upsert({
-        token,
-        usuario_id: userId ?? null,
-        plataforma: Capacitor.getPlatform()
-      }, { onConflict: 'token' });
-    if (error) console.error(error);
+      .from("push_tokens")
+      .upsert(payload, { onConflict: "token" });
+    if (error) console.error("[push][upsertToken]", error);
   }
 
-  // Enviar por Edge Function (uno o muchos tokens)
   async send(to: string | string[], title: string, body: string, data?: Record<string, any>) {
-    const { error } = await supabase.functions.invoke('send-push', {
+    const { error } = await supabase.functions.invoke("send-push", {
       body: { to, title, body, data }
     });
     if (error) throw error;

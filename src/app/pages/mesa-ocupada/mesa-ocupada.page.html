@@ -1,11 +1,9 @@
 @if(loading) {
   <app-loading/>
 } @else {
-  <ion-header>
-    <ion-toolbar>
-      <ion-title>Mesa {{ mesa?.numero ?? "NN"}}</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <header>
+    <title>Mesa {{ mesa?.numero ?? "NN"}}</title>
+  </header>
 
   <ion-content>
     <ion-segment [(ngModel)]="tab">
@@ -71,40 +69,48 @@
     </div>
   </ion-content>
 
-  <ion-footer>
+  <footer>
     <ion-toolbar>
       <ion-buttons slot="start">
-        <ion-button [disabled]="!mesaAsignada" (click)="openChat()" style="color: #554738; font-weight: 600;">Consulta al mozo</ion-button>
+        <ion-button [disabled]="!mesaAsignada" (click)="openChat()" class="btn_open_chat">Consulta al mozo</ion-button>
       </ion-buttons>
       <ion-buttons slot="end">
-        <ion-button routerLink="/home" style="color: black; font-weight: 600;">Volver</ion-button>
+        <ion-button routerLink="/home" class="btn_back">Volver</ion-button>
       </ion-buttons>
     </ion-toolbar>
-  </ion-footer>
+  </footer>
 
   <ion-modal
+    #chatModal
     [isOpen]="chatOpen"
+    [breakpoints]="[1]"
     [initialBreakpoint]="1"
-    [breakpoints]="[0, 0.35, 0.7, 1]"
-    handle="true"
-    (didDismiss)="chatOpen=false;"
-    [presentingElement]="presentingEl">
+    backdropDismiss="false"
+    handle="false"
+    (didDismiss)="chatOpen=false">
     <ng-template>
-      <ion-header>
+      <header style="margin-top: 0 !important; padding: 10px !important;">
         <ion-toolbar>
-          <ion-title style="color: #554738;">Chat con Mozo</ion-title>
+          <title style="font-size: 25px;">Chat Mozo</title>
           <ion-buttons slot="end">
-            <ion-button (click)="chatOpen=false;" style="color: black; font-weight: 600;">Cerrar</ion-button>
+            <ion-button (click)="closeChat()" class="btn_close">Cerrar</ion-button>
           </ion-buttons>
         </ion-toolbar>
-      </ion-header>
+      </header>
 
       <ion-content #chatContent class="ion-content-chat">
         <div class="chat">
-          <div class="msg" [class.mine]="m.from==='yo'" [class.mozo]="m.from==='mozo'" *ngFor="let m of messages; trackBy: trackMsg;">
+          <div class="msg" 
+          [class.mine]="m.from==='yo'" 
+          [class.mozo-msg]="m.role==='mozo'"
+          [class.cliente-msg]="m.role==='cliente'"
+          *ngFor="let m of messages; trackBy: trackMsg;">
             <div class="bubble">
               <div class="body">{{ m.text }}</div>
-              <div class="meta">Mesa: {{ mesa?.numero ?? "NN" }} - {{ m.time }}</div>
+              <div [class.mozo-meta]="m.role==='mozo'"
+              [class.cliente-meta]="m.role==='cliente'">
+                 {{ (m.role==='mozo') ? (myName) : ('Mesa ' + (mesa?.numero ?? 'NN')) }} • {{ m.time }}
+              </div>
             </div>
           </div>
         </div>
