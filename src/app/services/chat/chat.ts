@@ -110,4 +110,35 @@ export class Chat {
     const mm = String(d.getMinutes()).padStart(2, "0");
     return `${hh}:${mm}`;
   }
+
+  async getMozosTokens(): Promise<string[]> {
+    let { data, error } = await supabase.from("push_tokens").select("token, role, revoked");
+    if (!error && data?.length && "role" in (data[0] ?? {})) {
+      return (data as any[]).filter((r) => r.role === "mozo" && r.revoked === false).map((r) => r.token);
+    }
+
+    const { data: joinData, error: e2 } = await supabase.from("push_tokens").select("token, revoked, usuario_id");
+    if (e2 || !joinData?.length) return [];
+    const userIds = joinData.filter(r => r.revoked === false).map(r => r.usuario_id);
+    if (!userIds.length) return [];
+    const { data: users } = await supabase.from("usuarios").select("id, perfil").in("id", userIds);
+    const mozoIds = new Set((users ?? []).filter(u => u.perfil === "mozo").map(u => u.id));
+    return joinData.filter(r => !r.revoked && mozoIds.has(r.usuario_id)).map(r => r.token);
+  }
+
+  async getClienteTokenByMesa(mesaId: number): Promise<string[]> {
+    const { data: chats, error: e1 } = await supabase.from("chats").select("id").eq("mesa_id", mesaId).limit(1);
+    if (e1 || !chats?.length) return [];
+
+    const chatId = chats[0].id as string;
+
+    const { data: parts, error: e2 } = await supabase.from("chat_participants").select("user_id, role").eq("chat_id", chatId).eq("role", "cliente").limit(1);
+    if (e2 || !parts?.length) return [];
+
+    const clienteId = parts[0].user_id as string;
+
+    const { data: toks, error: e3 } = await supabase.from("push_tokens").select("token").eq("usuario_id", clienteId).eq("revoked", false);
+    if (e3 || !toks?.length) return [];
+    return toks.map(t => t.token);
+  }
 }
