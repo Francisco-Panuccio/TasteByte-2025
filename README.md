@@ -27,7 +27,7 @@
 
 ## Responsabilidades (Segunda Semana) 🛠️
 * Panuccio
-- Objetivos: Puntos 12 y 13
+- Objetivos: Puntos 11 y 12
 - Fecha Inicial: 15/09/2025
 - Fecha Final: 
 - Branch: panuccio/altas

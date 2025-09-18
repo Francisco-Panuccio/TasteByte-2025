@@ -34,7 +34,8 @@ export class AltaPlatoPage {
     descripcion: this.fb.control("", [Validators.required, Validators.minLength(10), Validators.maxLength(2000)]),
     tiempo_elaboracion_min: this.fb.control<number | null>(null, [Validators.required, Validators.min(1), Validators.max(600)]),
     precio: this.fb.control<number | null>(null, [Validators.required, Validators.min(0), Validators.max(1_000_000)]),
-    fotos: this.fb.array<string>(["", "", ""], [this.tresFotosCargadas()])
+    fotos: this.fb.array<string>(["", "", ""], [this.tresFotosCargadas()]),
+    esPostre: this.fb.control(false)
   });
 
   get f() { return this.formAltaPlato.controls; }
@@ -141,7 +142,8 @@ export class AltaPlatoPage {
         descripcion: String(this.f["descripcion"].value).trim(),
         tiempo_elaboracion_min: Number(this.f["tiempo_elaboracion_min"].value),
         precio: Number(this.f["precio"].value),
-        fotos: this.fotosFA.value as string[]
+        fotos: this.fotosFA.value as string[],
+        esPostre: !!this.f["esPostre"].value
       };
 
       await this.platos.create(payload);
@@ -157,7 +159,8 @@ export class AltaPlatoPage {
         descripcion: "",
         tiempo_elaboracion_min: null,
         precio: null,
-        fotos: ["", "", ""]
+        fotos: ["", "", ""],
+        esPostre: false
       });
     } catch { this.err = "No se pudo guardar el plato"; }
     finally { this.loading = false; }
