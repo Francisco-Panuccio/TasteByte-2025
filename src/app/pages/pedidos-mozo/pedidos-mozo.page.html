@@ -1,0 +1,68 @@
+@if(loading) {
+  <app-loading/>
+}@else {
+  <header>
+    <title>Pedidos - Mozo</title>
+  </header>
+
+  <ion-content>
+    <ion-segment [(ngModel)]="filtro" (ionChange)="cargar()">
+      <ion-segment-button value="todos">Todos</ion-segment-button>
+      <ion-segment-button value="pendiente">Pendientes</ion-segment-button>
+      <ion-segment-button value="aceptado">Aceptados</ion-segment-button>
+      <ion-segment-button value="rechazado">Rechazados</ion-segment-button>
+      <ion-segment-button value="derivado">Derivados</ion-segment-button>
+    </ion-segment>
+
+    <div class="div_container" *ngIf="pedidos.length">
+      <div class="div_pedidos" *ngFor="let p of pedidos">
+        <div class="div_data_pedido">
+          <p>Mesa {{ p.mesa_id }} • ${{ p.total }}</p>
+          <p>Espera {{ p.eta_minutos }} min • {{ p.estado }} • {{ p.created_at | date:'short' }}</p>
+        </div>
+  
+        <div class="div_btns">
+          <button (click)="abrirChat(p.mesa_id)" class="btn_chat">Chat</button>
+          <button class="btn_aceptar" *ngIf="p.estado==='pendiente'" (click)="setEstado(p.id,'aceptado')">Aceptar</button>
+          <button class="btn_rechazar" *ngIf="p.estado==='pendiente'" (click)="setEstado(p.id,'rechazado')">Rechazar</button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="!loading && !pedidos.length" class="vacio">Sin Pedidos</div>
+  </ion-content>
+
+  <footer>
+    <ion-toolbar>
+      <ion-buttons class="ion_btns">
+        <ion-button class="btn_logged" routerLink="/home">Volver</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </footer>
+
+
+  <ion-modal #chatModal [isOpen]="chatOpen" [breakpoints]="[1]" [initialBreakpoint]="1" backdropDismiss="false" handle="false" (didDismiss)="chatOpen=false">
+    <ng-template>
+      <header style="margin-top:0;padding:10px">
+        <ion-toolbar>
+          <title style="font-size:22px;">Chat Mesa {{ mesaChatId }}</title>
+          <ion-buttons slot="end"><ion-button (click)="cerrarChat()">Cerrar</ion-button></ion-buttons>
+        </ion-toolbar>
+      </header>
+      <ion-content class="ion-content-chat">
+        <div class="chat">
+          <div class="msg" [class.mine]="m.from==='yo'" *ngFor="let m of messages">
+            <div class="bubble">
+              <div class="body">{{ m.text }}</div>
+              <div class="meta">{{ m.time }}</div>
+            </div>
+          </div>
+        </div>
+        <ion-item class="composer" lines="none" slot="fixed">
+          <ion-input type="text" placeholder="Escribe…" [(ngModel)]="newMsg" (keyup.enter)="enviar()"></ion-input>
+          <ion-button slot="end" [disabled]="!newMsg.trim()" (click)="enviar()">Enviar</ion-button>
+        </ion-item>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+}

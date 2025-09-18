@@ -46,7 +46,15 @@ const routes: Routes = [
   {
     path: 'listado-clientes',
     loadChildren: () => import('./pages/listado-clientes/listado-clientes.module').then( m => m.ListadoClientesPageModule)
+  },  {
+    path: 'pedido',
+    loadChildren: () => import('./pages/pedido/pedido.module').then( m => m.PedidoPageModule)
   },
+  {
+    path: 'pedidos-mozo',
+    loadChildren: () => import('./pages/pedidos-mozo/pedidos-mozo.module').then( m => m.PedidosMozoPageModule)
+  },
+
 ];
 
 @NgModule({
