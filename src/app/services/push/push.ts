@@ -1,8 +1,9 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Capacitor } from '@capacitor/core';
 import { PushNotifications, Token, ActionPerformed, PushNotificationSchema } from '@capacitor/push-notifications';
 import { Subject } from 'rxjs';
 import { supabase } from 'src/supabase.client';
+import { Pedidos } from '../pedidos/pedidos';
 
 @Injectable({
   providedIn: 'root'
@@ -11,6 +12,7 @@ export class Push {
   private token: string | null = null;
   private pushSubject = new Subject<Record<string, any>>();
   readonly onPush$ = this.pushSubject.asObservable();
+  private pedidos = inject(Pedidos);
 
   async init(userId?: string, role?: "mozo" | "cliente") {
     if (Capacitor.getPlatform() === 'web') return;
@@ -49,7 +51,7 @@ export class Push {
 
   getToken() { return this.token; }
 
-  private async upsertToken(token: string, userId?: string, role?: "mozo" | "cliente") { 
+  private async upsertToken(token: string, userId?: string, role?: "mozo" | "cliente") {
     const payload: any = {
       token,
       usuario_id: userId ?? null,
@@ -68,5 +70,21 @@ export class Push {
       body: { to, title, body, data }
     });
     if (error) throw error;
+  }
+
+  initMozoHandlers() {
+    PushNotifications.addListener("pushNotificationActionPerformed", async (a: ActionPerformed) => {
+      const act = a.actionId;
+      const data = a.notification?.data as any;
+      if (data?.tipo === "pedido" && data?.pedidoId) {
+        if (act === "ACCEPT") {
+          await this.pedidos.actualizarEstado(data.pedidoId, "aceptado");
+          await this.pedidos.actualizarEstado(data.pedidoId, "derivado");
+        }
+        if (act === "REJECT") {
+          await this.pedidos.actualizarEstado(data.pedidoId, "rechazado");
+        }
+      }
+    });
   }
 }

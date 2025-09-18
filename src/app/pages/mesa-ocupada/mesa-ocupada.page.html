@@ -6,6 +6,16 @@
   </header>
 
   <ion-content>
+    <section class="resumen-flotante">
+      <div class="div_data">
+        <div class="importe">Total: {{ total | currency:"ARS":"symbol-narrow" }}</div>
+        <div class="tiempo_espera">Espera: {{ etaMin }} min</div>
+      </div>
+      <div class="div_btn">
+        <button class="btn_pedido" [disabled]="itemsSel.length===0" (click)="terminarPedido();">Finalizar Pedido</button>
+      </div>
+    </section>
+
     <ion-segment [(ngModel)]="tab">
       <ion-segment-button value="platos">Comidas</ion-segment-button>
       <ion-segment-button value="bebidas">Bebidas</ion-segment-button>
@@ -27,6 +37,12 @@
               <span class="precio">{{ p.precio | currency:"ARS":"symbol-narrow" }}</span>
               <span class="tiempo">{{ p.tiempo_elaboracion_min }} min</span>
             </div>
+
+            <div class="qty">
+              <ion-button size="small" (click)="dec(p.id ?? 0);">-</ion-button>
+              <span>{{ qtyMap.get(p.id ?? 0) || 0 }}</span>
+              <ion-button size="small" (click)="inc({ id: p.id ?? 0, nombre: p.nombre, precio: p.precio, duracionMin: p.tiempo_elaboracion_min, tipo: 'plato' });">+</ion-button>
+            </div>
           </article>
         }
       }
@@ -45,6 +61,12 @@
               <span class="precio">{{ b.precio | currency:"ARS":"symbol-narrow" }}</span>
               <span class="tiempo">{{ b.tiempo_elaboracion_min }} min</span>
             </div>
+
+            <div class="qty">
+              <ion-button size="small" (click)="dec(b.id ?? 0);">-</ion-button>
+              <span>{{ qtyMap.get(b.id ?? 0) || 0 }}</span>
+              <ion-button size="small" (click)="inc({ id: b.id ?? 0, nombre: b.nombre, precio: b.precio, duracionMin: b.tiempo_elaboracion_min, tipo: 'bebida' });">+</ion-button>
+            </div>
           </article>
         }
       }
@@ -62,6 +84,12 @@
             <div class="meta">
               <span class="precio">{{ pt.precio | currency:"ARS":"symbol-narrow" }}</span>
               <span class="tiempo">{{ pt.tiempo_elaboracion_min }} min</span>
+            </div>
+            
+            <div class="qty">
+              <ion-button size="small" (click)="dec(pt.id ?? 0);">-</ion-button>
+              <span>{{ qtyMap.get(pt.id ?? 0) || 0 }}</span>
+              <ion-button size="small" (click)="inc({ id: pt.id ?? 0, nombre: pt.nombre, precio: pt.precio, duracionMin: pt.tiempo_elaboracion_min, tipo: 'postre' });">+</ion-button>
             </div>
           </article>
         }
@@ -109,7 +137,7 @@
               <div class="body">{{ m.text }}</div>
               <div [class.mozo-meta]="m.role==='mozo'"
               [class.cliente-meta]="m.role==='cliente'">
-                 {{ (m.role==='mozo') ? (myName) : ('Mesa ' + (mesa?.numero ?? 'NN')) }} • {{ m.time }}
+                 {{ m.role==='mozo' ? 'Mozo' : ('Mesa ' + (mesa?.numero ?? 'NN')) }} • {{ m.time }}
               </div>
             </div>
           </div>

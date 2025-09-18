@@ -161,7 +161,7 @@ footer {
   text-align: start;
 }
 
-.meta {
+.chat .meta {
   font-size: 0.75rem;
   color: #555;
   margin-top: 4px;
@@ -180,8 +180,8 @@ ion-content.ion-content-chat {
   right: 0;
   bottom: 0;
   z-index: 10;
-  background: #fff;
-  border-top: 1px solid #000;
+  background: white;
+  border-top: 1px solid black;
   padding: 6px 8px;
   padding-bottom: max(6px, calc(6px + var(--ion-safe-area-bottom)));
 }
@@ -197,4 +197,63 @@ ion-content.ion-content-chat {
   --padding-top: 0;
   --padding-bottom: 0;
   margin: 5px 5px 0 0;
+}
+
+.resumen-flotante {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  background: #1b1b1b;
+  border-bottom: 2px solid black;
+  color: white;
+  padding: 8px 12px;
+  font-weight: 700;
+
+  .div_data {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+
+    .importe,
+    .tiempo_espera {
+      font-size: 16px;
+    }
+  }
+
+  .div_btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .btn_pedido {
+      background-color: #554738;
+      padding: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: 12px;
+      color: white;
+      opacity: 1;
+    }
+  }
+}
+
+.qty {
+  margin-top: 8px;
+  display: grid;
+  grid-auto-flow: column;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+
+  span {
+    min-width: 20px;
+    text-align: center;
+    font-weight: 700;
+  }
 }

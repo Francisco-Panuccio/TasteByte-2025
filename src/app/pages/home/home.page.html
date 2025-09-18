@@ -29,21 +29,13 @@
     <ion-content>
       <div id="container">
         <p routerLink="/alta-cliente">Alta Clientes</p>
-        <p [routerLink]="['/mesa-ocupada']" [queryParams]="{ tableId: 1 }">TESTEO</p>
+        <p [routerLink]="['/mesa-ocupada']" [queryParams]="{ tableId: 1 }">Mesas</p>
       </div>
     </ion-content>
   } @else {
     <ion-content>
       <div id="container">
-        <div class="div_cont">
-          <p class="p_data">Bievenido</p>
-          <span class="span_data">{{fullname}}</span>
-        </div>
-        <div class="div_cont">
-          <p class="p_data">Perfil</p>
-          <span class="span_data">{{profile | titlecase}}</span>
-        </div>
-        <p [routerLink]="['/mesa-ocupada']" [queryParams]="{ tableId: 1 }">TESTEO</p>
+        <p routerLink="/pedidos-mozo">Pedidos</p>
       </div>
     </ion-content>
   }
