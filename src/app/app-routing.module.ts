@@ -34,10 +34,24 @@ const routes: Routes = [
   {
     path: 'register',
     loadChildren: () => import('./pages/register/register.module').then( m => m.RegisterPageModule)
-  },  {
+  },
+  {
     path: 'alta-empleado',
     loadChildren: () => import('./pages/alta-empleado/alta-empleado.module').then( m => m.AltaEmpleadoPageModule)
+  },  {
+    path: 'encuestas-espera',
+    loadChildren: () => import('./pages/encuestas-espera/encuestas-espera.module').then( m => m.EncuestasEsperaPageModule)
   },
+  {
+    path: 'lista-espera',
+    loadChildren: () => import('./pages/lista-espera/lista-espera.module').then( m => m.ListaEsperaPageModule)
+  },
+  {
+    path: 'listado-mesas',
+    loadChildren: () => import('./pages/listado-mesas/listado-mesas.module').then( m => m.ListadoMesasPageModule)
+  }
+
+
 
 ];
 

@@ -1,0 +1,24 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Listado de Mesas</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-spinner *ngIf="cargando"></ion-spinner>
+
+  <ion-list *ngIf="!cargando">
+    <ion-item *ngFor="let mesa of mesas">
+      <ion-label>
+        <h2>Mesa #{{ mesa.numero }}</h2>
+        <p>Capacidad: {{ mesa.capacidad }} - Tipo: {{ mesa.tipo }}</p>
+      </ion-label>
+      <div>
+
+        <qrcode [qrdata]="mesa.qr_contenido" [width]="120"></qrcode>
+      </div>
+    </ion-item>
+  </ion-list>
+
+</ion-content>

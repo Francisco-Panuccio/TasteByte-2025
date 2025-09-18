@@ -46,28 +46,5 @@ export class AuthService {
     return !error;
   }
 
-  // En auth.service.ts
-async getCurrentUserPerfil(): Promise<string | null> {
-  const session = await this.getSession();
-  if (!session?.user?.id) {
-    console.error("No se encontró una sesión de usuario.");
-    return null;
-  }
- 
-  const { data, error } = await supabase
-    .from('usuarios')
-    .select('perfil')
-    .eq('id', session.user.id)
-    .maybeSingle();
-
-  if (error) {
-    // Lanza el error para que el componente lo capture
-    throw error;
-  }
-
-  return data?.perfil || null;
-}
-
-
 
 }

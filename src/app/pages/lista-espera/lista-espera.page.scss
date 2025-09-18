@@ -1,0 +1,22 @@
+ion-item {
+  --padding-start: 12px;
+  --inner-padding-end: 8px;
+  --min-height: 70px;
+  border-bottom: 1px solid var(--ion-color-light);
+}
+
+ion-avatar img {
+  object-fit: cover;
+}
+
+ion-label h2 {
+  font-weight: 600;
+  font-size: 16px;
+  margin: 0;
+}
+
+ion-label p {
+  font-size: 13px;
+  color: var(--ion-color-medium);
+  margin: 2px 0;
+}
