@@ -74,10 +74,11 @@ export class Pedidos {
   }
 
   async listar(estado?: Pedido["estado"]) {
-    const q = supabase.from("pedidos")
-      .select("id, mesa_id, cliente_uid, total, eta_minutos, estado, created_at")
-      .order("created_at", { ascending: false });
-    const { data, error } = estado ? await q.eq("estado", estado) : await q;
+    const base = supabase.from("pedidos").select(
+      "id, mesa_id, total, eta_minutos, estado, created_at, mesa:mesas!pedidos_mesa_id_fkey (numero)"
+    ).order("created_at", { ascending: false });
+
+    const { data, error } = estado ? await base.eq("estado", estado) : await base;
     if (error) throw error;
     return data;
   }

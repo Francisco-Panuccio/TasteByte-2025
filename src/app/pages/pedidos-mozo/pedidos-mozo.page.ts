@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, ViewChild } from '@angular/core';
-import { IonModal, ToastController } from '@ionic/angular';
+import { IonContent, IonModal, ToastController } from '@ionic/angular';
 import { Chat } from 'src/app/services/chat/chat';
+import { Mesas } from 'src/app/services/mesas/mesas';
 import { Pedidos } from 'src/app/services/pedidos/pedidos';
 import { supabase } from 'src/supabase.client';
 
@@ -16,6 +17,7 @@ export class PedidosMozoPage implements OnInit {
   private pedidosSrv = inject(Pedidos);
   private chatSvc = inject(Chat);
   private toast = inject(ToastController);
+  private mesasSrv = inject(Mesas);
 
   filtro: Filtro = "todos";
   loading = true;
@@ -24,11 +26,13 @@ export class PedidosMozoPage implements OnInit {
 
   chatOpen = false;
   @ViewChild("chatModal", { read: IonModal }) chatModal?: IonModal;
+  @ViewChild("chatContent") chatContent?: IonContent;
   messages: any[] = [];
   newMsg = "";
   chatId?: string;
   myUserId?: string;
   myName = "Mozo";
+  mesasNum = new Map<number, number>();
   mesaChatId?: number;
 
   async ngOnInit() {
@@ -49,6 +53,9 @@ export class PedidosMozoPage implements OnInit {
     this.loading = true;
     try {
       this.pedidos = await this.pedidosSrv.listar(this.filtro === "todos" ? undefined : this.filtro as any);
+      const ids = Array.from(new Set(this.pedidos.map(p => p.mesa_id))).filter(Boolean) as number[];
+      const mesas = await Promise.all(ids.map(id => this.mesasSrv.getById(id)));
+      mesas.forEach(m => { if (m) this.mesasNum.set(m.id!, m.numero!); });
     } finally {
       this.loading = false;
     }
@@ -62,17 +69,31 @@ export class PedidosMozoPage implements OnInit {
 
   async abrirChat(mesaId: number) {
     this.mesaChatId = mesaId;
+    if (!this.mesasNum.has(mesaId)) {
+      const m = await this.mesasSrv.getById(mesaId);
+      if (m) this.mesasNum.set(mesaId, m.numero!);
+    }
+
     const chat = await this.chatSvc.getOrCreateForMesa(mesaId, "mozo");
     this.chatId = chat.id;
     const msgs = await this.chatSvc.loadMessages(chat.id, 200);
-    this.messages = msgs.map(m => this.chatSvc.toViewMessage(m, this.myUserId!));
+    this.messages = msgs.map(m => {
+      const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
+      return { ...vm, role: vm.from === 'yo' ? 'mozo' : 'cliente' };
+    });
     this.chatOpen = true;
+    this.scrollToBottomAfterRender();
 
     this.chatSvc.subscribeToMessages(chat.id, (m) => {
       const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
-      this.messages.push(vm);
+      this.messages.push({ ...vm, role: vm.from === 'yo' ? 'mozo' : 'cliente' });
+      this.scrollToBottomAfterRender();
     });
   }
+
+  private scrollToBottom(ms: number = 200) { try { this.chatContent?.scrollToBottom(ms); } catch { } }
+  
+  private scrollToBottomAfterRender() { requestAnimationFrame(() => setTimeout(() => this.scrollToBottom(200), 0)); }
 
   async cerrarChat() {
     await this.chatModal?.dismiss();
