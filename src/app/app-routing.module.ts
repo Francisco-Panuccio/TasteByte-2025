@@ -46,6 +46,7 @@ const routes: Routes = [
   {
     path: 'lista-espera',
     loadChildren: () => import('./pages/lista-espera/lista-espera.module').then( m => m.ListaEsperaPageModule)
+  },
   {
     path: 'mesa-ocupada',
     loadChildren: () => import('./pages/mesa-ocupada/mesa-ocupada.module').then(m => m.MesaOcupadaPageModule)

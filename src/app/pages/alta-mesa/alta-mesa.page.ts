@@ -118,7 +118,8 @@ export class AltaMesaPage implements OnInit {
         numero,
         capacidad: Number(this.f["capacidad"].value),
         tipo: this.f["tipo"].value as TipoMesa,
-        foto_url: String(this.f["foto_url"].value)
+        foto_url: String(this.f["foto_url"].value),
+        estado_mesa: "disponible"
       };
 
       const creada = await this.mesasSvc.create(payload);

@@ -6,14 +6,12 @@ import { IonicModule } from '@ionic/angular';
 
 import { ListadoMesasPageRoutingModule } from './listado-mesas-routing.module';
 
-
-
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
-    ListadoMesasPageRoutingModule
+    ListadoMesasPageRoutingModule,
   ]
 })
 export class ListadoMesasPageModule {}
