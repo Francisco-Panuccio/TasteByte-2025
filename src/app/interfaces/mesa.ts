@@ -8,4 +8,5 @@ export interface Mesa {
   foto_url: string
   qr_contenido?: string|null
   qr_generado_en?: string|null
+  estado_mesa: string
 }

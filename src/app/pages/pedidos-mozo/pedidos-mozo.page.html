@@ -17,7 +17,7 @@
     <div class="div_container" *ngIf="pedidos.length">
       <div class="div_pedidos" *ngFor="let p of pedidos">
         <div class="div_data_pedido">
-          <p>Mesa {{ p.mesa_id }} • ${{ p.total }}</p>
+          <p>Mesa {{ p.mesa?.numero ?? p.mesa_id }} • ${{ p.total }}</p>
           <p>Espera {{ p.eta_minutos }} min • {{ p.estado }} • {{ p.created_at | date:'short' }}</p>
         </div>
   
@@ -40,27 +40,47 @@
     </ion-toolbar>
   </footer>
 
-
-  <ion-modal #chatModal [isOpen]="chatOpen" [breakpoints]="[1]" [initialBreakpoint]="1" backdropDismiss="false" handle="false" (didDismiss)="chatOpen=false">
+  <ion-modal #chatModal 
+  [isOpen]="chatOpen" 
+  [breakpoints]="[1]" 
+  [initialBreakpoint]="1" 
+  backdropDismiss="false" 
+  handle="false" 
+  (didDismiss)="chatOpen=false">
     <ng-template>
-      <header style="margin-top:0;padding:10px">
+      <header style="margin-top: 0 !important; padding: 10px !important;">
         <ion-toolbar>
-          <title style="font-size:22px;">Chat Mesa {{ mesaChatId }}</title>
-          <ion-buttons slot="end"><ion-button (click)="cerrarChat()">Cerrar</ion-button></ion-buttons>
+          <title style="font-size: 25px;">Chat Mesa {{ mesasNum.get(mesaChatId!) ?? mesaChatId }}</title>
+          <ion-buttons slot="end">
+            <ion-button (click)="cerrarChat()" class="btn_close">Cerrar</ion-button>
+          </ion-buttons>
         </ion-toolbar>
       </header>
-      <ion-content class="ion-content-chat">
+
+      <ion-content #chatContent class="ion-content-chat">
         <div class="chat">
-          <div class="msg" [class.mine]="m.from==='yo'" *ngFor="let m of messages">
+          <div class="msg" 
+          [class.mine]="m.from==='yo'" 
+          [class.mozo-msg]="m.role==='mozo'"
+          [class.cliente-msg]="m.role==='cliente'"
+          *ngFor="let m of messages">
             <div class="bubble">
               <div class="body">{{ m.text }}</div>
-              <div class="meta">{{ m.time }}</div>
+              <div [class.mozo-meta]="m.role==='mozo'"
+              [class.cliente-meta]="m.role==='cliente'">
+                 {{ m.role==='mozo' ? 'Mozo' : ('Mesa ' + (mesasNum.get(mesaChatId!) ?? "NN")) }} • {{ m.time }}
+              </div>
             </div>
           </div>
         </div>
+
         <ion-item class="composer" lines="none" slot="fixed">
-          <ion-input type="text" placeholder="Escribe…" [(ngModel)]="newMsg" (keyup.enter)="enviar()"></ion-input>
-          <ion-button slot="end" [disabled]="!newMsg.trim()" (click)="enviar()">Enviar</ion-button>
+          <ion-input type="text" 
+          placeholder="Escribe tu mensaje…" 
+          [(ngModel)]="newMsg" 
+          (keyup.enter)="enviar()">
+          </ion-input>
+          <ion-button slot="end" [disabled]="!newMsg.trim()" (click)="enviar()" style="color: white; --background: #554738;">Enviar</ion-button>
         </ion-item>
       </ion-content>
     </ng-template>

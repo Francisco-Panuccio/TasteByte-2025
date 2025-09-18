@@ -1,31 +1,32 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Lista de Espera</ion-title>
-  </ion-toolbar>
-</ion-header>
+@if(loading) {
+  <app-loading/>
+} @else {
+  <header>
+      <title>Lista de Espera</title>
+  </header>
 
-<ion-content class="ion-padding">
+  <ion-content class="ion-padding">
+    <h2>Solicita tu mesa!</h2>
 
-  <h2>Solicita tu mesa!</h2>
+    <div class="fotos" *ngIf="encuestas.length > 0">
+      <ion-card *ngFor="let encuesta of encuestas" class="slot">
+        <ion-card-header>{{ encuesta.titulo }}</ion-card-header>
+        <ion-card-content>
+          {{ encuesta.descripcion }}
+          <div class="acciones">
+            <ion-button size="small" (click)="registrarEncuesta(encuesta.id)">Participar</ion-button>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
 
-  <div class="fotos" *ngIf="encuestas.length > 0">
-    <ion-card *ngFor="let encuesta of encuestas" class="slot">
-      <ion-card-header>{{ encuesta.titulo }}</ion-card-header>
-      <ion-card-content>
-        {{ encuesta.descripcion }}
-        <div class="acciones">
-          <ion-button size="small" (click)="registrarEncuesta(encuesta.id)">Participar</ion-button>
-        </div>
-      </ion-card-content>
-    </ion-card>
-  </div>
+    <ion-button class="btns_main" (click)="registrarseListaEspera()">
+      Unirse a la lista de espera
+    </ion-button>
 
-  <ion-button expand="block" class="btns_main" (click)="registrarseListaEspera()">
-    Unirse a la lista de espera
-  </ion-button>
+    <ion-button class="btns_main_back" routerLink="/alta-cliente">
+      Volver
+    </ion-button>
 
-  <ion-button expand="block" class="btns_main_back" routerLink="/home">
-    Volver
-  </ion-button>
-
-</ion-content>
+  </ion-content>
+}
