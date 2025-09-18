@@ -15,7 +15,7 @@ import { Media } from '@awesome-cordova-plugins/media/ngx';
   ],
   imports: [
     BrowserModule,
-    IonicModule.forRoot(),
+    IonicModule.forRoot({scrollPadding: false}),
     AppRoutingModule
   ],
   providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }, Media],

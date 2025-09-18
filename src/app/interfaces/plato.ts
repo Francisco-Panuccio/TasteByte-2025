@@ -5,4 +5,5 @@ export interface Plato {
   tiempo_elaboracion_min: number
   precio: number
   fotos: string[]
+  esPostre: boolean
 }

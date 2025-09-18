@@ -22,7 +22,8 @@ form {
 }
 
 ion-input,
-ion-textarea {
+ion-textarea,
+ion-checkbox {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -38,6 +39,33 @@ ion-textarea {
 
 ion-input {
   height: 60px;
+}
+
+.chk-postre {
+  --checkbox-background-checked: #554738;
+  --checkbox-border-color-checked: #554738;
+  --checkbox-border-color: #554738;
+  --checkbox-background: #e6dacd;
+  color: #554738;
+}
+
+ion-checkbox.chk-postre::part(label) {
+  opacity: 0.6;
+}
+
+ion-checkbox.chk-postre::part(container) {
+  border: 2px solid var(--checkbox-border-color, #554738);
+  background: var(--checkbox-background, #e6dacd);
+  border-radius: 6px;
+}
+
+ion-checkbox.chk-postre[aria-checked="true"]::part(container) {
+  border-color: var(--checkbox-border-color-checked, #554738);
+  background: var(--checkbox-background-checked, #554738);
+}
+
+ion-checkbox.chk-postre[aria-checked="true"]::part(mark) {
+  color: var(--checkbox-checkmark-color, #e6dacd);
 }
 
 .fotos {
