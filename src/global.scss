@@ -16,13 +16,47 @@ ion-header {
 
 ion-title {
   font-weight: 800;
+  font-size: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 50px 0 0 0;
+  padding: 25px 0;
+  background-color: #e6dacd;
+  border-bottom: 2px solid black;
+}
+
+title {
+  font-weight: 800;
+  font-size: 30px;
+  color: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+footer {
+  margin: 0 0 50px 0;
+  border-top: 2px solid black;
+  color: black;
+  background-color: #e6dacd;
+  padding: 10px 0;
+}
+
+ion-toolbar {
+  --background: #e6dacd;
 }
 
 ion-content {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100%;
   --background: #bb714e;
 }
 
@@ -52,4 +86,22 @@ ion-content {
 .profile-select option {
   color: #554738;
   background-color: rgba(255, 255, 255, 0.883);
+}
+
+.toast {
+  --background: #bb714e;
+  --color: #554738;
+  font-weight: 600;
+  font-size: 16px;
+  --border: 2px solid white;
+  --border-radius: 12px;
+  margin-top: 50px;
+  padding: 10px 0;
+}
+
+ion-toast.toast::part(button) {
+  color: white;
+  border-radius: 12px;
+  font-weight: 600;
+  background-color: #554738;
 }

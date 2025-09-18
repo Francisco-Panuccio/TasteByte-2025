@@ -167,13 +167,15 @@ export class AltaClientePage implements OnInit {
 
       const email = String(this.f["correo"].value).trim().toLowerCase();
       const password = String(this.f["clave"].value).trim();
+      const nombres = String(this.f["nombres"].value).trim();
+      const apellidos = String(this.f["apellidos"].value).trim(); // ← Agregar apellidos
 
       const sign = await supabase.auth.signUp({ email, password });
       if (sign.error) { throw sign.error; }
 
       const usuario: any = {
-        apellido: String(this.f["apellidos"].value).trim(),
-        nombre: String(this.f["nombres"].value).trim(),
+        apellido: apellidos, // ← Usar variable
+        nombre: nombres,
         dni: Number(String(this.f["dni"].value).trim()),
         email,
         perfil: "cliente_registrado",
@@ -195,8 +197,36 @@ export class AltaClientePage implements OnInit {
       });
 
       try {
-        await this.email.notifyRegistroPendiente(email, String(this.f["nombres"].value))
-      } catch { }
+        await this.email.sendEmail(
+          email,
+          "Registro Recibido - En Revisión",
+          "registro_pendiente",
+          { nombres }
+        );
+      } catch (e) { 
+        console.error('Error enviando email:', e);
+      }
+
+      // ✅ ✅ ✅ AGREGAR ESTO - PUSH NOTIFICATION A DUEÑOS/SUPERVISORES ✅ ✅ ✅
+      try {
+        await supabase.functions.invoke('send-push', {
+          body: {
+            perfiles: ['dueño', 'supervisor'], // ← Perfiles a notificar
+            title: '📋 Nuevo Cliente Pendiente',
+            body: `${nombres} ${apellidos} espera aprobación`,
+            data: { 
+              screen: 'clientes-pendientes',
+              tipo: 'nuevo_cliente',
+              cliente_id: (usuarioDB as any).id,
+              cliente_nombre: `${nombres} ${apellidos}`
+            }
+          }
+        });
+        console.log('Notificación enviada a dueños/supervisores');
+      } catch (pushError) {
+        console.warn('Error enviando push notification:', pushError);
+        // No romper el flujo si falla la notificación
+      }
 
       this.ok = true;
       this.formAltaCliente.reset();

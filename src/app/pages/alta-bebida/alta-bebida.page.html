@@ -1,104 +1,104 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Agregar Bebida</ion-title>
-  </ion-toolbar>
-</ion-header>
+@if(loading) {
+  <app-loading/>
+} @else {
+  <ion-header>
+    <ion-toolbar>
+      <ion-title>Agregar Bebida</ion-title>
+    </ion-toolbar>
+  </ion-header>
 
-<ion-content class="ion-padding">
- 
+  <ion-content class="ion-padding">
+    <form [formGroup]="formAltaBebida" novalidate>
+      <!-- Nombre -->
+      <ion-item lines="none">
+        <ion-input 
+          aria-label="Nombre de la bebida"
+          label="Nombre"
+          labelPlacement="floating" 
+          formControlName="nombre"
+          autocomplete="off">
+        </ion-input>
+      </ion-item>
+      <app-form-errors *ngIf="f.nombre.touched && f.nombre.invalid" [control]="f.nombre"></app-form-errors>
 
-  <form [formGroup]="formAltaBebida" novalidate>
+      <!-- Descripción -->
+      <ion-item lines="none">
+        <ion-textarea 
+          aria-label="Descripción de la bebida"
+          label="Descripción" 
+          labelPlacement="floating" 
+          formControlName="descripcion" 
+          autoGrow="true"
+          autocomplete="off">
+        </ion-textarea>
+      </ion-item>
+      <app-form-errors *ngIf="f.descripcion.touched && f.descripcion.invalid" [control]="f.descripcion"></app-form-errors>
 
-    <!-- Nombre -->
-    <ion-item lines="none">
-      <ion-input 
-        aria-label="Nombre de la bebida"
-        label="Nombre"
-        labelPlacement="floating" 
-        formControlName="nombre"
-        autocomplete="off">
-      </ion-input>
-    </ion-item>
-    <app-form-errors *ngIf="f.nombre.touched && f.nombre.invalid" [control]="f.nombre"></app-form-errors>
+      <!-- Tiempo -->
+      <ion-item lines="none">
+        <ion-input 
+          type="number" 
+          aria-label="Tiempo de elaboración en minutos"
+          label="Tiempo (min)" 
+          labelPlacement="floating" 
+          formControlName="tiempo_elaboracion_min"
+          autocomplete="off">
+        </ion-input>
+      </ion-item>
+      <app-form-errors *ngIf="f.tiempo_elaboracion_min.touched && f.tiempo_elaboracion_min.invalid" [control]="f.tiempo_elaboracion_min"></app-form-errors>
 
-    <!-- Descripción -->
-    <ion-item lines="none">
-      <ion-textarea 
-        aria-label="Descripción de la bebida"
-        label="Descripción" 
-        labelPlacement="floating" 
-        formControlName="descripcion" 
-        autoGrow="true"
-        autocomplete="off">
-      </ion-textarea>
-    </ion-item>
-    <app-form-errors *ngIf="f.descripcion.touched && f.descripcion.invalid" [control]="f.descripcion"></app-form-errors>
+      <!-- Precio -->
+      <ion-item lines="none">
+        <ion-input 
+          type="number" 
+          inputmode="decimal"
+          aria-label="Precio de la bebida"
+          label="Precio" 
+          labelPlacement="floating" 
+          formControlName="precio"
+          autocomplete="off">
+        </ion-input>
+      </ion-item>
+      <app-form-errors *ngIf="f.precio.touched && f.precio.invalid" [control]="f.precio"></app-form-errors>
 
-    <!-- Tiempo -->
-    <ion-item lines="none">
-      <ion-input 
-        type="number" 
-        aria-label="Tiempo de elaboración en minutos"
-        label="Tiempo (min)" 
-        labelPlacement="floating" 
-        formControlName="tiempo_elaboracion_min"
-        autocomplete="off">
-      </ion-input>
-    </ion-item>
-    <app-form-errors *ngIf="f.tiempo_elaboracion_min.touched && f.tiempo_elaboracion_min.invalid" [control]="f.tiempo_elaboracion_min"></app-form-errors>
+      <!-- Fotos -->
+      <div class="fotos">
+        <div class="slot-contenedor" *ngFor="let c of fotosFA.controls; let i = index">
+          <ion-card class="slot">
+            <ion-card-content>
+              <ion-img *ngIf="c.value" [src]="c.value" alt="Foto {{i + 1}}"></ion-img>
+            </ion-card-content>
+          </ion-card>
 
-    <!-- Precio -->
-    <ion-item lines="none">
-      <ion-input 
-        type="number" 
-        inputmode="decimal"
-        aria-label="Precio de la bebida"
-        label="Precio" 
-        labelPlacement="floating" 
-        formControlName="precio"
-        autocomplete="off">
-      </ion-input>
-    </ion-item>
-    <app-form-errors *ngIf="f.precio.touched && f.precio.invalid" [control]="f.precio"></app-form-errors>
-
-    <!-- Fotos -->
-    <div class="fotos">
-      <div class="slot-contenedor" *ngFor="let c of fotosFA.controls; let i = index">
-        <ion-card class="slot">
-          <ion-card-content>
-            <ion-img *ngIf="c.value" [src]="c.value" alt="Foto {{i + 1}}"></ion-img>
-          </ion-card-content>
-        </ion-card>
-
-        <div class="acciones">
-          <ion-button (click)="elegirFoto(i,'cam')" aria-label="Tomar foto con cámara">Cámara</ion-button>
-          <ion-button fill="outline" (click)="elegirFoto(i,'gal')" aria-label="Seleccionar foto de galería">Galería</ion-button>
+          <div class="acciones">
+            <ion-button (click)="elegirFoto(i,'cam')" aria-label="Tomar foto con cámara">Cámara</ion-button>
+            <ion-button fill="outline" (click)="elegirFoto(i,'gal')" aria-label="Seleccionar foto de galería">Galería</ion-button>
+          </div>
         </div>
       </div>
-    </div>
-    <ion-item *ngIf="fotosFA.invalid && (fotosFA.dirty || fotosFA.touched)" lines="none">
-      <ion-label color="danger">Debes cargar las 3 fotos</ion-label>
-    </ion-item>
+      <ion-item *ngIf="fotosFA.invalid && (fotosFA.dirty || fotosFA.touched)" lines="none">
+        <ion-label color="danger">Debes cargar las 3 fotos</ion-label>
+      </ion-item>
 
-    <!-- Botón Guardar -->
-    <ion-button expand="block" [disabled]="formAltaBebida.invalid || !!err" (click)="enviar()">
-      Guardar
-    </ion-button>
+      <!-- Botón Guardar -->
+      <ion-button expand="block" [disabled]="formAltaBebida.invalid || !!err" (click)="enviar()">
+        Guardar
+      </ion-button>
 
-    <!-- Botón Volver -->
-    <ion-button class="volver" expand="block" routerLink="/home">
-      Volver
-    </ion-button>
+      <!-- Botón Volver -->
+      <ion-button class="volver" expand="block" href="/home">
+        Volver
+      </ion-button>
 
-    <!-- Mensajes de éxito -->
-    <ion-item *ngIf="ok" lines="none">
-      <ion-label color="success">Bebida creada con éxito 🍹</ion-label>
-    </ion-item>
+      <!-- Mensajes de éxito -->
+      <ion-item *ngIf="ok" lines="none">
+        <ion-label color="success">Bebida creada con éxito 🍹</ion-label>
+      </ion-item>
 
-     <!-- Mensaje de error de acceso -->
-     <ion-item *ngIf="err && !ok" color="danger" lines="none" padding-top="5px">
-       <ion-label class="ion-text-center">{{ err }}</ion-label>
-     </ion-item>
-
-    </form>
-</ion-content>
+      <!-- Mensaje de error de acceso -->
+      <ion-item *ngIf="err && !ok" color="danger" lines="none" padding-top="5px">
+        <ion-label class="ion-text-center">{{ err }}</ion-label>
+      </ion-item>
+      </form>
+  </ion-content>
+}

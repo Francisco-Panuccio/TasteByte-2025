@@ -9,7 +9,7 @@ ion-content {
 
 /* Card */
 form {
-  background: #f8f5f0d2;
+  background: #e6dacd;
   padding: 2rem;
   border-radius: 20px;
   width: 100%;
@@ -20,6 +20,7 @@ form {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  margin: 20px 0 40px 0;
 }
 
 /* Inputs */
@@ -93,11 +94,11 @@ ion-text[color="success"] {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-.volver{
---background: #d7b899;
---color: #bb714e;
---border-radius: 12px;
-font-weight: 800;
-height: 48px;
-margin-top: 0px;
+.volver {
+  --background: #d7b899;
+  --color: #bb714e;
+  --border-radius: 12px;
+  font-weight: 800;
+  height: 48px;
+  margin-top: 0px;
 }

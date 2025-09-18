@@ -30,7 +30,6 @@ export class HomePage implements OnInit {
         return;
       }
 
-      // obtenemos datos en tabla usuarios
       const usuarioDB: Usuario | null = await this.usuarios.getByEmail(user.email!);
       if (!usuarioDB) {
         this.router.navigateByUrl("/login", { replaceUrl: true });
@@ -40,7 +39,6 @@ export class HomePage implements OnInit {
       this.fullname = `${usuarioDB.nombres} ${usuarioDB.apellidos}`.trim();
       this.profile = usuarioDB.perfil;
 
-      // seteo de flags
       const perfil = usuarioDB.perfil?.toLowerCase();
       this.isDuenoSupervisor = perfil === "dueno" || perfil === "dueño" || perfil === "supervisor";
       this.isCocinero = perfil === "cocinero";

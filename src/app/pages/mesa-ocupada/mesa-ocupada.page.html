@@ -1,0 +1,158 @@
+@if(loading) {
+  <app-loading/>
+} @else {
+  <header>
+    <title>Mesa {{ mesa?.numero ?? "NN"}}</title>
+  </header>
+
+  <ion-content>
+    <section class="resumen-flotante">
+      <div class="div_data">
+        <div class="importe">Total: {{ total | currency:"ARS":"symbol-narrow" }}</div>
+        <div class="tiempo_espera">Espera: {{ etaMin }} min</div>
+      </div>
+      <div class="div_btn">
+        <button class="btn_pedido" [disabled]="itemsSel.length===0" (click)="terminarPedido();">Finalizar Pedido</button>
+      </div>
+    </section>
+
+    <ion-segment [(ngModel)]="tab">
+      <ion-segment-button value="platos">Comidas</ion-segment-button>
+      <ion-segment-button value="bebidas">Bebidas</ion-segment-button>
+      <ion-segment-button value="postres">Postres</ion-segment-button>
+    </ion-segment>
+
+    <div class="grid">
+      @if(tab==="platos"){
+        @for(p of platos; track p.id){
+          <article class="card">
+            <div class="imgs">
+              <img *ngIf="p.fotos?.[0]" [src]="p.fotos[0]" alt="{{ p.nombre }}">
+              <img *ngIf="p.fotos?.[1]" [src]="p.fotos[1]" alt="{{ p.nombre }}">
+              <img *ngIf="p.fotos?.[2]" [src]="p.fotos[2]" alt="{{ p.nombre }}">
+            </div>
+            <h3>{{ p.nombre }}</h3>
+            <p class="desc">{{ p.descripcion }}</p>
+            <div class="meta">
+              <span class="precio">{{ p.precio | currency:"ARS":"symbol-narrow" }}</span>
+              <span class="tiempo">{{ p.tiempo_elaboracion_min }} min</span>
+            </div>
+
+            <div class="qty">
+              <ion-button size="small" (click)="dec(p.id ?? 0);">-</ion-button>
+              <span>{{ qtyMap.get(p.id ?? 0) || 0 }}</span>
+              <ion-button size="small" (click)="inc({ id: p.id ?? 0, nombre: p.nombre, precio: p.precio, duracionMin: p.tiempo_elaboracion_min, tipo: 'plato' });">+</ion-button>
+            </div>
+          </article>
+        }
+      }
+
+      @if(tab==="bebidas"){
+        @for(b of bebidas; track b.id){
+          <article class="card">
+            <div class="imgs">
+              <img *ngIf="b.fotos?.[0]" [src]="b.fotos[0]" alt="{{ b.nombre }}">
+              <img *ngIf="b.fotos?.[1]" [src]="b.fotos[1]" alt="{{ b.nombre }}">
+              <img *ngIf="b.fotos?.[2]" [src]="b.fotos[2]" alt="{{ b.nombre }}">
+            </div>
+            <h3>{{ b.nombre }}</h3>
+            <p class="desc">{{ b.descripcion }}</p>
+            <div class="meta">
+              <span class="precio">{{ b.precio | currency:"ARS":"symbol-narrow" }}</span>
+              <span class="tiempo">{{ b.tiempo_elaboracion_min }} min</span>
+            </div>
+
+            <div class="qty">
+              <ion-button size="small" (click)="dec(b.id ?? 0);">-</ion-button>
+              <span>{{ qtyMap.get(b.id ?? 0) || 0 }}</span>
+              <ion-button size="small" (click)="inc({ id: b.id ?? 0, nombre: b.nombre, precio: b.precio, duracionMin: b.tiempo_elaboracion_min, tipo: 'bebida' });">+</ion-button>
+            </div>
+          </article>
+        }
+      }
+
+      @if(tab==="postres"){
+        @for(pt of postres; track pt.id){
+          <article class="card">
+            <div class="imgs">
+              <img *ngIf="pt.fotos?.[0]" [src]="pt.fotos[0]" alt="{{ pt.nombre }}">
+              <img *ngIf="pt.fotos?.[1]" [src]="pt.fotos[1]" alt="{{ pt.nombre }}">
+              <img *ngIf="pt.fotos?.[2]" [src]="pt.fotos[2]" alt="{{ pt.nombre }}">
+            </div>
+            <h3>{{ pt.nombre }}</h3>
+            <p class="desc">{{ pt.descripcion }}</p>
+            <div class="meta">
+              <span class="precio">{{ pt.precio | currency:"ARS":"symbol-narrow" }}</span>
+              <span class="tiempo">{{ pt.tiempo_elaboracion_min }} min</span>
+            </div>
+            
+            <div class="qty">
+              <ion-button size="small" (click)="dec(pt.id ?? 0);">-</ion-button>
+              <span>{{ qtyMap.get(pt.id ?? 0) || 0 }}</span>
+              <ion-button size="small" (click)="inc({ id: pt.id ?? 0, nombre: pt.nombre, precio: pt.precio, duracionMin: pt.tiempo_elaboracion_min, tipo: 'postre' });">+</ion-button>
+            </div>
+          </article>
+        }
+      }
+    </div>
+  </ion-content>
+
+  <footer>
+    <ion-toolbar>
+      <ion-buttons slot="start">
+        <ion-button [disabled]="!mesaAsignada" (click)="openChat()" class="btn_open_chat">Consulta al mozo</ion-button>
+      </ion-buttons>
+      <ion-buttons slot="end">
+        <ion-button routerLink="/home" class="btn_back">Volver</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </footer>
+
+  <ion-modal
+    #chatModal
+    [isOpen]="chatOpen"
+    [breakpoints]="[1]"
+    [initialBreakpoint]="1"
+    backdropDismiss="false"
+    handle="false"
+    (didDismiss)="chatOpen=false">
+    <ng-template>
+      <header style="margin-top: 0 !important; padding: 10px !important;">
+        <ion-toolbar>
+          <title style="font-size: 25px;">Chat Mozo</title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeChat()" class="btn_close">Cerrar</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </header>
+
+      <ion-content #chatContent class="ion-content-chat">
+        <div class="chat">
+          <div class="msg" 
+          [class.mine]="m.from==='yo'" 
+          [class.mozo-msg]="m.role==='mozo'"
+          [class.cliente-msg]="m.role==='cliente'"
+          *ngFor="let m of messages; trackBy: trackMsg;">
+            <div class="bubble">
+              <div class="body">{{ m.text }}</div>
+              <div [class.mozo-meta]="m.role==='mozo'"
+              [class.cliente-meta]="m.role==='cliente'">
+                 {{ m.role==='mozo' ? 'Mozo' : ('Mesa ' + (mesa?.numero ?? 'NN')) }} • {{ m.time }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <ion-item class="composer" lines="none" slot="fixed">
+          <ion-input
+            type="text"
+            placeholder="Escribe tu mensaje…"
+            [(ngModel)]="newMsg"
+            (keyup.enter)="sendMessage();">
+          </ion-input>
+          <ion-button slot="end" [disabled]="!newMsg.trim()" (click)="sendMessage();" style="color: white; --background: #554738;">Enviar</ion-button>
+        </ion-item>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+}

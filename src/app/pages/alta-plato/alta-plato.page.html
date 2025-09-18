@@ -28,7 +28,7 @@
       }
 
       <ion-item class="ion-item-input">
-        <ion-input type="number" placeholder="Tiempo (min)" formControlName="tiempo_elaboracion_min"></ion-input>
+        <ion-input type="number" inputmode="numeric" placeholder="Tiempo (min)" formControlName="tiempo_elaboracion_min"></ion-input>
       </ion-item>
       @if(f.tiempo_elaboracion_min.touched && f.tiempo_elaboracion_min.invalid) {
         <ng-container>
@@ -44,6 +44,10 @@
           <app-form-errors color="white" [control]="f.precio"></app-form-errors>
         </ng-container>
       }
+
+      <ion-item class="ion-item-input">
+        <ion-checkbox formControlName="esPostre" labelPlacement="start" class="chk-postre">¿Postre?</ion-checkbox>
+      </ion-item>
 
       <div class="fotos">
         @for (c of fotosFA.controls; track $index; let i = $index) {
@@ -61,7 +65,7 @@
       }
 
       <ion-button class="btns_main" expand="block" [disabled]="formAltaPlato.invalid" (click)="enviar()">Guardar</ion-button> 
-      <ion-button class="btns_main_back" expand="block" routerLink="/home">Volver</ion-button> 
+      <ion-button class="btns_main_back" expand="block" href="/home">Volver</ion-button> 
       
       @if(err) {<ion-item class="ion-error" lines="none">{{ err }}</ion-item>}
 

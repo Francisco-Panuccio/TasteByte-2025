@@ -1,0 +1,36 @@
+<header>
+    <title>Pedido #{{ ped?.id | slice:0:8 }}</title>
+</header>
+
+<ion-content>
+  <ion-list>
+    <ion-item lines="full">
+      <ion-label>Total</ion-label>
+      <ion-note slot="end">{{ ped?.total | currency:"ARS":"symbol-narrow" }}</ion-note>
+    </ion-item>
+    <ion-item lines="full">
+      <ion-label>ETA</ion-label>
+      <ion-note slot="end">{{ ped?.eta_minutos }} min</ion-note>
+    </ion-item>
+    <ion-item lines="full">
+      <ion-label>Estado</ion-label>
+      <ion-note slot="end">{{ ped?.estado }}</ion-note>
+    </ion-item>
+  </ion-list>
+
+  <ion-list>
+    @for (it of items; track it.id) {
+      <ion-item>
+        <ion-label>
+          <div>{{ it.nombre }}</div>
+          <small>{{ it.tipo }} • {{ it.duracion_min }} min</small>
+        </ion-label>
+        <ion-note slot="end">{{ it.cantidad }} × {{ it.precio_unit | currency:"ARS":"symbol-narrow" }}</ion-note>
+      </ion-item>
+    }
+  </ion-list>
+</ion-content>
+
+<footer>
+  <span routerLink="/home">Volver</span>
+</footer>

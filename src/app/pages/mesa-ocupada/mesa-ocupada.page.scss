@@ -1,0 +1,259 @@
+ion-segment {
+  --background: #d7b899;
+}
+
+ion-segment-button {
+  font-weight: 600;
+  color: #554738;
+  border-right: 2px solid #554738;
+  --color-checked: #554738;
+}
+
+ion-segment-button:nth-child(3) {
+  border-right: none;
+}
+
+.loading,
+.error,
+.vacio {
+  padding: 1rem;
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  place-content: center;
+  gap: 20px;
+  grid-template-columns: 1fr;
+  padding: 20px .75rem;
+}
+
+.card {
+  border: 2px solid #000;
+  border-radius: 16px;
+  background: #e6dacd;
+  padding: .5rem;
+  cursor: pointer;
+}
+
+.imgs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: .5rem;
+}
+
+.imgs img {
+  width: 100%;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  border: 1px solid #000;
+  border-radius: 8px;
+}
+
+h3 {
+  margin: .25rem 0;
+  font-weight: 700;
+}
+
+.desc {
+  font-size: .9rem;
+  color: #554738;
+  font-weight: 600;
+  min-height: 2.5em;
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cliente-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: black;
+  font-size: 12px;
+  margin-top: 5px;
+  font-weight: 600;
+}
+
+.mozo-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: rgb(182, 182, 182);
+  font-size: 12px;
+  margin-top: 5px;
+  font-weight: 600;
+}
+
+.precio {
+  border: 1px solid #000;
+  padding: .1rem .4rem;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #554738;
+  background: white;
+}
+
+.tiempo {
+  color: #554738;
+  font-size: 14px;
+}
+
+footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn_open_chat {
+  color: #554738;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.btn_back {
+  color: black;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.chat {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+}
+
+.msg {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.msg.mine {
+  justify-content: flex-end;
+}
+
+.cliente-msg .bubble {
+  max-width: 80%;
+  color: black;
+  border: 2px solid black;
+  border-radius: 16px;
+  padding: 8px 10px;
+  background: #e6f7ff;
+}
+
+.mozo-msg .bubble {
+  max-width: 80%;
+  border: 2px solid black;
+  border-radius: 16px;
+  padding: 8px 10px;
+  color: white;
+  background: #554738;
+}
+
+.body {
+  white-space: pre-wrap;
+  word-break: break-word;
+  text-align: start;
+}
+
+.chat .meta {
+  font-size: 0.75rem;
+  color: #555;
+  margin-top: 4px;
+  text-align: right;
+}
+
+ion-content.ion-content-chat {
+  --background: #d7b899;
+  --padding-bottom: calc(60px + var(--ion-safe-area-bottom) + var(--kb, 0px));
+  overflow: scroll;
+}
+
+.composer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  background: white;
+  border-top: 1px solid black;
+  padding: 6px 8px;
+  padding-bottom: max(6px, calc(6px + var(--ion-safe-area-bottom)));
+}
+
+.composer ion-item {
+  --background: transparent;
+  width: 100%;
+}
+
+.btn_close {
+  color: black;
+  font-weight: 600;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  margin: 5px 5px 0 0;
+}
+
+.resumen-flotante {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  background: #1b1b1b;
+  border-bottom: 2px solid black;
+  color: white;
+  padding: 8px 12px;
+  font-weight: 700;
+
+  .div_data {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+
+    .importe,
+    .tiempo_espera {
+      font-size: 16px;
+    }
+  }
+
+  .div_btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .btn_pedido {
+      background-color: #554738;
+      padding: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: 12px;
+      color: white;
+      opacity: 1;
+    }
+  }
+}
+
+.qty {
+  margin-top: 8px;
+  display: grid;
+  grid-auto-flow: column;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+
+  span {
+    min-width: 20px;
+    text-align: center;
+    font-weight: 700;
+  }
+}

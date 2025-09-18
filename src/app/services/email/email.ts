@@ -5,15 +5,25 @@ import { supabase } from 'src/supabase.client';
   providedIn: 'root'
 })
 export class Email {
-  async notifyRegistroPendiente(to: string, nombres: string): Promise<void> {
+
+  async sendEmail(to: string, subject: string, template: string, vars: any): Promise<void> {
+    console.log('📧 Attempting to send email to:', to);
+    
     const { error } = await supabase.functions.invoke("send-email", {
-      body: {
-        to,
-        subject: "Registro Recibido",
-        template: "registro_pendiente",
-        vars: { nombres }
+      body: { 
+        to: to.trim().toLowerCase(),
+        subject: subject.trim(),
+        template: template.trim(),
+        vars 
       }
-    })
-    if (error) throw error
+    });
+    
+    if (error) {
+      console.error('❌ Email error:', error);
+      throw error;
+    }
+    
+    console.log('✅ Email sent successfully');
   }
+
 }

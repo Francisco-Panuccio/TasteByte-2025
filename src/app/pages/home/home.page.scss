@@ -13,7 +13,7 @@
 }
 
 #container p {
-  font-size: 20px;
+  font-size: 40px;
   font-weight: 600;
   color: #554738;
   margin: 10px 0;
@@ -52,4 +52,10 @@
 .span_data {
   font-size: 20px !important;
   font-weight: 600;
+}
+
+.footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }

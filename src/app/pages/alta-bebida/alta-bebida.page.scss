@@ -13,12 +13,13 @@ form {
   padding: 1rem;
   border-radius: 15px;
   width: 100%;
-  max-width: 480px; /* Limita el ancho máximo del form */
+  max-width: 480px;
   box-sizing: border-box;
   margin: 0 auto;
   display: flex;
-  flex-direction: column; /* Apila elementos verticalmente */
-  align-items: center;    /* Centra contenido horizontalmente */
+  flex-direction: column;
+  align-items: center;
+  margin: 20px 0 40px 0;
 }
 
 /* ------------------ Inputs ------------------ */
@@ -29,8 +30,8 @@ ion-item {
   --inner-padding-end: 0;
   --highlight-color-focused: transparent;
   display: flex;
-  flex-direction: column; /* Label sobre input */
-  align-items: center;    /* Centrado horizontal */
+  flex-direction: column;
+  align-items: center;
   width: 100%;
   margin-bottom: 10px;
 }
@@ -49,8 +50,8 @@ ion-input, ion-textarea {
 /* ------------------ Fotos contenedor ------------------ */
 .fotos {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3 columnas */
-  justify-items: center; /* centra los slot-contenedor */
+  grid-template-columns: repeat(3, 1fr);
+  justify-items: center;
   gap: 6px;
   margin: 12px 0;
   width: 100%;
@@ -62,7 +63,7 @@ ion-input, ion-textarea {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px; /* espacio entre slot y botones */
+  gap: 4px;
   width: 100%;
   max-width: 120px;
 }
@@ -90,7 +91,7 @@ ion-input, ion-textarea {
 }
 
 .slot ion-card-content {
-  padding: 0; /* elimina el padding que hace que la imagen no ocupe todo */
+  padding: 0;
   height: 100%;
   display: flex;
 }
@@ -111,7 +112,7 @@ ion-input, ion-textarea {
   font-weight: 600;
   font-size: 1rem;
   height: 22px;
-  margin: 0 auto; /* Centrado horizontal */
+  margin: 0 auto;
   --padding-start: 2px;
   --padding-end: 2px;
   width: 100%;
@@ -124,18 +125,19 @@ ion-button[expand="block"] {
   --border-radius: 12px;
   font-weight: 800;
   height: 48px;
-  margin: 10px auto 0 auto; /* Centrado */
+  margin: 10px auto 0 auto;
 }
 
 /* ------------------ Mensajes ------------------ */
 ion-text {
-  text-align: center; /* Centrado de mensajes */
+  text-align: center;
 }
 
 ion-label[color="danger"] {
   font-size: 0.9rem;
   font-weight: 600;
   color: #bb2d3b !important;
+  text-align: center;
 }
 
 ion-label[color="success"] {
@@ -143,6 +145,7 @@ ion-label[color="success"] {
   font-weight: 600;
   color: #2e7d32 !important;
   margin-top: 5px;
+  text-align: center;
 }
 
 /* ------------------ Botón volver ------------------ */

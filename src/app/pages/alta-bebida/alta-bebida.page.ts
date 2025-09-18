@@ -50,7 +50,7 @@ export class AltaBebidaPage implements OnInit {
 
     const esBartender = await this.exigeBartender();
     if (!esBartender) {
-      this.formAltaBebida.disable(); // bloquea todos los campos
+      this.formAltaBebida.disable();
     }
   }
 

@@ -1,11 +1,9 @@
 @if(loading) {
-<app-loading />
+  <app-loading/>
 } @else {
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>Alta Cliente</ion-title>
-  </ion-toolbar>
-</ion-header>
+  <header>
+    <title>Alta Cliente</title>
+  </header>
 
 <ion-content [fullscreen]="true" class="ion-padding">
   <ion-segment [(ngModel)]="tipoCliente" value="registrado">
@@ -110,28 +108,28 @@
       >
     </ion-item>
 
-    <div class="preview-foto" *ngIf="f['foto'].value">
-      <ion-img [src]="f['foto'].value" alt="Foto cliente"></ion-img>
-    </div>
 
-    <ion-text color="danger" *ngIf="f['foto'].touched && f['foto'].invalid">
-      <p>La foto es obligatoria</p>
-    </ion-text>
+      <div class="preview-foto" *ngIf="f['foto'].value">
+        <ion-img [src]="f['foto'].value" alt="Foto cliente"></ion-img>
+      </div>
 
-    <ion-text color="danger" *ngIf="err">{{ err }}</ion-text>
-    <ion-text color="success" *ngIf="ok"
-      >Cliente registrado correctamente!</ion-text
-    >
+      <ion-text color="danger" *ngIf="f['foto'].touched && f['foto'].invalid">
+        <p>La foto es obligatoria</p>
+      </ion-text>
 
-    <ion-button expand="block" type="submit" [disabled]="loading">
-      {{ loading ? 'Guardando...' : 'Registrar Cliente' }}
-    </ion-button>
+      <ion-text color="danger" *ngIf="err">{{ err }}</ion-text>
+      <ion-text color="success" *ngIf="ok">Cliente registrado correctamente!</ion-text>
 
+      <ion-button expand="block" type="submit" [disabled]="loading">
+        {{ loading ? 'Guardando...' : 'Registrar Cliente' }}
+      </ion-button>
+    
     <ion-button class="volver" expand="block" routerLink="/home"
       >Volver</ion-button
     >
   </form>
   }
+  
   @if(tipoCliente === 'anonimo') {
       <form [formGroup]="formAltaAnonimo" (ngSubmit)="enviar('anonimo')">
 
@@ -166,5 +164,5 @@
         <ion-button class="volver" expand="block" routerLink="/home">Volver</ion-button>
       </form>
     }
-</ion-content>
+  </ion-content>
 }

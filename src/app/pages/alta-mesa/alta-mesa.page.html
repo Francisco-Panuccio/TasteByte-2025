@@ -21,7 +21,7 @@
 
       <ion-item class="ion-item-input">
         <select formControlName="tipo" class="profile-select">
-          <option value="" disabled selected>Seleccionar Tipo de Mesa</option>
+          <option [ngValue]="null" disabled>Seleccionar Tipo de Mesa</option>
           @for (t of tipos; track t.value) {
             <option [value]="t.value">{{ t.label }}</option>
           }
@@ -41,7 +41,7 @@
       }
 
       <ion-button class="btns_main" expand="block" [disabled]="formAltaMesa.invalid" (click)="enviar()">Guardar</ion-button>
-      <ion-button class="btns_main_back" expand="block" routerLink="/home">Volver</ion-button> 
+      <ion-button class="btns_main_back" expand="block" href="/home">Volver</ion-button> 
 
       @if(err) { <ion-item class="ion-error" lines="none">{{ err }}</ion-item> }
       @if(ok)  { <ion-item class="ion-success" lines="none">Mesa Creada</ion-item> }
