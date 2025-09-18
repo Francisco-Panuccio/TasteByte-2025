@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { FormBuilder, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Capacitor } from '@capacitor/core';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { BarcodeFormat, BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
@@ -7,6 +7,7 @@ import { supabase } from 'src/supabase.client';
 import { Usuario } from 'src/app/interfaces/usuario';
 import { Usuarios } from 'src/app/services/usuarios/usuarios';
 import { Email } from 'src/app/services/email/email';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-alta-cliente',
@@ -19,6 +20,12 @@ export class AltaClientePage implements OnInit {
   private usuarios = inject(Usuarios);
   private email = inject(Email);
   private readonly platform = Capacitor.getPlatform();
+
+  formAnonimo!: FormGroup;
+  fotoPreview: string | null = null;
+  fotoUrl: string | null = null;
+  cargando = false;
+  mensaje: string | null = null;
 
   loading = true;
   ok = false;
@@ -37,8 +44,20 @@ export class AltaClientePage implements OnInit {
 
   get f() { return this.formAltaCliente.controls; }
 
+  tipoCliente: 'registrado' | 'anonimo' = 'registrado';
+
+  formAltaAnonimo = this.fb.group({
+    nombre: ["", [Validators.required, Validators.minLength(2)]],
+    foto: ["", [Validators.required]]
+  });
+
+  get fAnonimo() { return this.formAltaAnonimo.controls; }
+
   ngOnInit() {
     this.loading = false;
+     this.formAnonimo = this.fb.group({
+      nombre: ['', [Validators.required, Validators.minLength(2)]],
+    });
   }
 
   // ------------------ Escaneo DNI ------------------
@@ -129,18 +148,23 @@ export class AltaClientePage implements OnInit {
     return new Blob([bytes], { type });
   }
 
-  // ------------------ Enviar ------------------
-  async enviar() {
-    this.err = null;
-    this.ok = false;
+  constructor(private router: Router) {}
+ async enviar(tipo: string) {
+  this.err = null;
+  this.ok = false;
 
-    if (this.formAltaCliente.invalid) {
-      this.formAltaCliente.markAllAsTouched();
-      return;
-    }
 
-    this.loading = true;
-    try {
+  const form = tipo === "registrado" ? this.formAltaCliente : this.formAltaAnonimo;
+
+  if (form.invalid) {
+    form.markAllAsTouched();
+    return;
+  }
+
+  this.loading = true;
+  try {
+    if (tipo === "registrado") {
+
       const email = String(this.f["correo"].value).trim().toLowerCase();
       const password = String(this.f["clave"].value).trim();
       const nombres = String(this.f["nombres"].value).trim();
@@ -206,18 +230,88 @@ export class AltaClientePage implements OnInit {
 
       this.ok = true;
       this.formAltaCliente.reset();
-      this.qrPayload = null;
-    } catch (e: any) {
-      const msg = String(e?.message || e);
-      if (/already registered|User already registered/i.test(msg)) {
-        this.err = "Correo registrado";
-      } else if (/duplicate key.*numero_documento|numero_documento/i.test(msg)) {
-        this.err = "DNI registrado";
-      } else {
-        this.err = msg || "No se pudo completar el registro";
-      }
-    } finally {
-      this.loading = false;
+      this.qrPayload = null;  
+    } 
+
+    
+    else if (tipo === "anonimo") {
+    const nombre = String(this.fAnonimo["nombre"].value).trim();
+    const foto_url = String(this.fAnonimo["foto"].value).trim();
+
+    
+    const { error: insAnonErr } = await supabase
+      .from("clientes_anonimos")
+      .insert({
+        nombre,
+        foto_url
+      });
+
+    if (insAnonErr) throw insAnonErr;
+
+    this.ok = true;
+    this.formAltaAnonimo.reset();
+    this.router.navigate(['/encuestas-espera']);
+}
+
+  } catch (e: any) {
+    const msg = String(e?.message || e);
+    if (/already registered|User already registered/i.test(msg)) {
+      this.err = "Correo registrado";
+    } else if (/duplicate key.*numero_documento|numero_documento/i.test(msg)) {
+      this.err = "DNI registrado";
+    } else {
+      this.err = msg || "No se pudo completar el registro";
     }
+  } finally {
+    this.loading = false;
   }
+}
+
+  
+  async sacarFotoAnonimo() {
+  this.err = null;
+  try {
+    if (this.platform !== "web") {
+      const status = await Camera.requestPermissions({ permissions: ["camera"] });
+      if (status.camera !== "granted") {
+        this.err = "Permiso de cámara denegado";
+        return;
+      }
+    }
+
+    const photo = await Camera.getPhoto({
+      resultType: CameraResultType.Uri,
+      quality: 85,
+      source: CameraSource.Camera,
+      allowEditing: false
+    });
+
+    let blob: Blob;
+    let ext = "jpg";
+
+    if (photo.webPath) {
+      const response = await fetch(photo.webPath);
+      blob = await response.blob();
+      ext = blob.type.includes("png") ? "png" : "jpg";
+    } else if (photo.base64String) {
+      blob = this.base64ToBlob(photo.base64String, "image/jpeg");
+    } else {
+      throw new Error("No se pudo obtener la imagen");
+    }
+
+    const fileName = `anonimo_${Date.now()}.${ext}`;
+    const filePath = `clientes_anonimos/${fileName}`;
+
+    const up = await supabase.storage.from('clientes').upload(filePath, blob, { contentType: blob.type, upsert: true });
+    if (up.error) throw up.error;
+
+    const { data } = supabase.storage.from('clientes').getPublicUrl(filePath);
+    this.formAltaAnonimo.patchValue({ foto: data.publicUrl });
+  } catch (e: any) {
+    this.err = `Error al tomar la foto: ${e.message || e}`;
+  }
+}
+  
+
+  
 }

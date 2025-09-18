@@ -33,8 +33,19 @@ const routes: Routes = [
   },
   {
     path: 'register',
-    loadChildren: () => import('./pages/register/register.module').then(m => m.RegisterPageModule)
+    loadChildren: () => import('./pages/register/register.module').then( m => m.RegisterPageModule)
   },
+  {
+    path: 'alta-empleado',
+    loadChildren: () => import('./pages/alta-empleado/alta-empleado.module').then( m => m.AltaEmpleadoPageModule)
+  },
+  {
+    path: 'encuestas-espera',
+    loadChildren: () => import('./pages/encuestas-espera/encuestas-espera.module').then( m => m.EncuestasEsperaPageModule)
+  },
+  {
+    path: 'lista-espera',
+    loadChildren: () => import('./pages/lista-espera/lista-espera.module').then( m => m.ListaEsperaPageModule)
   {
     path: 'mesa-ocupada',
     loadChildren: () => import('./pages/mesa-ocupada/mesa-ocupada.module').then(m => m.MesaOcupadaPageModule)
@@ -46,7 +57,8 @@ const routes: Routes = [
   {
     path: 'listado-clientes',
     loadChildren: () => import('./pages/listado-clientes/listado-clientes.module').then( m => m.ListadoClientesPageModule)
-  },  {
+  },
+  {
     path: 'pedido',
     loadChildren: () => import('./pages/pedido/pedido.module').then( m => m.PedidoPageModule)
   },
@@ -54,7 +66,10 @@ const routes: Routes = [
     path: 'pedidos-mozo',
     loadChildren: () => import('./pages/pedidos-mozo/pedidos-mozo.module').then( m => m.PedidosMozoPageModule)
   },
-
+  {
+    path: 'listado-mesas',
+    loadChildren: () => import('./pages/listado-mesas/listado-mesas.module').then( m => m.ListadoMesasPageModule)
+  }
 ];
 
 @NgModule({

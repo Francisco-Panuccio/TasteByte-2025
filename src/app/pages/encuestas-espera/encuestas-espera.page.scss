@@ -1,0 +1,80 @@
+:host ion-content.ion-padding::part(scroll) {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+h2 {
+  text-align: center;
+  color: #554738;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.fotos {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.slot {
+  display: grid;
+  place-items: center;
+  border: 2px solid black;
+  padding: 10px;
+  border-radius: 12px;
+  background-color: #d3a87c;
+  width: 300px;
+  gap: 8px;
+}
+
+.slot ion-card-header {
+  font-weight: 600;
+  text-align: center;
+  color: #554738;
+}
+
+.slot ion-card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.acciones {
+  display: flex;
+  gap: 5px;
+}
+
+ion-button {
+  font-weight: 600;
+}
+
+.btns_main {
+  --background: #554738;
+  border: 2px solid white;
+  border-radius: 5px;
+}
+
+.btns_main_back {
+  color: #554738;
+  --background: white;
+  border: 2px solid #554738;
+  border-radius: 5px;
+}
+
+.ion-error,
+.ion-success {
+  font-weight: 600;
+  --background: transparent;
+  color: white;
+  text-align: center;
+}
+
+.ion-success {
+  color: green;
+}
