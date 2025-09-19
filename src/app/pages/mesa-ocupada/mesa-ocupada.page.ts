@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, inject, OnDestroy, OnInit, ViewChild } from "@angular/core";
+import { AfterViewInit, Component, inject, NgZone, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { IonContent, IonModal, Platform, ToastController } from "@ionic/angular";
 import { Bebida } from "src/app/interfaces/bebida";
@@ -41,6 +41,8 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   private kbOpen = false;
   private backUnsub?: () => void;
   private seenIds = new Set<string>();
+  private unsubEstado?: () => void;
+
   chatId?: string;
   myUserId?: string;
   error?: string;
@@ -77,7 +79,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   etaMin = 0;
   userUid: string = "";
 
-  constructor(private platform: Platform) { }
+  constructor(private platform: Platform, private zone: NgZone) {}
 
   async ngOnInit() {
     const sub = this.platform.backButton.subscribeWithPriority(9999, () => {
@@ -117,7 +119,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit() { this.presentingEl = document.querySelector("ion-router-outlet") as HTMLElement; }
-  ngOnDestroy() { this.chatSvc.unsubscribe(); this.backUnsub?.(); }
+  ngOnDestroy() { this.chatSvc.unsubscribe(); this.backUnsub?.(); this.unsubEstado?.(); }
 
   private hhmm(d: Date): string {
     const hh = String(d.getHours()).padStart(2, "0");
@@ -209,7 +211,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   }
 
   trackMsg = (_: number, m: { id: string }) => m.id;
-  private scrollToBottom(ms: number = 200) { try { this.chatContent?.scrollToBottom(ms); } catch { } }
+  private scrollToBottom(ms: number = 200) { try { this.chatContent?.scrollToBottom(ms); } catch {} }
   private scrollToBottomAfterRender() { requestAnimationFrame(() => setTimeout(() => this.scrollToBottom(200), 0)); }
 
   incByPlato(p: Plato) {
@@ -317,17 +319,20 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
         this.mesaId
       );
 
-      this.pedidos.onEstadoPedido(pedidoId, async (estado) => {
-        if (estado === "aceptado") { this.router.navigate(["/pedido", pedidoId]); }
-        if (estado === "rechazado") {
-          this.submitting = false;
-          (await this.toast.create({
-            message: "Tu pedido fue rechazado. Podés modificarlo y reenviarlo.",
-            duration: 2000,
-            position: "top",
-            cssClass: "toast"
-          })).present();
-        }
+      this.unsubEstado = this.pedidos.onEstadoPedido(pedidoId, async (estado) => {
+        this.zone.run(async () => {
+          if (estado === "aceptado") {
+            this.router.navigate(["/pedido", pedidoId]);
+          } else if (estado === "rechazado") {
+            this.submitting = false;
+            (await this.toast.create({
+              message: "Tu pedido fue rechazado. Podés modificarlo y reenviarlo.",
+              duration: 2000,
+              position: "top",
+              cssClass: "toast"
+            })).present();
+          }
+        });
       });
 
       (await this.toast.create({
