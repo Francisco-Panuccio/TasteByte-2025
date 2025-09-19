@@ -2,14 +2,13 @@ import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Qr } from 'src/app/services/qr/qr';
 import { supabase } from 'src/supabase.client';
-import { IonicModule } from '@ionic/angular';
-import { CommonModule } from '@angular/common';
 
 
 @Component({
   selector: 'app-encuestas-espera',
   templateUrl: './encuestas-espera.page.html',
   styleUrls: ['./encuestas-espera.page.scss'],
+
   standalone: false
 })
 export class EncuestasEsperaPage implements OnInit {
@@ -18,11 +17,13 @@ export class EncuestasEsperaPage implements OnInit {
   usuarioId: string | undefined;
   qrValue: string | undefined;
   encuestas: any[] = [];
-  private qr = inject(Qr)
+  private qr = inject(Qr) 
+
 
 constructor(private route: ActivatedRoute) {}
 
 async ngOnInit() {
+  this.qrValue = await this.qr.getQrIngreso();
   
   this.route.queryParams.subscribe(async params => {
     this.usuarioId = params['userId'];        

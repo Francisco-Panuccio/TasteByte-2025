@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './listado-mesas.page.html',
   styleUrls: ['./listado-mesas.page.scss'],
   standalone: true,
-  imports: [QRCodeComponent,IonicModule, QRCodeComponent, CommonModule]   
+  imports: [QRCodeComponent,IonicModule, CommonModule]   
 })
 export class ListadoMesasPage implements OnInit {
   mesas: any[] = [];
