@@ -1,17 +1,17 @@
-import { AfterViewInit, Component, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { IonContent, IonModal, Platform, ToastController } from '@ionic/angular';
-import { Bebida } from 'src/app/interfaces/bebida';
-import { ChatMessage } from 'src/app/interfaces/chat-message';
-import { Mesa } from 'src/app/interfaces/mesa';
-import { Plato } from 'src/app/interfaces/plato';
-import { Bebidas } from 'src/app/services/bebidas/bebidas';
-import { Chat } from 'src/app/services/chat/chat';
-import { Mesas } from 'src/app/services/mesas/mesas';
-import { Platos } from 'src/app/services/platos/platos';
-import { supabase } from 'src/supabase.client';
+import { AfterViewInit, Component, inject, NgZone, OnDestroy, OnInit, ViewChild } from "@angular/core";
+import { ActivatedRoute, Router } from "@angular/router";
+import { IonContent, IonModal, Platform, ToastController } from "@ionic/angular";
+import { Bebida } from "src/app/interfaces/bebida";
+import { ChatMessage } from "src/app/interfaces/chat-message";
+import { Mesa } from "src/app/interfaces/mesa";
+import { Plato } from "src/app/interfaces/plato";
+import { Bebidas } from "src/app/services/bebidas/bebidas";
+import { Chat } from "src/app/services/chat/chat";
+import { Mesas } from "src/app/services/mesas/mesas";
+import { Platos } from "src/app/services/platos/platos";
+import { supabase } from "src/supabase.client";
 import { Keyboard } from "@capacitor/keyboard";
-import { Pedidos } from 'src/app/services/pedidos/pedidos';
+import { Pedidos } from "src/app/services/pedidos/pedidos";
 
 type Tab = "platos" | "bebidas" | "postres";
 type AddItem = {
@@ -23,9 +23,9 @@ type AddItem = {
 };
 
 @Component({
-  selector: 'app-mesa-ocupada',
-  templateUrl: './mesa-ocupada.page.html',
-  styleUrls: ['./mesa-ocupada.page.scss'],
+  selector: "app-mesa-ocupada",
+  templateUrl: "./mesa-ocupada.page.html",
+  styleUrls: ["./mesa-ocupada.page.scss"],
   standalone: false
 })
 export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
@@ -40,6 +40,9 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
 
   private kbOpen = false;
   private backUnsub?: () => void;
+  private seenIds = new Set<string>();
+  private unsubEstado?: () => void;
+
   chatId?: string;
   myUserId?: string;
   error?: string;
@@ -51,6 +54,8 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   bebidas: Bebida[] = [];
   mesaAsignada: boolean = false;
   loading: boolean = true;
+  submitting: boolean = false;
+  chatReady: boolean = false;
 
   chatOpen: boolean = false;
   presentingEl?: HTMLElement;
@@ -74,7 +79,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   etaMin = 0;
   userUid: string = "";
 
-  constructor(private platform: Platform) { }
+  constructor(private platform: Platform, private zone: NgZone) {}
 
   async ngOnInit() {
     const sub = this.platform.backButton.subscribeWithPriority(9999, () => {
@@ -114,7 +119,13 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit() { this.presentingEl = document.querySelector("ion-router-outlet") as HTMLElement; }
-  ngOnDestroy() { this.chatSvc.unsubscribe(); this.backUnsub?.(); }
+  ngOnDestroy() { this.chatSvc.unsubscribe(); this.backUnsub?.(); this.unsubEstado?.(); }
+
+  private hhmm(d: Date): string {
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mm = String(d.getMinutes()).padStart(2, "0");
+    return `${hh}:${mm}`;
+  }
 
   private async ensureChatAndSubscribe(): Promise<void> {
     if (!this.mesaId) return;
@@ -122,7 +133,9 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     this.chatId = chat.id;
 
     const msgs = await this.chatSvc.loadMessages(chat.id, 200);
+    this.seenIds.clear();
     this.messages = msgs.map(m => {
+      this.seenIds.add(m.id);
       const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
       const role = vm.from === "yo" ? "cliente" : "mozo";
       return { ...vm, role };
@@ -130,6 +143,8 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     this.scrollToBottomAfterRender();
 
     this.chatSvc.subscribeToMessages(chat.id, async (m: ChatMessage) => {
+      if (this.seenIds.has(m.id)) return;
+      this.seenIds.add(m.id);
       const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
       const role = vm.from === "yo" ? "cliente" : "mozo";
       this.messages.push({ ...vm, role });
@@ -147,45 +162,85 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  openChat() { this.chatOpen = true; this.scrollToBottomAfterRender(); }
-  async closeChat() { await this.chatModal?.dismiss(); this.chatOpen = false; }
-
-  async sendMessage() {
-    const txt = this.newMsg.trim();
-    if (!txt || !this.chatId) return;
-    await this.chatSvc.sendMessage(this.chatId, txt);
-
-    try {
-      const to = await this.chatSvc.getMozosTokens();
-      await fetch("https://uvjesmdiovtkdgxobvhs.supabase.co/functions/v1/send-push", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          to,
-          data: {
-            kind: "chat",
-            chatId: this.chatId,
-            mesaId: this.mesaId,
-            fromRole: "cliente",
-            fromName: this.myName,
-            preview: txt.slice(0, 80)
-          }
-        })
-      });
-    } catch { }
-
-    this.newMsg = "";
+  async openChat() {
+    if (this.submitting) return;
+    if (!this.chatId && this.mesaId) {
+      const chat = await this.chatSvc.getOrCreateForMesa(this.mesaId, "cliente");
+      this.chatId = chat.id;
+    }
+    this.chatOpen = true;
+    this.chatReady = true;
     this.scrollToBottomAfterRender();
   }
 
+  async closeChat() {
+    await this.chatModal?.dismiss();
+    this.chatOpen = false;
+    this.chatReady = false;
+  }
+
+  async sendMessage() {
+    if (this.submitting || !this.chatReady) return;
+    const txt = this.newMsg.trim();
+    if (!txt || !this.chatId) return;
+
+    const tempId = "temp-" + Date.now();
+    const now = new Date();
+    this.messages.push({
+      id: tempId,
+      from: "yo",
+      role: "cliente",
+      text: txt,
+      time: this.hhmm(now)
+    });
+    this.scrollToBottomAfterRender();
+    this.newMsg = "";
+
+    const saved = await this.chatSvc.sendMessage(this.chatId, txt);
+    const vm = this.chatSvc.toViewMessage(saved, this.myUserId!);
+    const role: "mozo" | "cliente" = "cliente";
+    const idx = this.messages.findIndex(m => m.id === tempId);
+    if (idx >= 0) {
+      this.messages[idx] = { id: vm.id, from: vm.from, role, text: vm.text, time: vm.time };
+    } else {
+      if (!this.seenIds.has(saved.id)) {
+        this.messages.push({ id: vm.id, from: vm.from, role, text: vm.text, time: vm.time });
+      }
+    }
+    this.seenIds.add(saved.id);
+  }
+
   trackMsg = (_: number, m: { id: string }) => m.id;
-  private scrollToBottom(ms: number = 200) { try { this.chatContent?.scrollToBottom(ms); } catch { } }
+  private scrollToBottom(ms: number = 200) { try { this.chatContent?.scrollToBottom(ms); } catch {} }
   private scrollToBottomAfterRender() { requestAnimationFrame(() => setTimeout(() => this.scrollToBottom(200), 0)); }
 
-  incByPlato(p: Plato) { const id = p.id!; const prev = this.qtyMap.get(id) || 0; this.qtyMap.set(id, prev + 1); this.syncItems(); }
-  decById(id: number) { const prev = this.qtyMap.get(id) || 0; if (prev <= 0) return; this.qtyMap.set(id, prev - 1); this.syncItems(); }
-  inc(p: AddItem): void { const prev = this.qtyMap.get(p.id) || 0; this.qtyMap.set(p.id, prev + 1); this.syncItems(); }
-  dec(id: number): void { this.decById(id); }
+  incByPlato(p: Plato) {
+    if (this.submitting) return;
+    const id = p.id!;
+    const prev = this.qtyMap.get(id) || 0;
+    this.qtyMap.set(id, prev + 1);
+    this.syncItems();
+  }
+
+  decById(id: number) {
+    if (this.submitting) return;
+    const prev = this.qtyMap.get(id) || 0;
+    if (prev <= 0) return;
+    this.qtyMap.set(id, prev - 1);
+    this.syncItems();
+  }
+
+  inc(p: AddItem): void {
+    if (this.submitting) return;
+    const prev = this.qtyMap.get(p.id) || 0;
+    this.qtyMap.set(p.id, prev + 1);
+    this.syncItems();
+  }
+
+  dec(id: number): void {
+    if (this.submitting) return;
+    this.decById(id);
+  }
 
   private syncItems() {
     const arr: {
@@ -232,38 +287,67 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     this.etaMin = arr.length ? Math.round(maxDur + 10 + penalty) : 0;
   }
 
+  private formatARS(n: number): string {
+    return new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", currencyDisplay: "symbol" }).format(n);
+  }
+
   async terminarPedido() {
     try {
       if (!this.itemsSel.length) return;
       if (!this.mesaId) throw new Error("Mesa inválida.");
+
+      this.submitting = true;
+
       if (!this.userUid) {
         const { data } = await supabase.auth.getUser();
         this.userUid = data.user?.id ?? "";
       }
 
-      const pedidoId = await this.pedidos.crearPedido(this.mesaId, this.userUid, this.itemsSel, this.total, this.etaMin);
+      const pedidoId = await this.pedidos.crearPedido(
+        this.mesaId,
+        this.userUid,
+        this.itemsSel,
+        this.total,
+        this.etaMin
+      );
 
-      this.pedidos.onEstadoPedido(pedidoId, (estado) => {
-        if (estado === "aceptado" || estado === "derivado") this.router.navigate(["/pedido", pedidoId]);
+      const mesaNumero = this.mesa?.numero ?? "NN";
+      await this.chatSvc.notifyMozosNuevoPedido(
+        mesaNumero as any,
+        this.formatARS(this.total),
+        pedidoId,
+        this.mesaId
+      );
+
+      this.unsubEstado = this.pedidos.onEstadoPedido(pedidoId, async (estado) => {
+        this.zone.run(async () => {
+          if (estado === "aceptado") {
+            this.router.navigate(["/pedido", pedidoId]);
+          } else if (estado === "rechazado") {
+            this.submitting = false;
+            (await this.toast.create({
+              message: "Tu pedido fue rechazado. Podés modificarlo y reenviarlo.",
+              duration: 2000,
+              position: "top",
+              cssClass: "toast"
+            })).present();
+          }
+        });
       });
 
-      const to = await this.chatSvc.getMozosTokens();
-      await fetch("https://uvjesmdiovtkdgxobvhs.supabase.co/functions/v1/send-push", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          to,
-          title: "Nuevo pedido",
-          body: `Mesa ${this.mesa?.numero ?? "NN"} espera confirmación`,
-          sticky: true,
-          actions: [{ title: "Aceptar", action: "ACCEPT" }, { title: "Rechazar", action: "REJECT" }],
-          data: { tipo: "pedido", pedidoId, mesaId: this.mesaId }
-        })
-      });
-
-      (await this.toast.create({ message: "Pedido enviado. Esperando confirmación del mozo.", duration: 2000, position: "top", cssClass: "toast" })).present();
+      (await this.toast.create({
+        message: "Pedido enviado. Esperando confirmación del mozo.",
+        duration: 2000,
+        position: "top",
+        cssClass: "toast"
+      })).present();
     } catch (e: any) {
-      (await this.toast.create({ message: e?.message ?? "Error al enviar pedido", duration: 1800, position: "top" })).present();
+      (await this.toast.create({
+        message: e?.message ?? "Error al enviar pedido",
+        duration: 1800,
+        position: "top"
+      })).present();
+      this.submitting = false;
     }
   }
 }

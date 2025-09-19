@@ -10,7 +10,7 @@ import { supabase } from 'src/supabase.client';
 })
 export class ListaEsperaPage implements OnInit {
   clientes: any[] = [];
-  cargando = true;
+  loading = true;
 
   constructor(private toastCtrl: ToastController) {}
 
@@ -19,7 +19,7 @@ export class ListaEsperaPage implements OnInit {
   }
 
   async cargarLista() {
-  this.cargando = true;
+  this.loading = true;
 
   const { data, error } = await supabase
     .from('lista_espera')
@@ -33,7 +33,7 @@ export class ListaEsperaPage implements OnInit {
     .order('creado_en', { ascending: true });
 
   if (error) {
-    console.error("Error cargando lista de espera", error);
+    console.error("Error loading lista de espera", error);
     this.clientes = [];
   } else {
 
@@ -43,7 +43,7 @@ export class ListaEsperaPage implements OnInit {
     }));
   }
 
-  this.cargando = false;
+   setTimeout(() => this.loading = false, 2000);
 }
 
 

@@ -1,46 +1,57 @@
-
-<ion-header>
+<header>
   <ion-toolbar>
-    <ion-title>QR de Ingreso</ion-title>
+    <ion-title>Ingreso</ion-title>
   </ion-toolbar>
-</ion-header>
+</header>
 
 <ion-content class="ion-padding">
-  <div *ngIf="qrValue">
-    <qrcode [qrdata]="qrValue" [width]="250"></qrcode>
-    <p class="ion-text-center">Escanee este código al ingresar al restaurante</p>
+
+  <div *ngIf="!qrValido">
+    <ion-button expand="block" (click)="escanearQr()">
+      Escanear QR de Entrada
+    </ion-button>
   </div>
-</ion-content>
 
 
-<!-- <ion-header>
-  <ion-toolbar>
-    <ion-title>Lista de Espera</ion-title>
-  </ion-toolbar>
-</ion-header> -->
+  <div *ngIf="qrValido">
+    <h2>Bienvenido, {{nombreCliente}}</h2>
 
-<!-- <ion-content class="ion-padding">
+  
+    <ion-card>
+      <ion-card-header>Lista de Espera</ion-card-header>
+      <ion-card-content>
+        <ion-list *ngIf="clientes.length > 0; else vacio">
+          <ion-item *ngFor="let c of clientes; let i = index">
+            <ion-avatar slot="start">
+              <img [src]="c.clientes_anonimos?.foto_url" />
+            </ion-avatar>
+            <ion-label>
+              <h2>{{c.clientes_anonimos?.nombre || 'Cliente'}}</h2>
+              <p>Posición: {{i+1}}</p>
+              <p>Estado: {{c.estado}}</p>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+        <ng-template #vacio>
+          <p>No hay clientes en espera.</p>
+        </ng-template>
+      </ion-card-content>
+    </ion-card>
 
-  <h2>Solicita tu mesa!</h2> -->
+    <ion-button expand="block" (click)="registrarseListaEspera()">
+      Unirse a la lista de espera
+    </ion-button>
 
-  <!-- <div class="fotos" *ngIf="encuestas.length > 0">
-    <ion-card *ngFor="let encuesta of encuestas" class="slot">
+
+    <h3>Encuestas</h3>
+    <ion-card *ngFor="let encuesta of encuestas">
       <ion-card-header>{{ encuesta.titulo }}</ion-card-header>
       <ion-card-content>
         {{ encuesta.descripcion }}
-        <div class="acciones">
-          <ion-button size="small" (click)="registrarEncuesta(encuesta.id)">Participar</ion-button>
-        </div>
+        <ion-button size="small" (click)="registrarEncuesta(encuesta.id)">
+          Participar
+        </ion-button>
       </ion-card-content>
     </ion-card>
-  </div> -->
-
-  <!-- <ion-button expand="block" class="btns_main" (click)="registrarseListaEspera()">
-    Unirse a la lista de espera
-  </ion-button>
-
-  <ion-button expand="block" class="btns_main_back" routerLink="/home">
-    Volver
-  </ion-button>
-
-</ion-content> -->
+  </div>
+</ion-content>

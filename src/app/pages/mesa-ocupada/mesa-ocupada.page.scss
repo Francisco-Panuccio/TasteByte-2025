@@ -257,3 +257,7 @@ ion-content.ion-content-chat {
     font-weight: 700;
   }
 }
+
+ion-content.blocked {
+  pointer-events: none;
+}

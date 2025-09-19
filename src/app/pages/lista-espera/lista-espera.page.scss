@@ -20,3 +20,14 @@ ion-label p {
   color: var(--ion-color-medium);
   margin: 2px 0;
 }
+
+.ion_btns {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.btn_logged {
+  font-size: 20px;
+  font-weight: 1000;
+}

@@ -1,25 +1,41 @@
-<ion-content>
-  <ion-list *ngIf="clientes.length > 0; else vacio">
-    <ion-item *ngFor="let c of clientes">
-      <ion-avatar slot="start">
-        <img [src]="c.clientes_anonimos?.foto_url" />
-      </ion-avatar>
+@if(loading) {
+  <app-loading/>
+} @else {
+  <header>
+    <title>Lista de Espera</title>
+  </header>
 
-      <ion-label>
-        <h2>{{ c.clientes_anonimos?.nombre || 'Cliente anónimo' }}</h2>
-        <p>Estado: {{ c.estado }}</p>
-        <p>Ingresó: {{ c.creado_en | date:'short' }}</p>
-      </ion-label>
+  <ion-content>
+    <ion-list *ngIf="clientes.length > 0; else vacio">
+      <ion-item *ngFor="let c of clientes">
+        <ion-avatar slot="start">
+          <img [src]="c.clientes_anonimos?.foto_url" />
+        </ion-avatar>
 
-      <ion-button (click)="aprobar(c)" color="success" slot="end" fill="solid" shape="round">
-        Aprobar
-      </ion-button>
-    </ion-item>
-  </ion-list>
+        <ion-label>
+          <h2>{{ c.clientes_anonimos?.nombre || 'Cliente anónimo' }}</h2>
+          <p>Estado: {{ c.estado }}</p>
+          <p>Ingresó: {{ c.creado_en | date:'short' }}</p>
+        </ion-label>
 
-  <ng-template #vacio>
-    <ion-text color="medium">
-      <p class="ion-padding">No hay clientes en espera.</p>
-    </ion-text>
-  </ng-template>
-</ion-content>
+        <ion-button (click)="aprobar(c)" color="success" slot="end" fill="solid" shape="round">
+          Aprobar
+        </ion-button>
+      </ion-item>
+    </ion-list>
+
+    <ng-template #vacio>
+      <ion-text color="medium">
+        <p class="ion-padding">No hay clientes en espera.</p>
+      </ion-text>
+    </ng-template>
+  </ion-content>
+  
+  <footer>
+    <ion-toolbar>
+      <ion-buttons class="ion_btns">
+        <ion-button class="btn_logged" routerLink="/home">Volver</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </footer>
+}

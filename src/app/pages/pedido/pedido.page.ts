@@ -11,14 +11,21 @@ import { Pedidos } from 'src/app/services/pedidos/pedidos';
 export class PedidoPage implements OnInit {
   pedidoId!: string;
   ped: any;
+  loading: boolean = true;
   items: any[] = [];
 
   constructor(private ar: ActivatedRoute, private pedidos: Pedidos) { }
 
   async ngOnInit() {
-    this.pedidoId = this.ar.snapshot.paramMap.get("id")!;
-    const { ped, items } = await this.pedidos.getPedido(this.pedidoId);
+    this.pedidoId =
+      this.ar.snapshot.paramMap.get("id") ??
+      this.ar.snapshot.queryParamMap.get("id") ?? "";
+
+    if (!this.pedidoId) { this.loading = false; return; }
+
+    const { ped, items } = await this.pedidos.getPedido(this.pedidoId);    
     this.ped = ped;
     this.items = items;
+    setTimeout(() => this.loading = false, 2000);
   }
 }

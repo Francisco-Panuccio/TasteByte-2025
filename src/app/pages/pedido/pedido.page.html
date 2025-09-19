@@ -1,36 +1,37 @@
-<header>
-    <title>Pedido #{{ ped?.id | slice:0:8 }}</title>
-</header>
+@if(loading) {
+  <app-loading/>
+} @else {
+  <header>
+      <title>Pedido • Mesa {{ ped?.mesa?.numero ?? ped?.mesa_id }}</title>
+  </header>
 
-<ion-content>
-  <ion-list>
-    <ion-item lines="full">
-      <ion-label>Total</ion-label>
-      <ion-note slot="end">{{ ped?.total | currency:"ARS":"symbol-narrow" }}</ion-note>
-    </ion-item>
-    <ion-item lines="full">
-      <ion-label>ETA</ion-label>
-      <ion-note slot="end">{{ ped?.eta_minutos }} min</ion-note>
-    </ion-item>
-    <ion-item lines="full">
-      <ion-label>Estado</ion-label>
-      <ion-note slot="end">{{ ped?.estado }}</ion-note>
-    </ion-item>
-  </ion-list>
+  <ion-content>
+      @if(!loading && !ped) {
+        <div class="vacio">Pedido no Encontrado</div>
+      } @else {
+        @for (it of items; track it.id) {
+          <ion-item>
+            <ion-label>
+              <div>{{ it.nombre }}</div>
+              <small>{{ it.tipo }} • {{ it.duracion_min }} min</small>
+            </ion-label>
+            <ion-note slot="end">{{ it.cantidad }} × {{ it.precio_unit | currency:"ARS":"symbol-narrow" }}</ion-note>
+          </ion-item>
+        }
 
-  <ion-list>
-    @for (it of items; track it.id) {
-      <ion-item>
-        <ion-label>
-          <div>{{ it.nombre }}</div>
-          <small>{{ it.tipo }} • {{ it.duracion_min }} min</small>
-        </ion-label>
-        <ion-note slot="end">{{ it.cantidad }} × {{ it.precio_unit | currency:"ARS":"symbol-narrow" }}</ion-note>
-      </ion-item>
-    }
-  </ion-list>
-</ion-content>
+        <div class="div_total">
+          <p><span style="color: black;">Total: </span> {{ ped?.total | currency:"ARS":"symbol-narrow" }}</p>
+          <p><span style="color: black;">Espera: </span> {{ ped?.eta_minutos }} min</p>
+          <p><span style="color: black;">Estado: </span> {{ ped?.estado }}</p>
+        </div>
+      }
+  </ion-content>
 
-<footer>
-  <span routerLink="/home">Volver</span>
-</footer>
+  <footer>
+    <ion-toolbar>
+      <ion-buttons class="ion_btns">
+        <ion-button class="btn_logged" routerLink="/home">Volver</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </footer>
+}

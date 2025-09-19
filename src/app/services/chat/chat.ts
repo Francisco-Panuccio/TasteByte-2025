@@ -1,7 +1,7 @@
-// src/app/services/chat/chat.ts
-import { Injectable } from "@angular/core";
+import { Injectable, inject } from "@angular/core";
 import { supabase } from "src/supabase.client";
 import { ChatMessage } from "src/app/interfaces/chat-message";
+import { Push } from "src/app/services/push/push";
 
 type Role = "cliente" | "mozo";
 
@@ -14,11 +14,26 @@ export interface Chat {
 @Injectable({ providedIn: "root" })
 export class Chat {
   private channel?: ReturnType<typeof supabase.channel>;
+  private push = inject(Push);
 
   async getMyUserId(): Promise<string> {
     const { data, error } = await supabase.auth.getUser();
     if (error || !data.user?.id) throw new Error("Sin sesión.");
     return data.user.id;
+  }
+
+  private async getMyRole(): Promise<Role> {
+    const id = await this.getMyUserId();
+    const { data } = await supabase.from("usuarios").select("perfil").eq("id", id).single();
+    return data?.perfil === "mozo" ? "mozo" : "cliente";
+  }
+
+  private async getMyDisplayName(): Promise<string> {
+    const id = await this.getMyUserId();
+    const { data } = await supabase.from("usuarios").select("nombres, apellidos").eq("id", id).single();
+    const n = (data?.nombres ?? "").trim();
+    const a = (data?.apellidos ?? "").trim();
+    return (n || a) ? `${n} ${a}`.trim() : "Usuario";
   }
 
   async getOrCreateForMesa(mesaId: number, role: Role = "cliente"): Promise<Chat> {
@@ -87,12 +102,59 @@ export class Chat {
 
   async sendMessage(chatId: string, text: string): Promise<ChatMessage> {
     const userId = await this.getMyUserId();
+    const role = await this.getMyRole();
+    const fromName = await this.getMyDisplayName();
+
     const { data, error } = await supabase
       .from("chat_messages")
       .insert({ chat_id: chatId, user_id: userId, body: text })
       .select("*")
       .single();
     if (error) throw error;
+
+    const chat = await supabase.from("chats").select("mesa_id").eq("id", chatId).single();
+    const mesaId = chat.data?.mesa_id as number;
+
+    try {
+      const preview = text.slice(0, 80);
+      if (role === "cliente") {
+        const tokens = await this.getMozosTokens();
+        if (tokens.length) {
+          await this.push.send(tokens, "Consulta al mozo", `Mesa ${mesaId}: ${text}`, {
+            tipo: "chat",
+            mesaId,
+            chatId,
+            fromRole: "cliente",
+            fromName,
+            preview
+          });
+        } else if ((this.push as any).sendToTopic) {
+          await (this.push as any).sendToTopic("mozos", "Consulta al mozo", `Mesa ${mesaId}: ${text}`, {
+            tipo: "chat",
+            mesaId,
+            chatId,
+            fromRole: "cliente",
+            fromName,
+            preview
+          });
+        }
+      } else {
+        const tokens = await this.getClienteTokenByMesa(mesaId);
+        if (tokens.length) {
+          await this.push.send(tokens, "Respuesta del mozo", text, {
+            tipo: "chat",
+            mesaId,
+            chatId,
+            fromRole: "mozo",
+            fromName,
+            preview
+          });
+        }
+      }
+    } catch (e) {
+      console.warn("[chat][push][error]", e);
+    }
+
     return data as ChatMessage;
   }
 
@@ -112,18 +174,14 @@ export class Chat {
   }
 
   async getMozosTokens(): Promise<string[]> {
-    let { data, error } = await supabase.from("push_tokens").select("token, role, revoked");
-    if (!error && data?.length && "role" in (data[0] ?? {})) {
-      return (data as any[]).filter((r) => r.role === "mozo" && r.revoked === false).map((r) => r.token);
-    }
-
-    const { data: joinData, error: e2 } = await supabase.from("push_tokens").select("token, revoked, usuario_id");
-    if (e2 || !joinData?.length) return [];
-    const userIds = joinData.filter(r => r.revoked === false).map(r => r.usuario_id);
-    if (!userIds.length) return [];
-    const { data: users } = await supabase.from("usuarios").select("id, perfil").in("id", userIds);
-    const mozoIds = new Set((users ?? []).filter(u => u.perfil === "mozo").map(u => u.id));
-    return joinData.filter(r => !r.revoked && mozoIds.has(r.usuario_id)).map(r => r.token);
+    const { data, error } = await supabase
+      .from("push_tokens")
+      .select("token, usuarios!inner(perfil)")
+      .eq("active", true)
+      .eq("revoked", false)
+      .eq("usuarios.perfil", "mozo");
+    if (error || !data?.length) return [];
+    return data.map((r: any) => r.token as string);
   }
 
   async getClienteTokenByMesa(mesaId: number): Promise<string[]> {
@@ -132,13 +190,40 @@ export class Chat {
 
     const chatId = chats[0].id as string;
 
-    const { data: parts, error: e2 } = await supabase.from("chat_participants").select("user_id, role").eq("chat_id", chatId).eq("role", "cliente").limit(1);
+    const { data: parts, error: e2 } = await supabase
+      .from("chat_participants")
+      .select("user_id")
+      .eq("chat_id", chatId)
+      .eq("role", "cliente")
+      .limit(1);
     if (e2 || !parts?.length) return [];
 
     const clienteId = parts[0].user_id as string;
 
-    const { data: toks, error: e3 } = await supabase.from("push_tokens").select("token").eq("usuario_id", clienteId).eq("revoked", false);
+    const { data: toks, error: e3 } = await supabase
+      .from("push_tokens")
+      .select("token")
+      .eq("usuario_id", clienteId)
+      .eq("active", true)
+      .eq("revoked", false);
     if (e3 || !toks?.length) return [];
-    return toks.map(t => t.token);
+    return toks.map((t: any) => t.token as string);
+  }
+
+  async notifyMozosNuevoPedido(mesaNumero: number, totalARS: string, pedidoId: string, mesaId: number): Promise<void> {
+    const tokens = await this.getMozosTokens();
+    if (tokens.length) {
+      await this.push.send(tokens, "Nuevo pedido", `Mesa ${mesaNumero} • ${totalARS}`, {
+        tipo: "pedido",
+        pedidoId,
+        mesaId
+      });
+    } else if ((this.push as any).sendToTopic) {
+      await (this.push as any).sendToTopic("mozos", "Nuevo pedido", `Mesa ${mesaNumero} • ${totalARS}`, {
+        tipo: "pedido",
+        pedidoId,
+        mesaId
+      });
+    }
   }
 }

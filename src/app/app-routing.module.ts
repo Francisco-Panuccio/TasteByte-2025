@@ -33,50 +33,54 @@ const routes: Routes = [
   },
   {
     path: 'register',
-    loadChildren: () => import('./pages/register/register.module').then( m => m.RegisterPageModule)
-  },
-  {
-    path: 'alta-empleado',
-    loadChildren: () => import('./pages/alta-empleado/alta-empleado.module').then( m => m.AltaEmpleadoPageModule)
-  },
-  {
-    path: 'encuestas-espera',
-    loadChildren: () => import('./pages/encuestas-espera/encuestas-espera.module').then( m => m.EncuestasEsperaPageModule)
-  },
-  {
-    path: 'lista-espera',
-    loadChildren: () => import('./pages/lista-espera/lista-espera.module').then( m => m.ListaEsperaPageModule)
-  },
-  {
-    path: 'mesa-ocupada',
-    loadChildren: () => import('./pages/mesa-ocupada/mesa-ocupada.module').then(m => m.MesaOcupadaPageModule)
+
+    loadChildren: () => import('./pages/register/register.module').then(m => m.RegisterPageModule)
   },
   {
     path: 'alta-empleado',
     loadChildren: () => import('./pages/alta-empleado/alta-empleado.module').then(m => m.AltaEmpleadoPageModule)
   },
   {
+    path: 'encuestas-espera',
+    loadChildren: () => import('./pages/encuestas-espera/encuestas-espera.module').then(m => m.EncuestasEsperaPageModule)
+  },
+  {
+    path: 'lista-espera',
+    loadChildren: () => import('./pages/lista-espera/lista-espera.module').then(m => m.ListaEsperaPageModule)
+  },
+  {
+    path: 'mesa-ocupada',
+    loadChildren: () => import('./pages/mesa-ocupada/mesa-ocupada.module').then(m => m.MesaOcupadaPageModule)
+  },
+  {
     path: 'listado-clientes',
-    loadChildren: () => import('./pages/listado-clientes/listado-clientes.module').then( m => m.ListadoClientesPageModule)
+    loadChildren: () => import('./pages/listado-clientes/listado-clientes.module').then(m => m.ListadoClientesPageModule)
+  },
+  {
+    path: 'pedido/:id',
+    loadChildren: () => import('./pages/pedido/pedido.module').then(m => m.PedidoPageModule)
   },
   {
     path: 'pedido',
-    loadChildren: () => import('./pages/pedido/pedido.module').then( m => m.PedidoPageModule)
+    loadChildren: () => import('./pages/pedido/pedido.module').then(m => m.PedidoPageModule)
   },
+
   {
     path: 'pedidos-mozo',
-    loadChildren: () => import('./pages/pedidos-mozo/pedidos-mozo.module').then( m => m.PedidosMozoPageModule)
+    loadChildren: () => import('./pages/pedidos-mozo/pedidos-mozo.module').then(m => m.PedidosMozoPageModule)
   },
   {
     path: 'listado-mesas',
-    loadChildren: () => import('./pages/listado-mesas/listado-mesas.module').then( m => m.ListadoMesasPageModule)
+    loadChildren: () => import('./pages/listado-mesas/listado-mesas.module').then(m => m.ListadoMesasPageModule)
+  },  {
+    path: 'anon-register',
+    loadChildren: () => import('./pages/anon-register/anon-register.module').then( m => m.AnonRegisterPageModule)
   }
+
 ];
 
 @NgModule({
-  imports: [
-    RouterModule.forRoot(routes, { preloadingStrategy: PreloadAllModules })
-  ],
+  imports: [RouterModule.forRoot(routes, { preloadingStrategy: PreloadAllModules })],
   exports: [RouterModule]
 })
 export class AppRoutingModule { }

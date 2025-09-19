@@ -5,6 +5,9 @@ import { IonicModule } from '@ionic/angular';
 import { EncuestasEsperaPageRoutingModule } from './encuestas-espera-routing.module';
 import { EncuestasEsperaPage } from './encuestas-espera.page';
 import { QRCodeComponent } from 'angularx-qrcode';
+import { LoadingPage } from '../loading/loading.page';
+
+
 
 @NgModule({
   imports: [
@@ -12,8 +15,13 @@ import { QRCodeComponent } from 'angularx-qrcode';
     FormsModule,
     IonicModule,
     EncuestasEsperaPageRoutingModule,
+    LoadingPage,
     QRCodeComponent
     
-  ],declarations: [EncuestasEsperaPage]
+  ],
+
+
+  declarations: [EncuestasEsperaPage]
+
 })
 export class EncuestasEsperaPageModule {}

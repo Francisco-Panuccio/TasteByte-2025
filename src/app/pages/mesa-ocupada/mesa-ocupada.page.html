@@ -5,21 +5,21 @@
     <title>Mesa {{ mesa?.numero ?? "NN"}}</title>
   </header>
 
-  <ion-content>
+  <ion-content [class.blocked]="submitting">
     <section class="resumen-flotante">
       <div class="div_data">
         <div class="importe">Total: {{ total | currency:"ARS":"symbol-narrow" }}</div>
         <div class="tiempo_espera">Espera: {{ etaMin }} min</div>
       </div>
       <div class="div_btn">
-        <button class="btn_pedido" [disabled]="itemsSel.length===0" (click)="terminarPedido();">Finalizar Pedido</button>
+        <button class="btn_pedido" [disabled]="submitting || itemsSel.length===0" (click)="terminarPedido();">Finalizar Pedido</button>
       </div>
     </section>
 
-    <ion-segment [(ngModel)]="tab">
-      <ion-segment-button value="platos">Comidas</ion-segment-button>
-      <ion-segment-button value="bebidas">Bebidas</ion-segment-button>
-      <ion-segment-button value="postres">Postres</ion-segment-button>
+    <ion-segment [(ngModel)]="tab" [disabled]="submitting">
+      <ion-segment-button [disabled]="submitting" value="platos">Comidas</ion-segment-button>
+      <ion-segment-button [disabled]="submitting" value="bebidas">Bebidas</ion-segment-button>
+      <ion-segment-button [disabled]="submitting" value="postres">Postres</ion-segment-button>
     </ion-segment>
 
     <div class="grid">
@@ -39,9 +39,9 @@
             </div>
 
             <div class="qty">
-              <ion-button size="small" (click)="dec(p.id ?? 0);">-</ion-button>
+              <ion-button [disabled]="submitting" size="small" (click)="dec(p.id ?? 0);">-</ion-button>
               <span>{{ qtyMap.get(p.id ?? 0) || 0 }}</span>
-              <ion-button size="small" (click)="inc({ id: p.id ?? 0, nombre: p.nombre, precio: p.precio, duracionMin: p.tiempo_elaboracion_min, tipo: 'plato' });">+</ion-button>
+              <ion-button [disabled]="submitting" size="small" (click)="inc({ id: p.id ?? 0, nombre: p.nombre, precio: p.precio, duracionMin: p.tiempo_elaboracion_min, tipo: 'plato' });">+</ion-button>
             </div>
           </article>
         }
@@ -63,9 +63,9 @@
             </div>
 
             <div class="qty">
-              <ion-button size="small" (click)="dec(b.id ?? 0);">-</ion-button>
+              <ion-button [disabled]="submitting" size="small" (click)="dec(b.id ?? 0);">-</ion-button>
               <span>{{ qtyMap.get(b.id ?? 0) || 0 }}</span>
-              <ion-button size="small" (click)="inc({ id: b.id ?? 0, nombre: b.nombre, precio: b.precio, duracionMin: b.tiempo_elaboracion_min, tipo: 'bebida' });">+</ion-button>
+              <ion-button [disabled]="submitting" size="small" (click)="inc({ id: b.id ?? 0, nombre: b.nombre, precio: b.precio, duracionMin: b.tiempo_elaboracion_min, tipo: 'bebida' });">+</ion-button>
             </div>
           </article>
         }
@@ -87,9 +87,9 @@
             </div>
             
             <div class="qty">
-              <ion-button size="small" (click)="dec(pt.id ?? 0);">-</ion-button>
+              <ion-button [disabled]="submitting" size="small" (click)="dec(pt.id ?? 0);">-</ion-button>
               <span>{{ qtyMap.get(pt.id ?? 0) || 0 }}</span>
-              <ion-button size="small" (click)="inc({ id: pt.id ?? 0, nombre: pt.nombre, precio: pt.precio, duracionMin: pt.tiempo_elaboracion_min, tipo: 'postre' });">+</ion-button>
+              <ion-button [disabled]="submitting" size="small" (click)="inc({ id: pt.id ?? 0, nombre: pt.nombre, precio: pt.precio, duracionMin: pt.tiempo_elaboracion_min, tipo: 'postre' });">+</ion-button>
             </div>
           </article>
         }
@@ -100,7 +100,7 @@
   <footer>
     <ion-toolbar>
       <ion-buttons slot="start">
-        <ion-button [disabled]="!mesaAsignada" (click)="openChat()" class="btn_open_chat">Consulta al mozo</ion-button>
+        <ion-button [disabled]="submitting || !mesaAsignada" (click)="openChat()" class="btn_open_chat">Consulta al mozo</ion-button>
       </ion-buttons>
       <ion-buttons slot="end">
         <ion-button routerLink="/home" class="btn_back">Volver</ion-button>
@@ -148,9 +148,10 @@
             type="text"
             placeholder="Escribe tu mensaje…"
             [(ngModel)]="newMsg"
+            [disabled]="submitting || !chatReady"
             (keyup.enter)="sendMessage();">
           </ion-input>
-          <ion-button slot="end" [disabled]="!newMsg.trim()" (click)="sendMessage();" style="color: white; --background: #554738;">Enviar</ion-button>
+          <ion-button slot="end" [disabled]="submitting || !chatReady || !newMsg.trim()" (click)="sendMessage();" style="color: white; --background: #554738;">Enviar</ion-button>
         </ion-item>
       </ion-content>
     </ng-template>

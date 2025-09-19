@@ -20,6 +20,18 @@ export class Mesas {
     return data ?? null
   }
 
+  async getByNumeroDeMesa(numero: number): Promise<Mesa | null> {
+    const { data, error } = await supabase
+      .from(this.table)
+      .select('*')
+      .eq('numero', numero)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    return data ?? null;
+  }
+
+
   async existsByNumero(numero: number): Promise<boolean> {
     const { data, error } = await supabase.from(this.table).select('id').eq('numero', numero).limit(1);
     if (error) throw error;
@@ -56,9 +68,13 @@ export class Mesas {
     return data.publicUrl;
   }
 
-  async setQr(id: number, numero: number): Promise<void> {
+  async setQr(id: number, numero: number): Promise<boolean> {
     const contenido = `mesa:${id}:${numero}`;
-    const { error } = await supabase.from(this.table).update({ qr_contenido: contenido, qr_generado_en: new Date().toISOString() }).eq('id', id);
+    const { data, error } = await supabase.from(this.table).update({ qr_contenido: contenido, qr_generado_en: new Date().toISOString() }).eq('id', id);
     if (error) throw error;
+
+    if (data) return true;
+    return false;
+    
   }
 }

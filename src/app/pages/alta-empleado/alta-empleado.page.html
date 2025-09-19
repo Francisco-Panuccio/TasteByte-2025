@@ -1,11 +1,9 @@
 @if(loading) {
   <app-loading />
 } @else {
-  <ion-header>
-    <ion-toolbar>
-      <ion-title>Alta Empleado</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <header>
+    <title>Alta Empleado</title>
+  </header>
 
   <ion-content class="ion-padding">
     <form [formGroup]="formAltaEmpleado" (ngSubmit)="enviar()">
