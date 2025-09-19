@@ -97,6 +97,7 @@ ion-content {
   --border-radius: 12px;
   margin-top: 50px;
   padding: 10px 0;
+  text-align: center;
 }
 
 ion-toast.toast::part(button) {
@@ -104,4 +105,5 @@ ion-toast.toast::part(button) {
   border-radius: 12px;
   font-weight: 600;
   background-color: #554738;
+  text-align: center;
 }

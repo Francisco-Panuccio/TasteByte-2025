@@ -5,8 +5,8 @@
     <title>Pedidos - Mozo</title>
   </header>
 
-  <ion-content>
-    <ion-segment [(ngModel)]="filtro" (ionChange)="cargar()">
+  <ion-content [class.blocked]="busy">
+    <ion-segment [(ngModel)]="filtro" (ionChange)="cargar()" [disabled]="busy">
       <ion-segment-button value="todos">Todos</ion-segment-button>
       <ion-segment-button value="pendiente">Pendientes</ion-segment-button>
       <ion-segment-button value="aceptado">Aceptados</ion-segment-button>
@@ -21,11 +21,12 @@
           <p>Estado: {{ p.estado }}</p>
           <p>Fecha: {{ p.created_at | date:'short' }}</p>
         </div>
-  
+
         <div class="div_btns">
-          <button (click)="abrirChat(p.mesa_id)" class="btn_chat">Chat</button>
-          <button class="btn_aceptar" *ngIf="p.estado==='pendiente'" (click)="setEstado(p.id,'aceptado')">Aceptar</button>
-          <button class="btn_rechazar" *ngIf="p.estado==='pendiente'" (click)="setEstado(p.id,'rechazado')">Rechazar</button>
+          <button (click)="abrirChat(p.mesa_id)" class="btn_chat" [disabled]="busy">Chat</button>
+          <button class="btn_aceptar" *ngIf="p.estado==='pendiente'" (click)="setEstado(p.id,'aceptado')" [disabled]="busy">Aceptar</button>
+          <button class="btn_rechazar" *ngIf="p.estado==='pendiente'" (click)="setEstado(p.id,'rechazado')" [disabled]="busy">Rechazar</button>
+          <button class="btn_rechazar" *ngIf="canEliminar(p)" (click)="eliminar(p)" [disabled]="busy">Eliminar</button>
         </div>
       </div>
     </div>
@@ -35,19 +36,22 @@
 
   <footer>
     <ion-toolbar>
-      <ion-buttons class="ion_btns">
-        <ion-button class="btn_logged" routerLink="/home">Volver</ion-button>
+      <ion-buttons class="ion_btns" slot="start">
+        <ion-button class="btn_logged" (click)="abrirInbox()" [disabled]="busy">Mensajes</ion-button>
+      </ion-buttons>
+      <ion-buttons class="ion_btns" slot="end">
+        <ion-button class="btn_logged" routerLink="/home" [disabled]="busy">Volver</ion-button>
       </ion-buttons>
     </ion-toolbar>
   </footer>
 
-  <ion-modal #chatModal 
-  [isOpen]="chatOpen" 
-  [breakpoints]="[1]" 
-  [initialBreakpoint]="1" 
-  backdropDismiss="false" 
-  handle="false" 
-  (didDismiss)="chatOpen=false">
+  <ion-modal #chatModal
+             [isOpen]="chatOpen"
+             [breakpoints]="[1]"
+             [initialBreakpoint]="1"
+             backdropDismiss="false"
+             handle="false"
+             (didDismiss)="chatOpen=false">
     <ng-template>
       <header style="margin-top: 0 !important; padding: 10px !important;">
         <ion-toolbar>
@@ -60,29 +64,66 @@
 
       <ion-content #chatContent class="ion-content-chat">
         <div class="chat">
-          <div class="msg" 
-          [class.mine]="m.from==='yo'" 
-          [class.mozo-msg]="m.role==='mozo'"
-          [class.cliente-msg]="m.role==='cliente'"
-          *ngFor="let m of messages">
+          <div class="msg"
+               [class.mine]="m.from==='yo'"
+               [class.mozo-msg]="m.role==='mozo'"
+               [class.cliente-msg]="m.role==='cliente'"
+               *ngFor="let m of messages">
             <div class="bubble">
               <div class="body">{{ m.text }}</div>
               <div [class.mozo-meta]="m.role==='mozo'"
-              [class.cliente-meta]="m.role==='cliente'">
-                 {{ m.role==='mozo' ? 'Mozo' : ('Mesa ' + (mesasNum.get(mesaChatId!) ?? "NN")) }} • {{ m.time }}
+                   [class.cliente-meta]="m.role==='cliente'">
+                {{ m.role==='mozo' ? 'Mozo' : ('Mesa ' + (mesasNum.get(mesaChatId!) ?? "NN")) }} • {{ m.time }}
               </div>
             </div>
           </div>
         </div>
 
         <ion-item class="composer" lines="none" slot="fixed">
-          <ion-input type="text" 
-          placeholder="Escribe tu mensaje…" 
-          [(ngModel)]="newMsg" 
-          (keyup.enter)="enviar()">
+          <ion-input type="text"
+                     placeholder="Escribe tu mensaje…"
+                     [(ngModel)]="newMsg"
+                     (keyup.enter)="enviar()"
+                     [disabled]="busy">
           </ion-input>
-          <ion-button slot="end" [disabled]="!newMsg.trim()" (click)="enviar()" style="color: white; --background: #554738;">Enviar</ion-button>
+          <ion-button slot="end" [disabled]="!newMsg.trim() || busy" (click)="enviar()" style="color: white; --background: #554738;">Enviar</ion-button>
         </ion-item>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <ion-modal #inboxModal
+             [isOpen]="inboxOpen"
+             [breakpoints]="[1]"
+             [initialBreakpoint]="1"
+             backdropDismiss="true"
+             handle="false"
+             (didDismiss)="inboxOpen=false">
+    <ng-template>
+      <header style="margin-top: 0 !important; padding: 10px !important;">
+        <ion-toolbar>
+          <title style="font-size: 25px;">Clientes</title>
+          <ion-buttons slot="end">
+            <ion-button (click)="cerrarInbox()" class="btn_close">Cerrar</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </header>
+
+      <ion-content class="ion-padding">
+        <div *ngIf="!inbox.length" class="vacio">Sin Mensajes</div>
+        <div class="inbox-list" *ngIf="inbox.length">
+          <div class="inbox-item" *ngFor="let it of inbox">
+            <div class="inbox-meta">
+              <div class="inbox-title">Mesa • {{ it.mesaNumero ?? it.mesaId }} | {{ it.time }} </div>
+            </div>
+
+            <div class="inbox-text">{{ it.lastText }}</div>
+
+            <div class="inbox-actions">
+              <button class="btn_abrir" (click)="abrirDesdeInbox(it)">Abrir chat</button>
+            </div>
+          </div>
+        </div>
       </ion-content>
     </ng-template>
   </ion-modal>

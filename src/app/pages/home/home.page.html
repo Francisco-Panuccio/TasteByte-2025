@@ -6,35 +6,75 @@
   </header>
 
   @if(isDuenoSupervisor) {
-    <ion-content>
+    <div class="div_main">
+      <div class="div_data">
+        <div>
+          <p style="margin: 50px 0 20px 0;">Bienvenido</p>
+          <span>{{fullname}}</span>
+          <div><span class="span_profile">{{profile | titlecase}}</span></div>
+        </div>
+      </div>
+
       <div id="container">
         <p routerLink="/alta-empleado">Alta Empleado</p>
         <p routerLink="/alta-mesa">Alta Mesas</p>
         <p routerLink="/listado-clientes">Clientes Pendientes</p>
       </div>
-    </ion-content>
+    </div>
   } @else if(isCocinero) {
-    <ion-content>
+    <div class="div_main">
+      <div class="div_data">
+        <div>
+          <p style="margin: 50px 0 20px 0;">Bienvenido</p>
+          <span>{{fullname}}</span>
+          <div><span class="span_profile">{{profile | titlecase}}</span></div>
+        </div>
+      </div>
+
       <div id="container">
         <p routerLink="/alta-plato">Alta Platos</p>
       </div>
-    </ion-content>
+    </div>
   } @else if(isBartender) {
-    <ion-content>
+    <div class="div_main">
+      <div class="div_data">
+        <div>
+          <p style="margin: 50px 0 20px 0;">Bienvenido</p>
+          <span>{{fullname}}</span>
+          <div><span class="span_profile">{{profile | titlecase}}</span></div>
+        </div>
+      </div>
+
       <div id="container">
         <p routerLink="/alta-bebida">Alta Bebidas</p>
       </div>
-    </ion-content>
+    </div>
   } @else if(isMaitre) {
-    <ion-content>
+    <div class="div_main">
+      <div class="div_data">
+        <div>
+          <p style="margin: 50px 0 20px 0;">Bienvenido</p>
+          <span>{{fullname}}</span>
+          <div><span class="span_profile">{{profile | titlecase}}</span></div>
+        </div>
+      </div>
+
       <div id="container">
         <p routerLink="/alta-cliente">Alta Clientes</p>
         <p routerLink="/lista-espera">Lista De Espera</p>
         <p routerLink="/listado-mesas">Lista De Mesas</p>
       </div>
-    </ion-content>
+    </div>
   } @else if(isCliente) {
-    <ion-content>
+    <div class="div_main">
+      <div class="div_data">
+        <div>
+          <p style="margin: 20px 0;">Bienvenido</p>
+          <span>{{fullname}}</span>
+          <div><span class="span_profile">{{ (profile || "").split("_").join(" ") | titlecase }}</span></div>
+        </div>
+      </div>
+
       <div id="container">
         <p routerLink="/alta-cliente">Alta Clientes</p>
         <p routerLink="/lista-espera">Lista De Espera</p>
@@ -42,13 +82,21 @@
         <p [routerLink]="['/pedido']" [queryParams]="{ id: '94c40eb4-12ac-47f0-9053-8b2cb8a8a1b8' }">Pedido</p>
         <p [routerLink]="['/mesa-ocupada']" [queryParams]="{ tableId: 2 }">Mesas</p>
       </div>
-    </ion-content>
+    </div>
   } @else {
-    <ion-content>
+    <div class="div_main">
+      <div class="div_data">
+        <div>
+          <p style="margin: 50px 0 20px 0;">Bienvenido</p>
+          <span>{{fullname}}</span>
+          <div><span class="span_profile">{{profile | titlecase}}</span></div>
+        </div>
+      </div>
+
       <div id="container">
         <p routerLink="/pedidos-mozo">Pedidos</p>
       </div>
-    </ion-content>
+    </div>
   }
 
   <footer>
