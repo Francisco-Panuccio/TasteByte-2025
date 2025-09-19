@@ -1,14 +1,16 @@
-import { Component, OnInit } from '@angular/core';
-import { AuthService } from '../../services/auth/auth';
-import { Router } from '@angular/router';
-import { Usuarios } from 'src/app/services/usuarios/usuarios';
-import { Usuario } from 'src/app/interfaces/usuario';
+import { Component, OnInit } from "@angular/core";
+import { AuthService } from "src/app/services/auth/auth";
+import { Router } from "@angular/router";
+import { Usuarios } from "src/app/services/usuarios/usuarios";
+import { Usuario } from "src/app/interfaces/usuario";
+import { Push } from "src/app/services/push/push";
+import { supabase } from "src/supabase.client";
 
 @Component({
-  selector: 'app-home',
-  templateUrl: 'home.page.html',
-  styleUrls: ['home.page.scss'],
-  standalone: false,
+  selector: "app-home",
+  templateUrl: "home.page.html",
+  styleUrls: ["home.page.scss"],
+  standalone: false
 })
 export class HomePage implements OnInit {
   loading: boolean = true;
@@ -22,7 +24,12 @@ export class HomePage implements OnInit {
   fullname: string = "";
   profile: string = "";
 
-  constructor(private auth: AuthService, private router: Router, private usuarios: Usuarios) { }
+  constructor(
+    private auth: AuthService,
+    private router: Router,
+    private usuarios: Usuarios,
+    private push: Push
+  ) {}
 
   async ngOnInit() {
     try {
@@ -48,48 +55,30 @@ export class HomePage implements OnInit {
       this.isMaitre = perfil === "maître" || perfil === "maitre";
       this.isCliente = perfil === "cliente_registrado" || perfil === "cliente_anonimo" || perfil === "cliente_anónimo";
       this.isMozo = perfil === "mozo";
-
     } catch (e) {
       console.error(e);
       this.router.navigateByUrl("/login", { replaceUrl: true });
     } finally {
-      setTimeout(() => {
-        this.loading = false;
-      }, 2000);
+      setTimeout(() => { this.loading = false; }, 2000);
     }
   }
 
   async logOut() {
     try {
-      const anyAuth = this.auth as any;
-      if (typeof anyAuth.signOut === 'function') {
-        await anyAuth.signOut({ scope: 'local' });
-      } else if (typeof anyAuth.signOutLocal === 'function') {
-        await anyAuth.signOutLocal();
+      const tok = this.push.getToken();
+      if (tok) {
+        await supabase.from("push_tokens").update({ active: false }).eq("token", tok);
       }
-    } catch { }
+    } catch (e) {
+      console.warn("[logout][push_token_deactivate]", e);
+    }
 
     try {
-      for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i)!;
-        if (k.startsWith('sb-') && k.endsWith('-auth-token')) {
-          localStorage.removeItem(k);
-          i--;
-        }
-      }
+      await (this.auth as any).signOut();
+    } catch (e) {
+      console.warn("[logout][signOut]", e);
+    }
 
-      for (let i = 0; i < sessionStorage.length; i++) {
-        const k = sessionStorage.key(i)!;
-        if (k.startsWith('sb-') && k.endsWith('-auth-token')) {
-          sessionStorage.removeItem(k);
-          i--;
-        }
-      }
-    } catch { }
-
-    this.router.navigateByUrl('/login', { replaceUrl: true });
+    this.router.navigateByUrl("/login", { replaceUrl: true });
   }
 }
-
-
-

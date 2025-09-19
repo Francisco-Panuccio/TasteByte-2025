@@ -119,8 +119,8 @@ ion-segment-button {
       }
     }
   }
-  
-  .div_pedidos:last-child {
+
+  .div_pedidos:last-child:not(:only-child) {
     border-bottom: none;
   }
 }
@@ -225,4 +225,47 @@ ion-content.ion-content-chat {
   --padding-top: 0;
   --padding-bottom: 0;
   margin: 5px 5px 0 0;
+}
+
+.inbox-list {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: white;
+  border-radius: 20px;
+  border: 2px solid black;
+}
+
+.inbox-item {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 5px;
+  gap: 10px;
+}
+
+.inbox-meta {
+  display: flex;
+  justify-content: start;
+  align-items: center;
+}
+
+.btn_abrir {
+  padding: 10px;
+  border-radius: 12px;
+  background-color: #554738;
+  color: white;
+  font-size: 16px;
+}
+
+.inbox-title,
+.inbox-text {
+  font-size: 16px;
+  text-align: center;
+}
+
+.inbox-title {
+  font-weight: 600;
 }

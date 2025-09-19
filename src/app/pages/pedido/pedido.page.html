@@ -2,7 +2,7 @@
   <app-loading/>
 } @else {
   <header>
-      <title>Pedido #{{ ped?.id | slice:0:8 }}</title>
+      <title>Pedido • Mesa {{ ped?.mesa?.numero ?? ped?.mesa_id }}</title>
   </header>
 
   <ion-content>

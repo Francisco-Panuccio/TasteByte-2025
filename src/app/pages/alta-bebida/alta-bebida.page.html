@@ -1,11 +1,9 @@
 @if(loading) {
   <app-loading/>
 } @else {
-  <ion-header>
-    <ion-toolbar>
-      <ion-title>Agregar Bebida</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <header>
+    <title>Agregar Bebida</title>
+  </header>
 
   <ion-content class="ion-padding">
     <form [formGroup]="formAltaBebida" novalidate>

@@ -1,11 +1,9 @@
 @if(loading) {
   <app-loading/>
 } @else {
-  <ion-header>
-    <ion-toolbar>
-      <ion-title>Agregar Mesa</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <header>
+    <title>Agregar Mesa</title>
+  </header>
 
   <ion-content class="ion-padding">
     <form [formGroup]="formAltaMesa" novalidate>
