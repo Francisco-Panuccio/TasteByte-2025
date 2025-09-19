@@ -51,6 +51,8 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   bebidas: Bebida[] = [];
   mesaAsignada: boolean = false;
   loading: boolean = true;
+  submitting: boolean = false;
+  chatReady: boolean = false;
 
   chatOpen: boolean = false;
   presentingEl?: HTMLElement;
@@ -147,12 +149,57 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  openChat() { this.chatOpen = true; this.scrollToBottomAfterRender(); }
-  async closeChat() { await this.chatModal?.dismiss(); this.chatOpen = false; }
+  async openChat() {
+    if (this.submitting) return;
+
+    if (!this.chatId && this.mesaId) {
+      const chat = await this.chatSvc.getOrCreateForMesa(this.mesaId, "cliente");
+      this.chatId = chat.id;
+    }
+
+    const msgs = await this.chatSvc.loadMessages(this.chatId!, 200);
+    this.messages = msgs.map(m => {
+      const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
+      const role = vm.from === "yo" ? "cliente" : "mozo";
+      return { ...vm, role };
+    });
+
+    this.chatSvc.unsubscribe();
+    this.chatSvc.subscribeToMessages(this.chatId!, (m: ChatMessage) => {
+      const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
+      const role = vm.from === "yo" ? "cliente" : "mozo";
+      this.messages.push({ ...vm, role });
+      this.scrollToBottomAfterRender();
+    });
+
+    this.chatOpen = true;
+    this.chatReady = true;
+    this.scrollToBottomAfterRender();
+  }
+
+  async closeChat() {
+    await this.chatModal?.dismiss();
+    this.chatOpen = false;
+    this.chatReady = false;
+    this.chatSvc.unsubscribe();
+  }
 
   async sendMessage() {
+    if (this.submitting || !this.chatReady) return;
     const txt = this.newMsg.trim();
     if (!txt || !this.chatId) return;
+
+    const now = new Date();
+    this.messages.push({
+      id: 'temp-' + now.getTime(),
+      from: 'yo',
+      role: 'cliente',
+      text: txt,
+      time: now.toLocaleTimeString()
+    });
+    this.scrollToBottomAfterRender();
+    this.newMsg = "";
+
     await this.chatSvc.sendMessage(this.chatId, txt);
 
     try {
@@ -173,19 +220,39 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
         })
       });
     } catch { }
-
-    this.newMsg = "";
-    this.scrollToBottomAfterRender();
   }
 
   trackMsg = (_: number, m: { id: string }) => m.id;
   private scrollToBottom(ms: number = 200) { try { this.chatContent?.scrollToBottom(ms); } catch { } }
   private scrollToBottomAfterRender() { requestAnimationFrame(() => setTimeout(() => this.scrollToBottom(200), 0)); }
 
-  incByPlato(p: Plato) { const id = p.id!; const prev = this.qtyMap.get(id) || 0; this.qtyMap.set(id, prev + 1); this.syncItems(); }
-  decById(id: number) { const prev = this.qtyMap.get(id) || 0; if (prev <= 0) return; this.qtyMap.set(id, prev - 1); this.syncItems(); }
-  inc(p: AddItem): void { const prev = this.qtyMap.get(p.id) || 0; this.qtyMap.set(p.id, prev + 1); this.syncItems(); }
-  dec(id: number): void { this.decById(id); }
+  incByPlato(p: Plato) {
+    if (this.submitting) return;
+    const id = p.id!;
+    const prev = this.qtyMap.get(id) || 0;
+    this.qtyMap.set(id, prev + 1);
+    this.syncItems();
+  }
+
+  decById(id: number) {
+    if (this.submitting) return;
+    const prev = this.qtyMap.get(id) || 0;
+    if (prev <= 0) return;
+    this.qtyMap.set(id, prev - 1);
+    this.syncItems();
+  }
+
+  inc(p: AddItem): void {
+    if (this.submitting) return;
+    const prev = this.qtyMap.get(p.id) || 0;
+    this.qtyMap.set(p.id, prev + 1);
+    this.syncItems();
+  }
+
+  dec(id: number): void {
+    if (this.submitting) return;
+    this.decById(id);
+  }
 
   private syncItems() {
     const arr: {
@@ -236,15 +303,34 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     try {
       if (!this.itemsSel.length) return;
       if (!this.mesaId) throw new Error("Mesa inválida.");
+
+      this.submitting = true;
+
       if (!this.userUid) {
         const { data } = await supabase.auth.getUser();
         this.userUid = data.user?.id ?? "";
       }
 
-      const pedidoId = await this.pedidos.crearPedido(this.mesaId, this.userUid, this.itemsSel, this.total, this.etaMin);
+      const pedidoId = await this.pedidos.crearPedido(
+        this.mesaId,
+        this.userUid,
+        this.itemsSel,
+        this.total,
+        this.etaMin
+      );
 
-      this.pedidos.onEstadoPedido(pedidoId, (estado) => {
-        if (estado === "aceptado" || estado === "derivado") this.router.navigate(["/pedido", pedidoId]);
+      this.pedidos.onEstadoPedido(pedidoId, async (estado) => {
+        if (estado === 'aceptado') {
+          this.router.navigate(['/pedido', pedidoId]);
+        } else if (estado === 'rechazado') {
+          this.submitting = false;
+          (await this.toast.create({
+            message: 'Tu pedido fue rechazado. Podés modificarlo y reenviarlo.',
+            duration: 2000,
+            position: 'top',
+            cssClass: 'toast'
+          })).present();
+        }
       });
 
       const to = await this.chatSvc.getMozosTokens();
@@ -261,9 +347,20 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
         })
       });
 
-      (await this.toast.create({ message: "Pedido enviado. Esperando confirmación del mozo.", duration: 2000, position: "top", cssClass: "toast" })).present();
+      (await this.toast.create({
+        message: "Pedido enviado. Esperando confirmación del mozo.",
+        duration: 2000,
+        position: "top",
+        cssClass: "toast"
+      })).present();
+
     } catch (e: any) {
-      (await this.toast.create({ message: e?.message ?? "Error al enviar pedido", duration: 1800, position: "top" })).present();
+      (await this.toast.create({
+        message: e?.message ?? "Error al enviar pedido",
+        duration: 1800,
+        position: "top"
+      })).present();
+      this.submitting = false;
     }
   }
 }

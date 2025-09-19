@@ -11,14 +11,15 @@
       <ion-segment-button value="pendiente">Pendientes</ion-segment-button>
       <ion-segment-button value="aceptado">Aceptados</ion-segment-button>
       <ion-segment-button value="rechazado">Rechazados</ion-segment-button>
-      <ion-segment-button value="derivado">Derivados</ion-segment-button>
     </ion-segment>
 
     <div class="div_container" *ngIf="pedidos.length">
       <div class="div_pedidos" *ngFor="let p of pedidos">
         <div class="div_data_pedido">
-          <p>Mesa {{ p.mesa?.numero ?? p.mesa_id }} • ${{ p.total }}</p>
-          <p>Espera {{ p.eta_minutos }} min • {{ p.estado }} • {{ p.created_at | date:'short' }}</p>
+          <p>Mesa: {{ p.mesa?.numero ?? p.mesa_id }} • ${{ p.total }}</p>
+          <p>Espera: {{ p.eta_minutos }} min</p>
+          <p>Estado: {{ p.estado }}</p>
+          <p>Fecha: {{ p.created_at | date:'short' }}</p>
         </div>
   
         <div class="div_btns">

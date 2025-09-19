@@ -7,6 +7,24 @@ ion-content {
   padding: 20px;
 }
 
+ion-segment-button {
+  color: #554738;
+  --color-checked: #554738;
+}
+
+ion-label {
+  font-weight: 600;
+}
+
+.input-field {
+  --background: transparent;
+  width: 100%;
+  --border-width: 0px;
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  --highlight-color-focused: transparent;
+}
+
 /* Card */
 form {
   background: #e6dacd;

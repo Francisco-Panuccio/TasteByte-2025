@@ -15,7 +15,9 @@ export class HomePage implements OnInit {
   isDuenoSupervisor: boolean = false;
   isCocinero: boolean = false;
   isBartender: boolean = false;
-  isMaitreCliente: boolean = false;
+  isMaitre: boolean = false;
+  isCliente: boolean = false;
+  isMozo: boolean = false;
 
   fullname: string = "";
   profile: string = "";
@@ -43,7 +45,9 @@ export class HomePage implements OnInit {
       this.isDuenoSupervisor = perfil === "dueno" || perfil === "dueño" || perfil === "supervisor";
       this.isCocinero = perfil === "cocinero";
       this.isBartender = perfil === "bartender";
-      this.isMaitreCliente = perfil === "maître" || perfil === "cliente_registrado" || perfil === "cliente_anonimo" || perfil === "cliente_anónimo";
+      this.isMaitre = perfil === "maître" || perfil === "maitre";
+      this.isCliente = perfil === "cliente_registrado" || perfil === "cliente_anonimo" || perfil === "cliente_anónimo";
+      this.isMozo = perfil === "mozo";
 
     } catch (e) {
       console.error(e);
