@@ -1,22 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { supabase } from 'src/supabase.client';
-import { QRCodeComponent } from 'angularx-qrcode';
-import { IonicModule } from '@ionic/angular';
-import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-listado-mesas',
   templateUrl: './listado-mesas.page.html',
   styleUrls: ['./listado-mesas.page.scss'],
-  standalone: true,
-  imports: [QRCodeComponent, IonicModule, CommonModule]
+  standalone: false,
 })
 export class ListadoMesasPage implements OnInit {
   mesas: any[] = [];
-  cargando = true;
+  loading = true;
 
   async ngOnInit() {
-    this.cargando = true;
+    this.loading = true;
     const { data, error } = await supabase
       .from("mesas")
       .select("id, numero, capacidad, tipo, qr_contenido");
@@ -28,6 +24,6 @@ export class ListadoMesasPage implements OnInit {
       this.mesas = data || [];
     }
 
-    this.cargando = false;
+    setTimeout(() => this.loading = false, 2000);
   }
 }

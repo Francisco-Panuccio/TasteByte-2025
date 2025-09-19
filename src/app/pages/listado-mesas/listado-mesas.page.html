@@ -1,24 +1,34 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Listado de Mesas</ion-title>
-  </ion-toolbar>
-</ion-header>
+@if(loading) {
+  <app-loading/>
+} @else {
+  <header>
+    <title>Listado de Mesas</title>
+  </header>
 
-<ion-content class="ion-padding">
+  <ion-content class="ion-padding">
 
-  <ion-spinner *ngIf="cargando"></ion-spinner>
+    <ion-spinner *ngIf="loading"></ion-spinner>
 
-  <ion-list *ngIf="!cargando">
-    <ion-item *ngFor="let mesa of mesas">
-      <ion-label>
-        <h2>Mesa #{{ mesa.numero }}</h2>
-        <p>Capacidad: {{ mesa.capacidad }} - Tipo: {{ mesa.tipo }}</p>
-      </ion-label>
-      <div>
+    <ion-list *ngIf="!loading">
+      <ion-item *ngFor="let mesa of mesas">
+        <ion-label>
+          <h2>Mesa #{{ mesa.numero }}</h2>
+          <p>Capacidad: {{ mesa.capacidad }} - Tipo: {{ mesa.tipo }}</p>
+        </ion-label>
+        <div>
 
-        <qrcode [qrdata]="mesa.qr_contenido" [width]="120"></qrcode>
-      </div>
-    </ion-item>
-  </ion-list>
+          <qrcode [qrdata]="mesa.qr_contenido" [width]="120"></qrcode>
+        </div>
+      </ion-item>
+    </ion-list>
 
-</ion-content>
+  </ion-content>
+
+  <footer>
+    <ion-toolbar>
+      <ion-buttons class="ion_btns">
+        <ion-button class="btn_logged" routerLink="/home">Volver</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </footer>
+}
