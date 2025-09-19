@@ -10,8 +10,7 @@ import { CommonModule } from '@angular/common';
   selector: 'app-encuestas-espera',
   templateUrl: './encuestas-espera.page.html',
   styleUrls: ['./encuestas-espera.page.scss'],
-  imports: [IonicModule,CommonModule],
-  standalone: true
+  standalone: false
 })
 export class EncuestasEsperaPage implements OnInit {
 
