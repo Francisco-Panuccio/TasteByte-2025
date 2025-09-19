@@ -49,7 +49,10 @@ export class Pedidos {
   }
 
   async actualizarEstado(pedidoId: string, estado: Pedido["estado"]): Promise<void> {
-    const { error } = await supabase.from("pedidos").update({ estado }).eq("id", pedidoId);
+    const { error } = await supabase
+      .from("pedidos")
+      .update({ estado })
+      .eq("id", pedidoId);
     if (error) throw error;
   }
 
@@ -66,17 +69,35 @@ export class Pedidos {
   }
 
   async getPedido(pedidoId: string): Promise<{ ped: any; items: any[] }> {
-    const { data: ped, error } = await supabase.from("pedidos").select("*").eq("id", pedidoId).single();
+    const { data: ped, error } = await supabase
+      .from("pedidos")
+      .select("*")
+      .eq("id", pedidoId)
+      .maybeSingle();
+
     if (error) throw error;
-    const { data: items, error: e2 } = await supabase.from("pedido_items").select("*").eq("pedido_id", pedidoId);
+
+    if (!ped) {
+      return { ped: null, items: [] };
+    }
+
+    const { data: items, error: e2 } = await supabase
+      .from("pedido_items")
+      .select("*")
+      .eq("pedido_id", pedidoId);
+
     if (e2) throw e2;
+
     return { ped, items: items ?? [] };
   }
 
   async listar(estado?: Pedido["estado"]) {
-    const base = supabase.from("pedidos").select(
-      "id, mesa_id, total, eta_minutos, estado, created_at, mesa:mesas!pedidos_mesa_id_fkey (numero)"
-    ).order("created_at", { ascending: false });
+    const base = supabase
+      .from("pedidos")
+      .select(
+        "id, mesa_id, total, eta_minutos, estado, created_at, mesa:mesas!pedidos_mesa_id_fkey (numero)"
+      )
+      .order("created_at", { ascending: false });
 
     const { data, error } = estado ? await base.eq("estado", estado) : await base;
     if (error) throw error;
@@ -86,8 +107,11 @@ export class Pedidos {
   subscribeCambios(cb: (p: any) => void) {
     return supabase
       .channel("pedidos_all")
-      .on("postgres_changes", { event: "*", schema: "public", table: "pedidos" },
-        (payload) => cb(payload.new))
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "pedidos" },
+        (payload) => cb(payload.new)
+      )
       .subscribe();
   }
 }

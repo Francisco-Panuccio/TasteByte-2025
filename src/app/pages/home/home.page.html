@@ -25,13 +25,22 @@
         <p routerLink="/alta-bebida">Alta Bebidas</p>
       </div>
     </ion-content>
-  } @else if(isMaitreCliente) {
+  } @else if(isMaitre) {
     <ion-content>
       <div id="container">
         <p routerLink="/alta-cliente">Alta Clientes</p>
         <p routerLink="/lista-espera">Lista De Espera</p>
         <p routerLink="/listado-mesas">Lista De Mesas</p>
-        <p [routerLink]="['/mesa-ocupada']" [queryParams]="{ tableId: 1 }">Mesas</p>
+      </div>
+    </ion-content>
+  } @else if(isCliente) {
+    <ion-content>
+      <div id="container">
+        <p routerLink="/alta-cliente">Alta Clientes</p>
+        <p routerLink="/lista-espera">Lista De Espera</p>
+        <p routerLink="/listado-mesas">Lista De Mesas</p>
+        <p [routerLink]="['/pedido']" [queryParams]="{ id: '94c40eb4-12ac-47f0-9053-8b2cb8a8a1b8' }">Pedido</p>
+        <p [routerLink]="['/mesa-ocupada']" [queryParams]="{ tableId: 2 }">Mesas</p>
       </div>
     </ion-content>
   } @else {

@@ -5,7 +5,7 @@ import { Mesas } from 'src/app/services/mesas/mesas';
 import { Pedidos } from 'src/app/services/pedidos/pedidos';
 import { supabase } from 'src/supabase.client';
 
-type Filtro = "todos" | "pendiente" | "aceptado" | "rechazado" | "derivado";
+type Filtro = "todos" | "pendiente" | "aceptado" | "rechazado";
 
 @Component({
   selector: 'app-pedidos-mozo',
@@ -63,8 +63,8 @@ export class PedidosMozoPage implements OnInit {
 
   async setEstado(pedidoId: string, estado: "aceptado" | "rechazado") {
     await this.pedidosSrv.actualizarEstado(pedidoId, estado as any);
-    const msg = estado === "aceptado" ? "Pedido aceptado" : "Pedido rechazado";
-    (await this.toast.create({ message: msg, duration: 1200, position: "top" })).present();
+    const msg = estado === "aceptado" ? "Pedido Aceptado" : "Pedido Rechazado";
+    (await this.toast.create({ message: msg, duration: 1200, position: "top", cssClass: "toast" })).present();
   }
 
   async abrirChat(mesaId: number) {
@@ -92,7 +92,7 @@ export class PedidosMozoPage implements OnInit {
   }
 
   private scrollToBottom(ms: number = 200) { try { this.chatContent?.scrollToBottom(ms); } catch { } }
-  
+
   private scrollToBottomAfterRender() { requestAnimationFrame(() => setTimeout(() => this.scrollToBottom(200), 0)); }
 
   async cerrarChat() {
@@ -103,8 +103,28 @@ export class PedidosMozoPage implements OnInit {
 
   async enviar() {
     const t = this.newMsg.trim();
-    if (!t || !this.chatId) return;
+    if (!t || !this.chatId || !this.mesaChatId) return;
+
     await this.chatSvc.sendMessage(this.chatId, t);
     this.newMsg = "";
+
+    try {
+      const to = await this.chatSvc.getClienteTokenByMesa(this.mesaChatId);
+      await fetch("https://uvjesmdiovtkdgxobvhs.supabase.co/functions/v1/send-push", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to,
+          data: {
+            kind: "chat",
+            chatId: this.chatId,
+            mesaId: this.mesaChatId,
+            fromRole: "mozo",
+            fromName: this.myName,
+            preview: t.slice(0, 80)
+          }
+        })
+      });
+    } catch { }
   }
 }
