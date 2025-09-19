@@ -29,19 +29,19 @@
 * Panuccio
 - Objetivos: Puntos 11 y 12
 - Fecha Inicial: 15/09/2025
-- Fecha Final: 
+- Fecha Final: 19/09/2025
 - Branch: panuccio/altas
 
 * Roman
 - Objetivos: Puntos 9 y 10
 - Fecha Inicial: 15/09/2025
-- Fecha Final: 
+- Fecha Final: 19/09/2025
 - Branch: roman
 
 * Avallone
 - Objetivos: Puntos 7 y 8
 - Fecha Inicial: 15/09/2025
-- Fecha Final: 
+- Fecha Final: 19/09/2025
 - Branch: avallone
 
 
