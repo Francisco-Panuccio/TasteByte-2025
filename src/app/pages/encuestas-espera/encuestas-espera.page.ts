@@ -26,7 +26,7 @@ export class EncuestasEsperaPage implements OnInit {
   constructor(private router: Router, private route: ActivatedRoute) {}
 
   async ngOnInit() {
-    
+
     this.route.queryParams.subscribe(async params => {
       this.usuarioId = params['userId'];        
       this.anonimoId = params['anonimoId'];     
@@ -69,10 +69,15 @@ export class EncuestasEsperaPage implements OnInit {
     return;
   }
 
+  if (res.permiso) {
+    this.tienePermiso = true;  
+  }
+
   if (res.yaRegistrado) {
     this.yaRegistrado = true;
-    this.tienePermiso = true;  // ya tenía permiso
     alert("Ya estás en lista de espera. Podés ver las encuestas mientras esperás.");
+  } else {
+    alert("Acceso habilitado. Ahora podés ver la lista de espera y decidir si anotarte.");
   }
 
   if (res.mesaAsignada) {

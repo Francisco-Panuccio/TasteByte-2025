@@ -47,9 +47,9 @@ export class Qr {
   }
 
   async procesarQrCliente(qr: string, usuarioId?: string, anonimoId?: string) {
-  // QR de ingreso
+
   if (qr.startsWith("INGRESO")) {
-  // solo da permiso, no inserta
+
   const { data: existente } = await supabase
     .from("lista_espera")
     .select("id, estado")
