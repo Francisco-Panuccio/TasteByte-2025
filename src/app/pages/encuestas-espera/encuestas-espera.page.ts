@@ -1,7 +1,8 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Router,ActivatedRoute } from '@angular/router';
 import { Qr } from 'src/app/services/qr/qr';
 import { supabase } from 'src/supabase.client';
+
 
 @Component({
   selector: 'app-encuestas-espera',
@@ -12,20 +13,28 @@ import { supabase } from 'src/supabase.client';
 export class EncuestasEsperaPage implements OnInit {
   nombreCliente: string | undefined;
   usuarioId: string | undefined;
+  anonimoId: string | undefined;
   encuestas: any[] = [];
   clientes: any[] = [];
   qrValido = false;   
   loading = true;
+  tienePermiso = false;      
+  yaRegistrado = false;
 
   private qr = inject(Qr);
 
-  constructor(private route: ActivatedRoute) {}
+  constructor(private router: Router, private route: ActivatedRoute) {}
 
   async ngOnInit() {
+    
     this.route.queryParams.subscribe(async params => {
-      this.usuarioId = params['userId'];
-      const anonimoId = params['anonimoId'];
+      this.usuarioId = params['userId'];        
+      this.anonimoId = params['anonimoId'];     
 
+      if (!this.usuarioId && !this.anonimoId) {
+      this.router.navigate(['/login'], { replaceUrl: true });
+      return;
+    }
       if (this.usuarioId) {
         const { data: usuario } = await supabase
           .from('usuarios')
@@ -33,44 +42,44 @@ export class EncuestasEsperaPage implements OnInit {
           .eq('id', this.usuarioId)
           .single();
         this.nombreCliente = usuario ? `${usuario.nombres} ${usuario.apellidos}` : 'Cliente';
-      } else if (anonimoId) {
-    const { data: anonimo } = await supabase
-      .from('clientes_anonimos')
-      .select('nombre')
-      .eq('id', anonimoId)
-      .single();
-    this.nombreCliente = anonimo?.nombre || 'Cliente Anónimo';
-  }
-    });
+      } else if (this.anonimoId) {
+        const { data: anonimo } = await supabase
+          .from('clientes_anonimos')
+          .select('nombre')
+          .eq('id', this.anonimoId)
+          .single();
+        this.nombreCliente = anonimo?.nombre || 'Cliente Anónimo';
+      }
 
-    setTimeout(() => {
+      const { data: encuestas } = await supabase.from('encuestas').select('*');
+      this.encuestas = encuestas || [];
+
       this.loading = false;
-    }, 1000);
+    });
   }
 
   async escanearQr() {
-    const qr = await this.qr.scanQr();
-    if (!qr) return;
+  const qr = await this.qr.scanQr();
+  if (!qr) return;
 
-    const anonimoId = this.route.snapshot.queryParamMap.get('anonimoId')!;
-    const res = await this.qr.procesarQrCliente(anonimoId, qr);
+  const res = await this.qr.procesarQrCliente(qr, this.usuarioId, this.anonimoId);
 
-    if (res.error) {
-      alert(res.error);
-      return;
-    }
-
-    if (res.yaRegistrado) {
-      this.qrValido = true;
-      await this.cargarListaYEncuestas();
-      alert("Ya estás en lista de espera. Podés ver las encuestas mientras esperás.");
-    }
-    if (res.registrado) {
-      this.qrValido = true;
-      await this.cargarListaYEncuestas();
-      alert("Te registraste en la lista de espera. Esperá a que te asignen mesa.");
-    }
+  if (res.error) {
+    alert(res.error);
+    return;
   }
+
+  if (res.yaRegistrado) {
+    this.yaRegistrado = true;
+    this.tienePermiso = true;  // ya tenía permiso
+    alert("Ya estás en lista de espera. Podés ver las encuestas mientras esperás.");
+  }
+
+  if (res.mesaAsignada) {
+    alert(`Bienvenido a la mesa ${res.mesaAsignada}. Disfrutá tu experiencia.`);
+  }
+}
+
 
   async cargarListaYEncuestas() {
     const { data: encuestas } = await supabase.from('encuestas').select('*');
@@ -90,13 +99,11 @@ export class EncuestasEsperaPage implements OnInit {
   }
 
   async registrarseListaEspera() {
-    const payload: any = { estado: 'pendiente' };
+    if (this.yaRegistrado) return;
 
-    if (this.usuarioId) {
-      payload.cliente_id = this.usuarioId;
-    } else {
-      payload.cliente_anonimo_id = this.route.snapshot.queryParamMap.get('anonimoId');
-    }
+    const payload: any = { estado: 'pendiente' };
+    if (this.usuarioId) payload.cliente_id = this.usuarioId;
+    else payload.cliente_anonimo_id = this.anonimoId;
 
     const { error } = await supabase.from('lista_espera').insert(payload);
     if (error) {
@@ -104,6 +111,7 @@ export class EncuestasEsperaPage implements OnInit {
       return;
     }
 
+    this.yaRegistrado = true;
     alert('Te has registrado en la lista de espera. Espera a que el maître te asigne una mesa.');
   }
 

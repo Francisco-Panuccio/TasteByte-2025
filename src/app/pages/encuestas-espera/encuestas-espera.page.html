@@ -1,56 +1,40 @@
-<header>
+<ion-header>
   <ion-toolbar>
-    <ion-title>Ingreso</ion-title>
+    <ion-title>Bienvenido {{ nombreCliente }}</ion-title>
   </ion-toolbar>
-</header>
+</ion-header>
 
 <ion-content class="ion-padding">
+  <ion-button expand="block" color="primary" (click)="escanearQr()">
+    Escanear QR de Ingreso
+  </ion-button>
 
-  <div *ngIf="!qrValido">
-    <ion-button expand="block" (click)="escanearQr()">
-      Escanear QR de Entrada
-    </ion-button>
-  </div>
-
-
-  <div *ngIf="qrValido">
-    <h2>Bienvenido, {{nombreCliente}}</h2>
-
-  
+  <div *ngIf="tienePermiso">
     <ion-card>
-      <ion-card-header>Lista de Espera</ion-card-header>
+      <ion-card-header>
+        Opciones disponibles
+      </ion-card-header>
       <ion-card-content>
-        <ion-list *ngIf="clientes.length > 0; else vacio">
-          <ion-item *ngFor="let c of clientes; let i = index">
-            <ion-avatar slot="start">
-              <img [src]="c.clientes_anonimos?.foto_url" />
-            </ion-avatar>
-            <ion-label>
-              <h2>{{c.clientes_anonimos?.nombre || 'Cliente'}}</h2>
-              <p>Posición: {{i+1}}</p>
-              <p>Estado: {{c.estado}}</p>
-            </ion-label>
-          </ion-item>
-        </ion-list>
-        <ng-template #vacio>
-          <p>No hay clientes en espera.</p>
-        </ng-template>
-      </ion-card-content>
-    </ion-card>
-
-    <ion-button expand="block" (click)="registrarseListaEspera()">
-      Unirse a la lista de espera
-    </ion-button>
-
-
-    <h3>Encuestas</h3>
-    <ion-card *ngFor="let encuesta of encuestas">
-      <ion-card-header>{{ encuesta.titulo }}</ion-card-header>
-      <ion-card-content>
-        {{ encuesta.descripcion }}
-        <ion-button size="small" (click)="registrarEncuesta(encuesta.id)">
-          Participar
+        <ion-button expand="block" routerLink="/lista-espera" [queryParams]="{ anonimoId: anonimoId, userId: usuarioId }" color="tertiary">
+          Ver Lista de Espera
         </ion-button>
+
+        <ion-button expand="block" color="medium" [disabled]="yaRegistrado" (click)="registrarseListaEspera()">
+          Unirse a la Lista de Espera
+        </ion-button>
+
+        <div class="encuestas">
+          <h2>Encuestas de Clientes</h2>
+          <ion-card *ngFor="let encuesta of encuestas">
+            <ion-card-header>{{ encuesta.titulo }}</ion-card-header>
+            <ion-card-content>
+              {{ encuesta.descripcion }}
+              <ion-button size="small" (click)="registrarEncuesta(encuesta.id)">
+                Participar
+              </ion-button>
+            </ion-card-content>
+          </ion-card>
+        </div>
       </ion-card-content>
     </ion-card>
   </div>

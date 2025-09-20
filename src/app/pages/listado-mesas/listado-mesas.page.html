@@ -6,28 +6,26 @@
   </header>
 
   <ion-content class="ion-padding">
-
-    <ion-spinner *ngIf="loading"></ion-spinner>
-
-    <ion-list *ngIf="!loading">
+    <ion-list>
       <ion-item *ngFor="let mesa of mesas">
         <ion-label>
           <h2>Mesa #{{ mesa.numero }}</h2>
           <p>Capacidad: {{ mesa.capacidad }} - Tipo: {{ mesa.tipo }}</p>
         </ion-label>
         <div>
-
           <qrcode [qrdata]="mesa.qr_contenido" [width]="120"></qrcode>
         </div>
+        <ion-button slot="end" color="success" (click)="seleccionarMesa(mesa)">
+          Asignar
+        </ion-button>
       </ion-item>
     </ion-list>
-
   </ion-content>
 
   <footer>
     <ion-toolbar>
       <ion-buttons class="ion_btns">
-        <ion-button class="btn_logged" routerLink="/home">Volver</ion-button>
+        <ion-button class="btn_logged" (click)="cerrar()">Volver</ion-button>
       </ion-buttons>
     </ion-toolbar>
   </footer>

@@ -5,6 +5,7 @@ import { Usuarios } from "src/app/services/usuarios/usuarios";
 import { Usuario } from "src/app/interfaces/usuario";
 import { Push } from "src/app/services/push/push";
 import { supabase } from "src/supabase.client";
+import { ActivatedRoute } from "@angular/router";
 
 @Component({
   selector: "app-home",
@@ -28,11 +29,26 @@ export class HomePage implements OnInit {
     private auth: AuthService,
     private router: Router,
     private usuarios: Usuarios,
-    private push: Push
+    private push: Push,
+    private route: ActivatedRoute
   ) {}
 
-  async ngOnInit() {
-    try {
+async ngOnInit() {
+  try {
+
+    //agregue esto para los anon clientes porque no deben pasar por el auth.getUser
+    this.route.queryParams.subscribe(async params => {
+      const anonimoId = params['anonimoId'];
+
+      if (anonimoId) {
+        this.isCliente = true;
+        this.profile = "cliente_anonimo";
+        this.fullname = "Cliente Anónimo";
+        this.loading = false;
+        return; 
+      }
+
+      //de aca en adelante todo lo que ya teniamos
       const user = await this.auth.getUser();
       if (!user) {
         this.router.navigateByUrl("/login", { replaceUrl: true });
@@ -55,13 +71,14 @@ export class HomePage implements OnInit {
       this.isMaitre = perfil === "maître" || perfil === "maitre";
       this.isCliente = perfil === "cliente_registrado" || perfil === "cliente_anonimo" || perfil === "cliente_anónimo";
       this.isMozo = perfil === "mozo";
-    } catch (e) {
-      console.error(e);
-      this.router.navigateByUrl("/login", { replaceUrl: true });
-    } finally {
-      setTimeout(() => { this.loading = false; }, 2000);
-    }
+    });
+  } catch (e) {
+    console.error(e);
+    this.router.navigateByUrl("/login", { replaceUrl: true });
+  } finally {
+    setTimeout(() => { this.loading = false; }, 2000);
   }
+}
 
   async logOut() {
     try {
