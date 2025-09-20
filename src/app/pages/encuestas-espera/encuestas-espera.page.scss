@@ -45,6 +45,17 @@ h2 {
   gap: 8px;
 }
 
+.ion_btns {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.btn_logged {
+  font-size: 20px;
+  font-weight: 1000;
+}
+
 .acciones {
   display: flex;
   gap: 5px;

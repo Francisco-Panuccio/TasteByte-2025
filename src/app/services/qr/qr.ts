@@ -64,33 +64,27 @@ export class Qr {
 
   // QR de mesa en formato mesa:id:numero
   if (qr.startsWith("mesa:")) {
-    const partes = qr.split(":");
-    if (partes.length < 3) {
-      return { error: "QR de mesa inválido." };
-    }
-
-    const mesaId = Number(partes[1]);
-    const mesaNumero = partes[2];
-
-    // Verificar si el cliente está en lista_espera con esa mesa asignada
-    const { data: espera } = await supabase
-      .from("lista_espera")
-      .select("estado, mesa_id")
-      .eq(usuarioId ? "cliente_id" : "cliente_anonimo_id", usuarioId || anonimoId)
-      .maybeSingle();
-
-    if (!espera) {
-      return { error: "Debes registrarte en lista de espera antes de ocupar una mesa." };
-    }
-    if (espera.estado !== "aprobado") {
-      return { error: "El maître debe aprobar tu ingreso antes de ocupar la mesa." };
-    }
-    if (espera.mesa_id !== mesaId) {
-      return { error: "No tenés permiso para ocupar esta mesa. El maître debe asignártela." };
-    }
-
-    return { mesaAsignada: mesaId, numero: mesaNumero };
+  const partes = qr.split(":");
+  if (partes.length < 3) {
+    return { error: "QR de mesa inválido." };
   }
+
+  const mesaId = Number(partes[1]);
+  const mesaNumero = partes[2];
+
+  const { data: espera } = await supabase
+    .from("lista_espera")
+    .select("estado, mesa_id")
+    .eq(usuarioId ? "cliente_id" : "cliente_anonimo_id", usuarioId || anonimoId)
+    .maybeSingle();
+
+  if (!espera) return { error: "Debes registrarte en lista de espera antes de ocupar una mesa." };
+  if (espera.estado !== "aprobado") return { error: "El maître debe aprobar tu ingreso antes de ocupar la mesa." };
+  if (espera.mesa_id !== mesaId) return { error: "No tenés permiso para ocupar esta mesa. El maître debe asignártela." };
+
+  return { permiso: true, mesaAsignada: mesaId, numero: mesaNumero };
+}
+
 
   return { error: "QR desconocido" };
 }

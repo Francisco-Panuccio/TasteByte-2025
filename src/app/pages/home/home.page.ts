@@ -6,6 +6,7 @@ import { Usuario } from "src/app/interfaces/usuario";
 import { Push } from "src/app/services/push/push";
 import { supabase } from "src/supabase.client";
 import { ActivatedRoute } from "@angular/router";
+import { Qr } from "src/app/services/qr/qr";
 
 @Component({
   selector: "app-home",
@@ -21,6 +22,7 @@ export class HomePage implements OnInit {
   isMaitre: boolean = false;
   isCliente: boolean = false;
   isMozo: boolean = false;
+  userId: string = ""; 
 
   fullname: string = "";
   profile: string = "";
@@ -30,7 +32,8 @@ export class HomePage implements OnInit {
     private router: Router,
     private usuarios: Usuarios,
     private push: Push,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private qr: Qr
   ) {}
 
 async ngOnInit() {
@@ -63,6 +66,8 @@ async ngOnInit() {
 
       this.fullname = `${usuarioDB.nombres} ${usuarioDB.apellidos}`.trim();
       this.profile = usuarioDB.perfil;
+      this.userId = String(usuarioDB.id ?? "");
+
 
       const perfil = usuarioDB.perfil?.toLowerCase();
       this.isDuenoSupervisor = perfil === "dueno" || perfil === "dueño" || perfil === "supervisor";
@@ -98,4 +103,28 @@ async ngOnInit() {
 
     this.router.navigateByUrl("/login", { replaceUrl: true });
   }
+
+  async escanearQrEntrada() {
+    try {
+      const qrCode = await this.qr.scanQr();
+      if (!qrCode) return;
+
+      const res = await this.qr.procesarQrCliente(qrCode, this.userId, undefined);
+
+      if (res.error) {
+        alert(res.error);
+        return;
+      }
+
+      if (res.permiso) {
+        this.router.navigate(['/encuestas-espera'], {
+          queryParams: { userId: this.userId }
+        });
+      }
+    } catch (e) {
+      console.error("Error escaneando QR de entrada", e);
+      alert("No se pudo escanear el QR");
+    }
+  }
+
 }
