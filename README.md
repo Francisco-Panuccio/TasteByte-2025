@@ -3,7 +3,7 @@
 ## Integrantes ✒️ 
 * Panuccio Francisco
 * Roman Tomas
-* Avallone Joaco
+* Avallone Joaquin
 
 ## Responsabilidades (Primera Semana) 🛠️
 * Panuccio
