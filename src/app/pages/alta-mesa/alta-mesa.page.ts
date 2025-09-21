@@ -5,6 +5,7 @@ import { Capacitor } from '@capacitor/core';
 import { Mesa, TipoMesa } from 'src/app/interfaces/mesa';
 import { Mesas } from 'src/app/services/mesas/mesas';
 import { b64ToBlob } from '../../functions';
+import { Qr } from 'src/app/services/qr/qr';
 
 @Component({
   selector: 'app-alta-mesa',
@@ -15,7 +16,8 @@ import { b64ToBlob } from '../../functions';
 export class AltaMesaPage implements OnInit {
   private fb = inject(FormBuilder);
   private mesasSvc = inject(Mesas);
-
+  private qr = inject(Qr);
+  qrValue: string | undefined;
   loading = true;
   ok = false;
   err: string | null = null;
@@ -36,6 +38,7 @@ export class AltaMesaPage implements OnInit {
     tipo: this.fb.control<string | null>(null, [Validators.required, this.tipoValido()]),
     foto_url: this.fb.control<string>("", [Validators.required])
   });
+
 
   get f() { return this.formAltaMesa.controls; }
 
@@ -123,7 +126,15 @@ export class AltaMesaPage implements OnInit {
       };
 
       const creada = await this.mesasSvc.create(payload);
-      await this.mesasSvc.setQr(creada.id!, creada.numero);
+      
+      const qr_creado = await this.mesasSvc.setQr(creada.id!, creada.numero);
+
+      if(qr_creado)
+      {
+        const dataMesa = await this.mesasSvc.getByNumeroDeMesa(Number(creada.numero));
+        this.qrValue = await this.qr.getQrMesa(dataMesa?.id!);
+      }
+      
 
       this.ok = true;
 

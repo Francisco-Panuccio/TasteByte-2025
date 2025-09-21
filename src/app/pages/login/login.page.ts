@@ -29,6 +29,7 @@ export class LoginPage implements OnInit {
     });
   }
 
+
   async ngOnInit() {
     const session = await this.auth.getSession();
     if (session) {
@@ -45,6 +46,10 @@ export class LoginPage implements OnInit {
     }
     setTimeout(() => (this.loading = false), 2000);
   }
+
+  goAnonRegister() {
+  this.router.navigateByUrl('/anon-register');
+}
 
   async onLogin() {
     this.errorMsg = false;

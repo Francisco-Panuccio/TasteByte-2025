@@ -33,6 +33,7 @@ const routes: Routes = [
   },
   {
     path: 'register',
+
     loadChildren: () => import('./pages/register/register.module').then(m => m.RegisterPageModule)
   },
   {
@@ -71,7 +72,11 @@ const routes: Routes = [
   {
     path: 'listado-mesas',
     loadChildren: () => import('./pages/listado-mesas/listado-mesas.module').then(m => m.ListadoMesasPageModule)
+  },  {
+    path: 'anon-register',
+    loadChildren: () => import('./pages/anon-register/anon-register.module').then( m => m.AnonRegisterPageModule)
   }
+
 ];
 
 @NgModule({

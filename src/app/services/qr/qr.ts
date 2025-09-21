@@ -46,57 +46,46 @@ export class Qr {
     return result.barcodes[0].displayValue || null;
   }
 
-  async procesarQrCliente(anonimoId: string, qr: string) {
-    // QR de ingreso
-    if (qr.startsWith("INGRESO")) {
-      const { data: existente } = await supabase
-        .from("lista_espera")
-        .select("id, estado")
-        .eq("cliente_anonimo_id", anonimoId)
-        .in("estado", ["pendiente", "aprobado"])
-        .maybeSingle();
+  async procesarQrCliente(qr: string, usuarioId?: string, anonimoId?: string) {
 
-      if (existente) {
-        return { yaRegistrado: true };
-      }
+  if (qr.startsWith("INGRESO")) {
 
-      const { error } = await supabase.from("lista_espera").insert({
-        cliente_anonimo_id: anonimoId,
-        estado: "pendiente",
-        creado_en: new Date().toISOString()
-      });
+  const { data: existente } = await supabase
+    .from("lista_espera")
+    .select("id, estado")
+    .eq(usuarioId ? "cliente_id" : "cliente_anonimo_id", usuarioId || anonimoId)
+    .maybeSingle();
 
-      if (error) throw error;
-      return { registrado: true };
-    } 
+  return {
+    permiso: true,
+    yaRegistrado: Boolean(existente)
+  };
+}
 
-    // QR de mesa en formato mesa:id:numero
-    if (qr.startsWith("mesa:")) {
-      const partes = qr.split(":");
-      if (partes.length < 3) {
-        return { error: "QR de mesa inválido." };
-      }
-
-      const mesaId = Number(partes[1]);
-      const mesaNumero = partes[2];
-
-      // Para que no este repetido, es decir, que no se pueda anotar 2 veces en lista de espera
-      const { data: espera } = await supabase
-        .from("lista_espera")
-        .select("estado")
-        .eq("cliente_anonimo_id", anonimoId)
-        .maybeSingle();
-
-      if (!espera) {
-        return { error: "Debes registrarte en lista de espera antes de ocupar una mesa." };
-      }
-      if (espera.estado !== "aprobado") {
-        return { error: "El maître debe aprobar tu ingreso antes de ocupar la mesa." };
-      }
-
-      return { mesaAsignada: mesaId, numero: mesaNumero };
-    }
-
-    return { error: "QR desconocido" };
+  // QR de mesa en formato mesa:id:numero
+  if (qr.startsWith("mesa:")) {
+  const partes = qr.split(":");
+  if (partes.length < 3) {
+    return { error: "QR de mesa inválido." };
   }
+
+  const mesaId = Number(partes[1]);
+  const mesaNumero = partes[2];
+
+  const { data: espera } = await supabase
+    .from("lista_espera")
+    .select("estado, mesa_id")
+    .eq(usuarioId ? "cliente_id" : "cliente_anonimo_id", usuarioId || anonimoId)
+    .maybeSingle();
+
+  if (!espera) return { error: "Debes registrarte en lista de espera antes de ocupar una mesa." };
+  if (espera.estado !== "aprobado") return { error: "El maître debe aprobar tu ingreso antes de ocupar la mesa." };
+  if (espera.mesa_id !== mesaId) return { error: "No tenés permiso para ocupar esta mesa. El maître debe asignártela." };
+
+  return { permiso: true, mesaAsignada: mesaId, numero: mesaNumero };
+}
+
+
+  return { error: "QR desconocido" };
+}
 }

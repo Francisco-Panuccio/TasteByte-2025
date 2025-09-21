@@ -89,9 +89,10 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     this.backUnsub = () => sub.unsubscribe();
 
     try {
-      const qp = this.route.snapshot.queryParamMap.get("tableId");
-      const pp = this.route.snapshot.paramMap.get("id");
-      this.mesaId = qp ? Number(qp) : (pp ? Number(pp) : undefined);
+      // ✅ Ahora solo usamos "mesaId" de queryParams
+      const qp = this.route.snapshot.queryParamMap.get("mesaId");
+      this.mesaId = qp ? Number(qp) : undefined;
+
       if (!this.mesaId || Number.isNaN(this.mesaId)) throw new Error("Mesa inválida");
 
       this.mesa = await this.mesasSrv.getById(this.mesaId);

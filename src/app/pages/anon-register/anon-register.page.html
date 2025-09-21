@@ -1,0 +1,27 @@
+<header>
+  <ion-toolbar>
+    <ion-title>Ingresar como Anónimo</ion-title>
+  </ion-toolbar>
+</header>
+
+<ion-content class="ion-padding">
+  <form [formGroup]="formAnon">
+    <ion-item>
+      <ion-input formControlName="nombre" placeholder="Tu nombre"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-button expand="block" (click)="sacarFoto()">Tomar Foto</ion-button>
+    </ion-item>
+
+    <div *ngIf="formAnon.value.foto">
+      <ion-img [src]="formAnon.value.foto"></ion-img>
+    </div>
+
+    <ion-button expand="block" (click)="registrarAnonimo()" [disabled]="formAnon.invalid || cargando">
+      Continuar
+    </ion-button>
+  </form>
+
+  <ion-text color="danger" *ngIf="err">{{ err }}</ion-text>
+</ion-content>

@@ -74,13 +74,11 @@
           <div><span class="span_profile">{{ (profile || "").split("_").join(" ") | titlecase }}</span></div>
         </div>
       </div>
-
       <div id="container">
-        <p routerLink="/alta-cliente">Alta Clientes</p>
-        <p routerLink="/lista-espera">Lista De Espera</p>
-        <p routerLink="/listado-mesas">Lista De Mesas</p>
-        <p [routerLink]="['/pedido']" [queryParams]="{ id: '94c40eb4-12ac-47f0-9053-8b2cb8a8a1b8' }">Pedido</p>
-        <p [routerLink]="['/mesa-ocupada']" [queryParams]="{ tableId: 2 }">Mesas</p>
+        <p class="qr-button" (click)="escanearQrEntrada()">
+        Escanear QR de Entrada
+        </p>
+
       </div>
     </div>
   } @else {
