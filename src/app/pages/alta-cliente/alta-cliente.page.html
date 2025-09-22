@@ -21,8 +21,7 @@
       <ion-item lines="none" class="input-field">
         <ion-input
           type="text"
-          label="Nombres"
-          labelPlacement="floating"
+          placeholder="Nombre"
           formControlName="nombres">
         </ion-input>
       </ion-item>
@@ -36,8 +35,7 @@
       <ion-item lines="none" class="input-field">
         <ion-input
           type="text"
-          label="Apellidos"
-          labelPlacement="floating"
+          placeholder="Apellido"
           formControlName="apellidos"
         ></ion-input>
       </ion-item>
@@ -53,8 +51,7 @@
       <ion-item lines="none" class="input-field">
         <ion-input
           type="text"
-          label="DNI"
-          labelPlacement="floating"
+          placeholder="DNI"
           formControlName="dni">
         </ion-input>
         <ion-button slot="end" (click)="escanearDNI()" type="button">📷 Escanear QR</ion-button>
@@ -67,8 +64,7 @@
       <ion-item lines="none" class="input-field">
         <ion-input
           type="email"
-          label="Correo"
-          labelPlacement="floating"
+          placeholder="Correo Electrónico"
           formControlName="correo">
         </ion-input>
       </ion-item>
@@ -80,8 +76,7 @@
       <ion-item lines="none" class="input-field">
         <ion-input
           type="password"
-          label="Contraseña"
-          labelPlacement="floating"
+          placeholder="Contraseña"
           formControlName="clave">
         </ion-input>
       </ion-item>
@@ -95,8 +90,7 @@
       <ion-item lines="none" class="input-field">
         <ion-input
           type="text"
-          label="Foto"
-          labelPlacement="floating"
+          placeholder="Foto"
           formControlName="foto"
           readonly>
         </ion-input>
@@ -114,7 +108,7 @@
         <ion-text color="danger" *ngIf="err">{{ err }}</ion-text>
         <ion-text color="success" *ngIf="ok">Cliente registrado correctamente!</ion-text>
 
-        <ion-button expand="block" type="submit" [disabled]="loading">
+        <ion-button class="btn_guardar" type="submit" [disabled]="loading">
           {{ loading ? 'Guardando...' : 'Registrar Cliente' }}
         </ion-button>
       
@@ -126,7 +120,7 @@
         <form [formGroup]="formAltaAnonimo" (ngSubmit)="enviar('anonimo')">
 
           <ion-item lines="none" class="input-field">
-            <ion-input type="text" label="Nombre" labelPlacement="floating" formControlName="nombre"></ion-input>
+            <ion-input type="text" placeholder="Nombre" formControlName="nombre"></ion-input>
           </ion-item>
           <ion-text color="danger" *ngIf="fAnonimo['nombre'].touched && fAnonimo['nombre'].invalid">
             <p *ngIf="fAnonimo['nombre'].errors?.['required']">El nombre es obligatorio</p>
@@ -134,7 +128,7 @@
           </ion-text>
 
           <ion-item lines="none" class="input-field">
-            <ion-input type="text" label="Foto" labelPlacement="floating" formControlName="foto" readonly></ion-input>
+            <ion-input type="text" placeholder="Foto" formControlName="foto" readonly></ion-input>
             <ion-button slot="end" type="button" (click)="sacarFotoAnonimo()">📸 Tomar foto</ion-button>
           </ion-item>
 
@@ -149,7 +143,7 @@
           <ion-text color="danger" *ngIf="err">{{ err }}</ion-text>
           <ion-text color="success" *ngIf="ok">Cliente anónimo registrado correctamente!</ion-text>
 
-          <ion-button expand="block" type="submit" [disabled]="loading">
+          <ion-button class="btn_guardar" type="submit" [disabled]="loading">
             {{ loading ? 'Guardando...' : 'Registrar Cliente Anónimo' }}
           </ion-button>
 

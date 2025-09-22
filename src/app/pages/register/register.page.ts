@@ -1,5 +1,11 @@
 import { Component, OnInit } from '@angular/core';
-import { AbstractControl, FormBuilder, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import { Router } from '@angular/router';
 import { User } from 'src/app/classes/user';
 import { AuthService } from 'src/app/services/auth/auth';
@@ -10,16 +16,17 @@ import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 @Component({
   selector: 'app-register',
   standalone: false,
+
   templateUrl: './register.page.html',
   styleUrls: ['./register.page.scss'],
 })
 export class RegisterPage implements OnInit {
   loading: boolean = true;
   errorMsg: boolean = false;
-  errorText = "Ocurrió un error";
+  errorText = 'Ocurrió un error';
 
   fotoPreview: string | null = null; // preview en el registro
-  fotoUrl: string | null = null;     // url subida a Supabase
+  fotoUrl: string | null = null; // url subida a Supabase
 
   constructor(
     private fb: FormBuilder,
@@ -29,34 +36,36 @@ export class RegisterPage implements OnInit {
   ) {
     this.formRegister = this.fb.group(
       {
-        fullname: ["", [Validators.required]],
-        lastname: ["", [Validators.required]],
-        documentType: ["dni", [Validators.required]],
-        documentNumber: ["", [Validators.required, this.dniValidator]],
-        profile: ["", [Validators.required]],
-        email: ["", [Validators.required, Validators.email]],
-        password: ["", [Validators.required, Validators.minLength(6)]],
-        confirm: ["", [Validators.required]],
+        fullname: ['', [Validators.required]],
+        lastname: ['', [Validators.required]],
+        documentType: ['dni', [Validators.required]],
+        documentNumber: ['', [Validators.required, this.dniValidator]],
+        profile: ['', [Validators.required]],
+        email: ['', [Validators.required, Validators.email]],
+        password: ['', [Validators.required, Validators.minLength(6)]],
+        confirm: ['', [Validators.required]],
       },
       { validators: this.passwordsMatch }
     );
   }
 
-  formRegister: ReturnType<FormBuilder["group"]>;
+  formRegister: ReturnType<FormBuilder['group']>;
 
   // ✅ validación para habilitar el botón
   get isFormValid(): boolean {
     return this.formRegister.valid && !!this.fotoPreview;
   }
 
-  passwordsMatch: ValidatorFn = (group: AbstractControl): ValidationErrors | null => {
-    const pass = group.get("password")?.value ?? "";
-    const conf = group.get("confirm")?.value ?? "";
-    const confirmCtrl = group.get("confirm");
+  passwordsMatch: ValidatorFn = (
+    group: AbstractControl
+  ): ValidationErrors | null => {
+    const pass = group.get('password')?.value ?? '';
+    const conf = group.get('confirm')?.value ?? '';
+    const confirmCtrl = group.get('confirm');
     if (!confirmCtrl) return null;
 
     const others = { ...(confirmCtrl.errors ?? {}) };
-    delete (others as any)["passwordmatch"];
+    delete (others as any)['passwordmatch'];
 
     if (conf && pass !== conf) {
       confirmCtrl.setErrors({ ...others, passwordmatch: true });
@@ -68,22 +77,25 @@ export class RegisterPage implements OnInit {
   };
 
   dniValidator: ValidatorFn = (c: AbstractControl): ValidationErrors | null => {
-    const v = String(c.value ?? "").replace(/\D/g, "");
+    const v = String(c.value ?? '').replace(/\D/g, '');
     return v.length === 8 ? null : { dni: true };
   };
 
-  cuilValidator: ValidatorFn = (c: AbstractControl): ValidationErrors | null => {
-    const v = String(c.value ?? "").replace(/\D/g, "");
+  cuilValidator: ValidatorFn = (
+    c: AbstractControl
+  ): ValidationErrors | null => {
+    const v = String(c.value ?? '').replace(/\D/g, '');
     return v.length === 11 ? null : { cuil: true };
   };
 
   async ngOnInit() {
-    this.formRegister.get("documentType")!.valueChanges.subscribe((t) => {
-      const ctrl = this.formRegister.get("documentNumber")!;
+    this.formRegister.get('documentType')!.valueChanges.subscribe((t) => {
+      const ctrl = this.formRegister.get('documentNumber')!;
       ctrl.clearValidators();
+
       ctrl.addValidators([
         Validators.required,
-        t === "dni" ? this.dniValidator : this.cuilValidator,
+        t === 'dni' ? this.dniValidator : this.cuilValidator,
       ]);
       ctrl.updateValueAndValidity({ emitEvent: false });
     });
@@ -101,7 +113,7 @@ export class RegisterPage implements OnInit {
 
       this.fotoPreview = image.dataUrl || null;
     } catch (e) {
-      console.error("Error tomando foto", e);
+      console.error('Error tomando foto', e);
     }
   }
 
@@ -112,23 +124,23 @@ export class RegisterPage implements OnInit {
     if (this.formRegister.invalid) return;
 
     if (!this.fotoPreview) {
-      this.errorText = "Debes tomar una foto";
+      this.errorText = 'Debes tomar una foto';
       this.errorMsg = true;
       return;
     }
 
     const v = this.formRegister.value as any;
-    const email: string = (v.email).trim().toLowerCase();
+    const email: string = String(v.email).trim().toLowerCase();
     const password: string = v.password;
 
-    const digits = String(v.documentNumber ?? "").replace(/\D/g, "");
-    const isDni = v.documentType === "dni";
+    const digits = String(v.documentNumber ?? '').replace(/\D/g, '');
+    const isDni = v.documentType === 'dni';
     const dniStr = isDni ? digits : undefined;
     const cuilStr = !isDni ? digits : undefined;
 
     try {
       if (await this.usuarios.existsByEmail(email)) {
-        this.errorText = "Correo ya registrado";
+        this.errorText = 'Correo ya registrado';
         this.errorMsg = true;
         return;
       }
@@ -136,27 +148,27 @@ export class RegisterPage implements OnInit {
       if (isDni && dniStr) {
         const dup = await this.usuarios.existsByDni(Number(dniStr));
         if (dup) {
-          this.errorText = "DNI ya registrado";
+          this.errorText = 'DNI ya registrado';
           this.errorMsg = true;
           return;
         }
       } else if (!isDni && cuilStr) {
         const dup = await this.usuarios.existsByCuil(Number(cuilStr));
         if (dup) {
-          this.errorText = "CUIL ya registrado";
+          this.errorText = 'CUIL ya registrado';
           this.errorMsg = true;
           return;
         }
       }
     } catch {
-      this.errorText = "Error Verificando Duplicados";
+      this.errorText = 'Error Verificando Duplicados';
       this.errorMsg = true;
       return;
     }
 
     const { data, error } = await this.auth.signUp(email, password);
     if (error) {
-      this.errorText = "Usuario Existente en Autenticación";
+      this.errorText = 'Usuario Existente en Autenticación';
       this.errorMsg = true;
       return;
     }
@@ -164,7 +176,7 @@ export class RegisterPage implements OnInit {
     const user = new User(
       v.lastname,
       v.fullname,
-      v.email,
+      email,
       v.profile,
       dniStr,
       cuilStr,
@@ -172,45 +184,51 @@ export class RegisterPage implements OnInit {
     );
 
     try {
-      // 🔹 Subir foto al bucket
+
       const fileName = `foto_${Date.now()}.jpeg`;
       const { error: uploadError } = await supabase.storage
-        .from("empleados")
+        .from('empleados')
         .upload(fileName, this.dataURLtoBlob(this.fotoPreview!), {
-          contentType: "image/jpeg",
+          contentType: 'image/jpeg',
         });
 
       if (uploadError) throw uploadError;
 
       const { data: publicUrl } = supabase.storage
-        .from("empleados")
+        .from('empleados')
         .getPublicUrl(fileName);
 
       this.fotoUrl = publicUrl.publicUrl;
 
-      // 🔹 Insertar en "usuarios" con foto
+
       const usuarioDB = await this.usuarios.createFromUser(user, this.fotoUrl);
 
-      // 🔹 Insertar en "clientes"
-      await supabase.from("clientes").insert({
-        usuario_id: usuarioDB.id,
-        tipo: "cliente_registrado",
-        estado: "pendiente",
+      await supabase.from('clientes').insert({
+        tipo: 'cliente_registrado',
+        usuario_id: usuarioDB.id
       });
     } catch (e: any) {
       console.log(e);
-      this.errorText = "Error guardando usuario/cliente";
+      this.errorText = 'Error guardando usuario/cliente';
       this.errorMsg = true;
       return;
     }
 
-    this.router.navigateByUrl(data.session ? "/home" : "/login", {
+    if (v.profile === 'cliente_registrado') {
+      try {
+        await supabase.auth.signOut();
+      } catch {}
+      await this.router.navigateByUrl('/login', { replaceUrl: true });
+      return;
+    }
+
+    await this.router.navigateByUrl(data.session ? '/home' : '/login', {
       replaceUrl: true,
     });
   }
 
   private dataURLtoBlob(dataUrl: string): Blob {
-    const arr = dataUrl.split(",");
+    const arr = dataUrl.split(',');
     const mime = arr[0].match(/:(.*?);/)![1];
     const bstr = atob(arr[1]);
     let n = bstr.length;

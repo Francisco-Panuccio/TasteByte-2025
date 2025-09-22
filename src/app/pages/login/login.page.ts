@@ -1,21 +1,24 @@
-import { Component, OnInit } from "@angular/core";
-import { Router } from "@angular/router";
-import { AuthService } from "src/app/services/auth/auth";
-import { FormBuilder, Validators } from "@angular/forms";
-import { Push } from "src/app/services/push/push";
-import { supabase } from "src/supabase.client";
+import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { AuthService } from 'src/app/services/auth/auth';
+import { FormBuilder, Validators } from '@angular/forms';
+import { Push } from 'src/app/services/push/push';
+import { supabase } from 'src/supabase.client';
+
+type Role = 'mozo' | 'cliente';
 
 @Component({
-  selector: "app-login",
+  selector: 'app-login',
   standalone: false,
-  templateUrl: "./login.page.html",
-  styleUrls: ["./login.page.scss"]
+  templateUrl: './login.page.html',
+  styleUrls: ['./login.page.scss'],
 })
 export class LoginPage implements OnInit {
   loading: boolean = true;
   errorMsg: boolean = false;
+  errorText: string = 'Ocurrió un error';
 
-  formLogin: ReturnType<FormBuilder["group"]>;
+  formLogin: ReturnType<FormBuilder['group']>;
 
   constructor(
     private fb: FormBuilder,
@@ -24,39 +27,60 @@ export class LoginPage implements OnInit {
     private push: Push
   ) {
     this.formLogin = this.fb.group({
-      email: ["", [Validators.required, Validators.email]],
-      password: ["", [Validators.required, Validators.minLength(6)]]
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]],
     });
+  }
+
+  private isApproved(perfil?: string, estado?: string): boolean {
+    if (perfil === 'cliente_registrado' && estado === 'activo') {
+      return true;
+    }
+    return perfil !== 'cliente_registrado'; // otros perfiles no necesitan estado
+  }
+
+  private async initPush(userId: string, role: Role) {
+    await this.push.init(userId, role);
+    if (role === 'mozo') this.push.initMozoHandlers();
+    await this.push.ready();
   }
 
   async ngOnInit() {
     const session = await this.auth.getSession();
     if (session) {
-      const { data } = await supabase.auth.getUser();
-      const email = data.user?.email as string | undefined;
-      if (email) {
-        const { data: u, error } = await supabase
-          .from("usuarios")
-          .select("perfil")
-          .eq("correo_electronico", email)   // ✅ buscamos por correo
+      const { data: authData } = await supabase.auth.getUser();
+      const authId = authData.user?.id as string | undefined;
+
+      if (authId) {
+        const { data: u } = await supabase
+          .from('usuarios')
+          .select('perfil, clientes(estado)')
+          .eq('auth_id', authId)   // ✅ corregido
           .maybeSingle();
 
-        if (error) {
-          console.error("Error cargando perfil del usuario", error);
+        const perfil = u?.perfil;
+        const estado = u?.clientes?.[0]?.estado;
+
+        if (!this.isApproved(perfil, estado)) {
+          await supabase.auth.signOut();
+          this.errorText = 'Cuenta Pendiente de Aprobación.';
+          this.errorMsg = true;
+          return;
         }
 
-        const role = u?.perfil === "mozo" ? "mozo" : "cliente";
-        await this.push.init(data.user!.id, role);  // UUID de supabase.auth
-        if (role === "mozo") this.push.initMozoHandlers();
-        await this.push.ready();
+        const role: Role = perfil === 'mozo' ? 'mozo' : 'cliente';
+        await this.initPush(authId, role);
       }
-      this.router.navigateByUrl("/home", { replaceUrl: true });
+
+      await this.router.navigateByUrl('/home', { replaceUrl: true });
+      return;
     }
+
     setTimeout(() => (this.loading = false), 2000);
   }
 
   goAnonRegister() {
-    this.router.navigateByUrl("/anon-register");
+    this.router.navigateByUrl('/anon-register');
   }
 
   async onLogin() {
@@ -65,35 +89,53 @@ export class LoginPage implements OnInit {
     this.formLogin.updateValueAndValidity({ emitEvent: true });
     if (this.formLogin.invalid) return;
 
-    const { email, password } = this.formLogin.value as { email: string; password: string };
+    const { email, password } = this.formLogin.value as {
+      email: string;
+      password: string;
+    };
     const { error } = await this.auth.signIn(email, password);
-    if (error) { this.errorMsg = true; return; }
-
-    const { data } = await supabase.auth.getUser();
-    const userId = data.user?.id as string;
-    const correo = data.user?.email as string;
-
-    const { data: u, error: errUsuario } = await supabase
-      .from("usuarios")
-      .select("perfil")
-      .eq("correo_electronico", correo)   // ✅ buscamos por correo
-      .maybeSingle();
-
-    if (errUsuario) {
-      console.error("Error obteniendo perfil", errUsuario);
+    if (error) {
+      this.errorText = 'Credenciales Inválidas';
+      this.errorMsg = true;
+      return;
     }
 
-    const role = u?.perfil === "mozo" ? "mozo" : "cliente";
-    await this.push.init(userId, role);
-    if (role === "mozo") this.push.initMozoHandlers();
-    await this.push.ready();
+    const { data: authData } = await supabase.auth.getUser();
+    const authId = authData.user?.id as string | undefined;
 
-    this.router.navigateByUrl("/home", { replaceUrl: true });
+    if (!authId) {
+      this.errorText = 'No se pudo obtener el usuario';
+      this.errorMsg = true;
+      return;
+    }
+
+    const { data: u } = await supabase
+      .from('usuarios')
+      .select('perfil, clientes(estado)')
+      .eq('user_id', authId)   // ✅ corregido
+      .maybeSingle();
+
+    const perfil = u?.perfil;
+    const estado = u?.clientes?.[0]?.estado;
+
+    if (!this.isApproved(perfil, estado)) {
+      await supabase.auth.signOut();
+      this.errorText = 'Cuenta Pendiente de Aprobación.';
+      this.errorMsg = true;
+      return;
+    }
+
+    const role: Role = perfil === 'mozo' ? 'mozo' : 'cliente';
+    await this.initPush(authId, role);
+
+    await this.router.navigateByUrl('/home', { replaceUrl: true });
   }
 
   async quickLogin(user: { email: string; password: string }) {
     this.formLogin.patchValue(user);
   }
 
-  closeError() { this.errorMsg = false; }
+  closeError() {
+    this.errorMsg = false;
+  }
 }

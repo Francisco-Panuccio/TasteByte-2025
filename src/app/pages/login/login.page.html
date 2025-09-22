@@ -4,7 +4,7 @@
   @if(errorMsg) {
   <ion-content class="ion-padding">
     <div class="div_error">
-      <span>Correo electrónico o contraseña inválidos</span>
+      <span>{{errorText}}</span>
       <ion-button expand="block" class="btn_close" (click)="closeError()">Cerrar</ion-button>
     </div>
 
@@ -47,14 +47,13 @@
           <div class="quick-logins">
             <p class="subtitle">Accesos Rápidos:</p>
             <div class="quick_btns">
-              <ion-button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'admin@hotmail.com', password: 'admin12345'})">Ad</ion-button>
-              <ion-button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'dueno@hotmail.com', password: 'dueño12345'})">Dñ</ion-button>
-              <ion-button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'supervisor@hotmail.com', password: 'supervisor12345'})">Sv</ion-button>
-              <ion-button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'maitre@hotmail.com', password: 'maitre12345'})">Mt</ion-button>
-              <ion-button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'mozo@hotmail.com', password: 'mozo12345'})">Mz</ion-button>
-              <ion-button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'cocinero@hotmail.com', password: 'cocinero12345'})">Cc</ion-button>
-              <ion-button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'bartender@hotmail.com', password: 'bartender12345'})">Bt</ion-button>
-              <ion-button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'clienteregistrado@hotmail.com', password: 'clienteregistrado12345'})">CR</ion-button>
+              <ion-button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'dueno@hotmail.com', password: 'dueño12345'})"><img src="assets/images/ic_dueno.png" alt="dueño"></ion-button>
+              <ion-button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'supervisor@hotmail.com', password: 'supervisor12345'})"><img src="assets/images/ic_supervisor.png" alt="supervisor"></ion-button>
+              <ion-button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'maitre@hotmail.com', password: 'maitre12345'})"><img src="assets/images/ic_maitre.png" alt="maitre"></ion-button>
+              <ion-button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'mozo@hotmail.com', password: 'mozo12345'})"><img src="assets/images/ic_mozo.png" alt="mozo"></ion-button>
+              <ion-button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'cocinero@hotmail.com', password: 'cocinero12345'})"><img src="assets/images/ic_cocinero.png" alt="cocinero"></ion-button>
+              <ion-button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'bartender@hotmail.com', password: 'bartender12345'})"><img src="assets/images/ic_bartender.png" alt="bartender"></ion-button>
+              <ion-button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'clienteregistrado@hotmail.com', password: 'clienteregistrado12345'})"><img src="assets/images/ic_cliente.png" alt="cliente"></ion-button>
             </div>
           </div>
     

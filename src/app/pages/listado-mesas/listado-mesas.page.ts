@@ -12,48 +12,43 @@ export class ListadoMesasPage implements OnInit {
   mesas: any[] = [];
   loading = true;
 
-  constructor(private modalCtrl: ModalController) {}
+  constructor(private modalCtrl: ModalController) { }
 
   async ngOnInit() {
-  this.loading = true;
+    this.loading = true;
 
-  // 1. Traer todas las mesas
-  const { data: mesas, error } = await supabase
-    .from("mesas")
-    .select("id, numero, capacidad, tipo, qr_contenido");
+    // 1. Traer todas las mesas
+    const { data: mesas, error } = await supabase
+      .from("mesas")
+      .select("id, numero, capacidad, tipo, qr_contenido");
 
-  if (error) {
-    console.error("Error cargando mesas", error);
-    this.mesas = [];
-    return;
+    if (error) {
+      console.error("Error cargando mesas", error);
+      this.mesas = [];
+      return;
+    }
+
+    // 2. Traer las mesas actualmente ocupadas (estado != finalizado)
+    const { data: ocupadas, error: errOcupadas } = await supabase
+      .from("lista_espera")
+      .select("mesa_id")
+      .not("estado", "eq", "finalizado");
+
+    if (errOcupadas) {
+      console.error("Error cargando mesas ocupadas", errOcupadas);
+      this.mesas = mesas || [];
+      return;
+    }
+
+    const mesasOcupadasIds = (ocupadas || []).map(o => o.mesa_id).filter((id: number) => !!id);
+
+    // 3. Filtrar mesas disponibles
+    this.mesas = (mesas || []).filter(m => !mesasOcupadasIds.includes(m.id));
+
+    setTimeout(() => (this.loading = false), 2000);
   }
 
-  // 2. Traer las mesas actualmente ocupadas (estado != finalizado)
-  const { data: ocupadas, error: errOcupadas } = await supabase
-    .from("lista_espera")
-    .select("mesa_id")
-    .not("estado", "eq", "finalizado");
+  seleccionarMesa(mesa: any) { this.modalCtrl.dismiss(mesa); }
 
-  if (errOcupadas) {
-    console.error("Error cargando mesas ocupadas", errOcupadas);
-    this.mesas = mesas || [];
-    return;
-  }
-
-  const mesasOcupadasIds = (ocupadas || []).map(o => o.mesa_id).filter((id: number) => !!id);
-
-  // 3. Filtrar mesas disponibles
-  this.mesas = (mesas || []).filter(m => !mesasOcupadasIds.includes(m.id));
-
-  setTimeout(() => (this.loading = false), 2000);
-}
-
-
-  seleccionarMesa(mesa: any) {
-    this.modalCtrl.dismiss(mesa); 
-  }
-
-  cerrar() {
-    this.modalCtrl.dismiss(null); 
-  }
+  cerrar() { this.modalCtrl.dismiss(null); }
 }

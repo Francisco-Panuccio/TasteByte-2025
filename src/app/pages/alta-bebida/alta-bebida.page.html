@@ -7,24 +7,18 @@
 
   <ion-content class="ion-padding">
     <form [formGroup]="formAltaBebida" novalidate>
-      <!-- Nombre -->
-      <ion-item lines="none">
+      <ion-item lines="none" class="input-field">
         <ion-input 
-          aria-label="Nombre de la bebida"
-          label="Nombre"
-          labelPlacement="floating" 
+          placeholder="Nombre"
           formControlName="nombre"
           autocomplete="off">
         </ion-input>
       </ion-item>
       <app-form-errors *ngIf="f.nombre.touched && f.nombre.invalid" [control]="f.nombre"></app-form-errors>
 
-      <!-- Descripción -->
-      <ion-item lines="none">
+      <ion-item lines="none" class="ion-item-text-area">
         <ion-textarea 
-          aria-label="Descripción de la bebida"
-          label="Descripción" 
-          labelPlacement="floating" 
+          placeholder="Descripción" 
           formControlName="descripcion" 
           autoGrow="true"
           autocomplete="off">
@@ -32,34 +26,28 @@
       </ion-item>
       <app-form-errors *ngIf="f.descripcion.touched && f.descripcion.invalid" [control]="f.descripcion"></app-form-errors>
 
-      <!-- Tiempo -->
-      <ion-item lines="none">
+      <ion-item lines="none" class="input-field">
         <ion-input 
           type="number" 
-          aria-label="Tiempo de elaboración en minutos"
-          label="Tiempo (min)" 
-          labelPlacement="floating" 
+          inputmode="numeric"
+          placeholder="Tiempo (min)" 
           formControlName="tiempo_elaboracion_min"
           autocomplete="off">
         </ion-input>
       </ion-item>
       <app-form-errors *ngIf="f.tiempo_elaboracion_min.touched && f.tiempo_elaboracion_min.invalid" [control]="f.tiempo_elaboracion_min"></app-form-errors>
 
-      <!-- Precio -->
-      <ion-item lines="none">
+      <ion-item lines="none" class="input-field">
         <ion-input 
           type="number" 
           inputmode="decimal"
-          aria-label="Precio de la bebida"
-          label="Precio" 
-          labelPlacement="floating" 
+          placeholder="Precio" 
           formControlName="precio"
           autocomplete="off">
         </ion-input>
       </ion-item>
       <app-form-errors *ngIf="f.precio.touched && f.precio.invalid" [control]="f.precio"></app-form-errors>
 
-      <!-- Fotos -->
       <div class="fotos">
         <div class="slot-contenedor" *ngFor="let c of fotosFA.controls; let i = index">
           <ion-card class="slot">
@@ -69,8 +57,8 @@
           </ion-card>
 
           <div class="acciones">
-            <ion-button (click)="elegirFoto(i,'cam')" aria-label="Tomar foto con cámara">Cámara</ion-button>
-            <ion-button fill="outline" (click)="elegirFoto(i,'gal')" aria-label="Seleccionar foto de galería">Galería</ion-button>
+            <ion-button (click)="elegirFoto(i,'cam')">Cámara</ion-button>
+            <ion-button (click)="elegirFoto(i,'gal')">Galería</ion-button>
           </div>
         </div>
       </div>
@@ -78,12 +66,10 @@
         <ion-label color="danger">Debes cargar las 3 fotos</ion-label>
       </ion-item>
 
-      <!-- Botón Guardar -->
-      <ion-button expand="block" [disabled]="formAltaBebida.invalid || !!err" (click)="enviar()">
+      <ion-button class="btn_guardar" expand="block" [disabled]="formAltaBebida.invalid || !!err" (click)="enviar()">
         Guardar
       </ion-button>
 
-      <!-- Botón Volver -->
       <ion-button class="volver" expand="block" href="/home">
         Volver
       </ion-button>

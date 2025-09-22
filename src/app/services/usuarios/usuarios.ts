@@ -98,8 +98,8 @@ export class Usuarios {
 
   const { error: errCliente } = await supabase.from("clientes").insert({
     usuario_id: data.id,
-    tipo: "cliente_registrado",   // 🔹 ENUM correcto
-    estado: "activo"
+    tipo: "cliente_registrado",   
+    estado: "pendiente"
   });
 
 
