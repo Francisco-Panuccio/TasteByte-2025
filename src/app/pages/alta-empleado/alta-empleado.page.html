@@ -82,7 +82,7 @@
       <ion-text color="danger" *ngIf="err">{{ err }}</ion-text>
       <ion-text color="success" *ngIf="ok">Empleado registrado correctamente!</ion-text>
 
-      <ion-button expand="block" type="submit" [disabled]="loading">
+      <ion-button expand="block" type="submit" [disabled]="loading" class="btn_registrar">
         {{ loading ? 'Guardando...' : 'Registrar Empleado' }}
       </ion-button>
 

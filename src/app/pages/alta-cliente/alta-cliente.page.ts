@@ -62,7 +62,7 @@ export class AltaClientePage implements OnInit {
   }
 
   ngOnInit() {
-    this.loading = false;
+    setTimeout(() => { this.loading = false; }, 2000);
     this.formAnonimo = this.fb.group({
       nombre: ["", [Validators.required, Validators.minLength(2)]]
     });

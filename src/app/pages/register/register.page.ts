@@ -1,16 +1,16 @@
-import { Component, OnInit } from '@angular/core';
-import { AbstractControl, FormBuilder, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
-import { User } from 'src/app/classes/user';
-import { AuthService } from 'src/app/services/auth/auth';
-import { Usuarios } from 'src/app/services/usuarios/usuarios';
+import { Component, OnInit } from "@angular/core";
+import { AbstractControl, FormBuilder, ValidationErrors, ValidatorFn, Validators } from "@angular/forms";
+import { Router } from "@angular/router";
+import { User } from "src/app/classes/user";
+import { AuthService } from "src/app/services/auth/auth";
+import { Usuarios } from "src/app/services/usuarios/usuarios";
+import { supabase } from "src/supabase.client";
 
 @Component({
-  selector: 'app-register',
+  selector: "app-register",
   standalone: false,
-  templateUrl: './register.page.html',
-  styleUrls: ['./register.page.scss'],
-
+  templateUrl: "./register.page.html",
+  styleUrls: ["./register.page.scss"],
 })
 export class RegisterPage implements OnInit {
   loading: boolean = true;
@@ -18,19 +18,22 @@ export class RegisterPage implements OnInit {
   errorText = "Ocurrió un error";
 
   constructor(private fb: FormBuilder, private auth: AuthService, private router: Router, private usuarios: Usuarios) {
-    this.formRegister = this.fb.group({
-      fullname: ["", [Validators.required]],
-      lastname: ["", [Validators.required]],
-      documentType: ["dni", [Validators.required]],
-      documentNumber: ["", [Validators.required, this.dniValidator]],
-      profile: ["", [Validators.required]],
-      email: ["", [Validators.required, Validators.email]],
-      password: ["", [Validators.required, Validators.minLength(6)]],
-      confirm: ["", [Validators.required]],
-    }, { validators: this.passwordsMatch })
+    this.formRegister = this.fb.group(
+      {
+        fullname: ["", [Validators.required]],
+        lastname: ["", [Validators.required]],
+        documentType: ["dni", [Validators.required]],
+        documentNumber: ["", [Validators.required, this.dniValidator]],
+        profile: ["", [Validators.required]],
+        email: ["", [Validators.required, Validators.email]],
+        password: ["", [Validators.required, Validators.minLength(6)]],
+        confirm: ["", [Validators.required]],
+      },
+      { validators: this.passwordsMatch }
+    );
   }
 
-  formRegister: ReturnType<FormBuilder["group"]>
+  formRegister: ReturnType<FormBuilder["group"]>;
 
   passwordsMatch: ValidatorFn = (group: AbstractControl): ValidationErrors | null => {
     const pass = group.get("password")?.value ?? "";
@@ -64,10 +67,10 @@ export class RegisterPage implements OnInit {
     this.formRegister.get("documentType")!.valueChanges.subscribe((t) => {
       const ctrl = this.formRegister.get("documentNumber")!;
       ctrl.clearValidators();
-      ctrl.addValidators([Validators.required, t === 'dni' ? this.dniValidator : this.cuilValidator]);
+      ctrl.addValidators([Validators.required, t === "dni" ? this.dniValidator : this.cuilValidator]);
       ctrl.updateValueAndValidity({ emitEvent: false });
     });
-    setTimeout(() => this.loading = false, 2000);
+    setTimeout(() => (this.loading = false), 2000);
   }
 
   async onRegister() {
@@ -77,7 +80,7 @@ export class RegisterPage implements OnInit {
     if (this.formRegister.invalid) return;
 
     const v = this.formRegister.value as any;
-    const email: string = (v.email).trim().toLowerCase();
+    const email: string = String(v.email).trim().toLowerCase();
     const password: string = v.password;
 
     const digits = String(v.documentNumber ?? "").replace(/\D/g, "");
@@ -120,15 +123,7 @@ export class RegisterPage implements OnInit {
       return;
     }
 
-    const user = new User(
-      v.lastname,
-      v.fullname,
-      v.email,
-      v.profile,
-      dniStr,
-      cuilStr,
-      undefined
-    );
+    const user = new User(v.lastname, v.fullname, email, v.profile, dniStr, cuilStr, undefined);
 
     try {
       await this.usuarios.createFromUser(user);
@@ -153,8 +148,16 @@ export class RegisterPage implements OnInit {
       return;
     }
 
-    this.router.navigateByUrl(data.session ? "/home" : "/login", { replaceUrl: true });
+    if (v.profile === "cliente_registrado") {
+      try {
+        await supabase.auth.signOut();
+      } catch { }
+      await this.router.navigateByUrl("/login", { replaceUrl: true });
+      return;
+    }
+
+    await this.router.navigateByUrl(data.session ? "/home" : "/login", { replaceUrl: true });
   }
 
-  closeError() { this.errorMsg = false; }
+  closeError() {this.errorMsg = false;}
 }

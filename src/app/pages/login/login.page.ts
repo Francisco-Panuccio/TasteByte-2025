@@ -5,6 +5,8 @@ import { FormBuilder, Validators } from "@angular/forms";
 import { Push } from "src/app/services/push/push";
 import { supabase } from "src/supabase.client";
 
+type Role = "mozo" | "cliente";
+
 @Component({
   selector: "app-login",
   standalone: false,
@@ -14,6 +16,7 @@ import { supabase } from "src/supabase.client";
 export class LoginPage implements OnInit {
   loading: boolean = true;
   errorMsg: boolean = false;
+  errorText: string = "Ocurrió un error";
 
   formLogin: ReturnType<FormBuilder["group"]>;
 
@@ -29,27 +32,52 @@ export class LoginPage implements OnInit {
     });
   }
 
+  private isApproved(perfil?: string, estado?: string): boolean {
+    if (perfil === "cliente_registrado") {
+      return estado === "activo";
+    }
+    return true;
+  }
+
+  private async initPush(userId: string, role: Role) {
+    await this.push.init(userId, role);
+    if (role === "mozo") this.push.initMozoHandlers();
+    await this.push.ready();
+  }
 
   async ngOnInit() {
     const session = await this.auth.getSession();
     if (session) {
-      const { data } = await supabase.auth.getUser();
-      const userId = data.user?.id as string | undefined;
+      const { data: authData } = await supabase.auth.getUser();
+      const userId = authData.user?.id as string | undefined;
+
       if (userId) {
-        const { data: u } = await supabase.from("usuarios").select("perfil").eq("id", userId).single();
-        const role = u?.perfil === "mozo" ? "mozo" : "cliente";
-        await this.push.init(userId, role);
-        if (role === "mozo") this.push.initMozoHandlers();
-        await this.push.ready();
+        const { data: u } = await supabase
+          .from("usuarios")
+          .select("perfil, estado")
+          .eq("auth_id", userId)
+          .single();
+
+        if (!this.isApproved(u?.perfil, u?.estado)) {
+          await supabase.auth.signOut();
+          this.loading = false;
+          return;
+        }
+
+        const role: Role = u?.perfil === "mozo" ? "mozo" : "cliente";
+        await this.initPush(userId, role);
       }
-      this.router.navigateByUrl("/home", { replaceUrl: true });
+
+      await this.router.navigateByUrl("/home", { replaceUrl: true });
+      return;
     }
+
     setTimeout(() => (this.loading = false), 2000);
   }
 
   goAnonRegister() {
-  this.router.navigateByUrl('/anon-register');
-}
+    this.router.navigateByUrl("/anon-register");
+  }
 
   async onLogin() {
     this.errorMsg = false;
@@ -59,17 +87,38 @@ export class LoginPage implements OnInit {
 
     const { email, password } = this.formLogin.value as { email: string; password: string };
     const { error } = await this.auth.signIn(email, password);
-    if (error) { this.errorMsg = true; return; }
+    if (error) {
+      this.errorText = "Credenciales Inválidas";
+      this.errorMsg = true;
+      return;
+    }
 
-    const { data } = await supabase.auth.getUser();
-    const userId = data.user?.id as string;
-    const { data: u } = await supabase.from("usuarios").select("perfil").eq("id", userId).single();
-    const role = u?.perfil === "mozo" ? "mozo" : "cliente";
-    await this.push.init(userId, role);
-    if (role === "mozo") this.push.initMozoHandlers();
-    await this.push.ready();
+    const { data: authData } = await supabase.auth.getUser();
+    const userId = authData.user?.id as string | undefined;
 
-    this.router.navigateByUrl("/home", { replaceUrl: true });
+    if (!userId) {
+      this.errorText = "No se pudo obtener el usuario";
+      this.errorMsg = true;
+      return;
+    }
+
+    const { data: u } = await supabase
+      .from("usuarios")
+      .select("perfil, estado")
+      .eq("auth_id", userId)
+      .single();
+
+    if (!this.isApproved(u?.perfil, u?.estado)) {
+      await supabase.auth.signOut();
+      this.errorText = "Cuenta Pendiente de Aprobación.";
+      this.errorMsg = true;
+      return;
+    }
+
+    const role: Role = u?.perfil === "mozo" ? "mozo" : "cliente";
+    await this.initPush(userId, role);
+
+    await this.router.navigateByUrl("/home", { replaceUrl: true });
   }
 
   async quickLogin(user: { email: string; password: string }) {

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { supabase } from 'src/supabase.client';
 import { Router } from '@angular/router';
@@ -10,16 +10,20 @@ import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
   styleUrls: ['./anon-register.page.scss'],
   standalone: false
 })
-export class AnonRegisterPage {
+export class AnonRegisterPage implements OnInit{
   formAnon = this.fb.group({
     nombre: ['', [Validators.required, Validators.minLength(2)]],
     foto: ['', Validators.required]
   });
 
-  cargando = false;
+  loading = false;
   err: string | null = null;
 
   constructor(private fb: FormBuilder, private router: Router) {}
+
+  ngOnInit() {
+    setTimeout(() => { this.loading = false; }, 2000);
+  }
 
   async sacarFoto() {
     this.err = null;
@@ -63,7 +67,7 @@ export class AnonRegisterPage {
       return;
     }
 
-    this.cargando = true;
+    this.loading = true;
     try {
       const { nombre, foto } = this.formAnon.value;
 
@@ -76,7 +80,6 @@ export class AnonRegisterPage {
 
       const anonimoId = data.id;
 
-
       this.router.navigate(['/encuestas-espera'], {
       queryParams: { anonimoId },
       replaceUrl: true
@@ -84,7 +87,7 @@ export class AnonRegisterPage {
     } catch (e: any) {
       this.err = e.message || 'No se pudo registrar anónimo';
     } finally {
-      this.cargando = false;
+      this.loading = false;
     }
   }
 }
