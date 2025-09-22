@@ -75,6 +75,14 @@ const routes: Routes = [
   },  {
     path: 'anon-register',
     loadChildren: () => import('./pages/anon-register/anon-register.module').then( m => m.AnonRegisterPageModule)
+  },
+  {
+    path: 'cocina',
+    loadChildren: () => import('./pages/cocina/cocina.module').then( m => m.CocinaPageModule)
+  },
+  {
+    path: 'bar',
+    loadChildren: () => import('./pages/bar/bar.module').then( m => m.BarPageModule)
   }
 
 ];
