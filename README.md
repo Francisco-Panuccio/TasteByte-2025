@@ -12,7 +12,7 @@
 - Fecha Final: 08/09/2025 (Todas las Tareas Finalizadas)
 - Branch: panuccio/altas
 
-<p align="center">
+<p align="center" style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin:0;">
   <img src="src/assets/imagesGithub/home_dueno.jpeg" alt="Home Dueño" width="400" height="800">
   <img src="src/assets/imagesGithub/home_maitre.jpeg" alt="Home Maitre" width="400" height="800">
   <img src="src/assets/imagesGithub/home_mozo.jpeg" alt="Home Mozo" width="400" height="800">
@@ -29,11 +29,14 @@
 - Fecha Final: 12/09/2025 (Todas las Tareas Finalizadas)
 - Branch: roman
 
-![Splash Screen](src/assets/imagesGithub/splash.jpeg)
-![Loading](src/assets/imagesGithub/loading.jpeg)
-![Login](src/assets/imagesGithub/login.jpeg)
-![Register](src/assets/imagesGithub/register.jpeg)
-![Alta Empleado](src/assets/imagesGithub/alta_empleado.jpeg)
+<p align="center" style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin:0;">
+  <img src="src/assets/imagesGithub/splash.jpeg" alt="Splash Screen" width="400" height="800">
+  <img src="src/assets/imagesGithub/loading.jpeg" alt="Loading" width="400" height="800">
+  <img src="src/assets/imagesGithub/login.jpeg" alt="Login" width="400" height="800">
+  <img src="src/assets/imagesGithub/register.jpeg" alt="Register" width="400" height="800">
+  <img src="src/assets/imagesGithub/alta_empleado.jpeg" alt="Alta Empleado" width="400" height="800">
+</p>
+
 
 * Avallone
 - Objetivos: Puntos 3 (Alta Bebida), 5 (Alta Cliente) y 6 (Verificación de Ingreso de Cliente Registrado)
@@ -41,9 +44,11 @@
 - Fecha Final: 12/09/2025 (Todas las Tareas Finalizadas)
 - Branch: avallone
 
-![Alta Bebida](src/assets/imagesGithub/alta_bebida.jpeg)
-![Alta Cliente Registrado](src/assets/imagesGithub/alta_cliente_regi.jpeg)
-![Alta Cliente Anónimo](src/assets/imagesGithub/alta_cliente_anon.jpeg)
+<p align="center" style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin:0;">
+  <img src="src/assets/imagesGithub/alta_bebida.jpeg" alt="Alta Bebida">
+  <img src="src/assets/imagesGithub/alta_cliente_regi.jpeg" alt="Alta Cliente Registrado">
+  <img src="src/assets/imagesGithub/alta_cliente_anon.jpeg" alt="Alta Cliente Anónimo">
+</p>
 
 ## Responsabilidades (Segunda Semana) 🛠️
 * Panuccio
@@ -52,10 +57,12 @@
 - Fecha Final: 19/09/2025 (Todas las Tareas Finalizadas)
 - Branch: panuccio/altas
 
-![Mesa Ocupada](src/assets/imagesGithub/mesa_ocupada.jpeg)
-![Chat Cliente](src/assets/imagesGithub/chat_cliente.jpeg)
-![Pedido](src/assets/imagesGithub/pedido.jpeg)
-![Chat Mozo](src/assets/imagesGithub/chat_mozo.jpeg)
+<p align="center" style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin:0;">
+  <img src="src/assets/imagesGithub/mesa_ocupada.jpeg" alt="Mesa Ocupada">
+  <img src="src/assets/imagesGithub/chat_cliente.jpeg" alt="Chat Cliente">
+  <img src="src/assets/imagesGithub/pedido.jpeg" alt="Pedido">
+  <img src="src/assets/imagesGithub/chat_mozo.jpeg" alt="Chat Mozo">
+</p>
 
 * Roman
 - Objetivos: Puntos 9 (Ingreso de Cliente Anónimo), 10 e Integración Completa de QR
@@ -63,8 +70,10 @@
 - Fecha Final: 19/09/2025 (Todas las Tareas Finalizadas)
 - Branch: roman
 
-![Registro Anónimo](src/assets/imagesGithub/anon_register.jpeg)
-![QR](src/assets/imagesGithub/qr.jpeg)
+<p align="center" style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin:0;">
+  <img src="src/assets/imagesGithub/anon_register.jpeg" alt="Registro Anónimo" width="400" height="800">
+  <img src="src/assets/imagesGithub/qr.jpeg" alt="QR" width="400" height="800">
+</p>
 
 * Avallone
 - Objetivos: Puntos 7 (Rechazo de Ingreso de Cliente Registrado), 8 (Aceptación de Ingreso de Cliente Registrado) e Integración Completa del Envío del Email
@@ -72,7 +81,9 @@
 - Fecha Final: 19/09/2025(Todas las Tareas Finalizadas)
 - Branch: avallone
 
-![Clientes Pendientes](src/assets/imagesGithub/clientes_pendientes.jpeg)
+<p align="center" style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin:0;">
+  <img src="src/assets/imagesGithub/clientes_pendientes.jpeg" alt="Clientes Pendientes" width="400" height="800">
+</p>
 
 
 ## Responsabilidades (Tercera Semana) 🛠️
