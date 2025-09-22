@@ -13,14 +13,14 @@
 - Branch: panuccio/altas
 
 <p align="center">
-  <img src="src/assets/imagesGithub/home_dueno.jpeg" alt="Home Dueño" width="100" height="400">
-  <img src="src/assets/imagesGithub/home_maitre.jpeg" alt="Home Maitre" width="100" height="400">
-  <img src="src/assets/imagesGithub/home_mozo.jpeg" alt="Home Mozo" width="100" height="400">
-  <img src="src/assets/imagesGithub/home_cocinero.jpeg" alt="Home Cocinero" width="100" height="400">
-  <img src="src/assets/imagesGithub/home_cliente.jpeg" alt="Home Cliente" width="100" height="400">
-  <img src="src/assets/imagesGithub/home_bartender.jpeg" alt="Home Bartender" width="100" height="400">
-  <img src="src/assets/imagesGithub/alta_plato.jpeg" alt="Alta Plato" width="100" height="400">
-  <img src="src/assets/imagesGithub/alta_mesa.jpeg" alt="Alta Mesa" width="100" height="400">
+  <img src="src/assets/imagesGithub/home_dueno.jpeg" alt="Home Dueño" width="400" height="800">
+  <img src="src/assets/imagesGithub/home_maitre.jpeg" alt="Home Maitre" width="400" height="800">
+  <img src="src/assets/imagesGithub/home_mozo.jpeg" alt="Home Mozo" width="400" height="800">
+  <img src="src/assets/imagesGithub/home_cocinero.jpeg" alt="Home Cocinero" width="400" height="800">
+  <img src="src/assets/imagesGithub/home_cliente.jpeg" alt="Home Cliente" width="400" height="800">
+  <img src="src/assets/imagesGithub/home_bartender.jpeg" alt="Home Bartender" width="400" height="800">
+  <img src="src/assets/imagesGithub/alta_plato.jpeg" alt="Alta Plato" width="400" height="800">
+  <img src="src/assets/imagesGithub/alta_mesa.jpeg" alt="Alta Mesa" width="400" height="800">
 </p>
 
 * Roman
