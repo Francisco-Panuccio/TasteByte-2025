@@ -49,14 +49,18 @@ export class LoginPage implements OnInit {
     const session = await this.auth.getSession();
     if (session) {
       const { data: authData } = await supabase.auth.getUser();
-      const userId = authData.user?.id as string | undefined;
+      const email = authData.user?.email as string | undefined;
 
-      if (userId) {
-        const { data: u } = await supabase
+      if (email) {
+        const { data: u, error } = await supabase
           .from("usuarios")
           .select("perfil, estado")
-          .eq("auth_id", userId)
-          .single();
+          .eq("correo_electronico", email)
+          .maybeSingle();
+
+        if (error) {
+          console.error("Error Cargando Perfil del Usuario", error);
+        }
 
         if (!this.isApproved(u?.perfil, u?.estado)) {
           await supabase.auth.signOut();
@@ -65,7 +69,7 @@ export class LoginPage implements OnInit {
         }
 
         const role: Role = u?.perfil === "mozo" ? "mozo" : "cliente";
-        await this.initPush(userId, role);
+        await this.initPush(authData.user!.id, role);
       }
 
       await this.router.navigateByUrl("/home", { replaceUrl: true });
