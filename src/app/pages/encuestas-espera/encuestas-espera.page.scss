@@ -89,3 +89,40 @@ ion-button {
 .ion-success {
   color: green;
 }
+
+.card-pending {
+  background: #f5e6d3; /* Beige suave */
+  border: 2px solid #d3a87c; /* Marrón claro */
+  border-radius: 12px;
+  text-align: center;
+  color: #554738;
+  font-weight: 600;
+  margin: 10px 0;
+  padding: 10px;
+}
+
+.card-pending .resalta {
+  color: #a45c2b; /* marrón intermedio */
+  font-weight: bold;
+}
+
+.card-success {
+  background: #e8f5e9; /* Verde muy claro */
+  border: 2px solid #4caf50;
+  border-radius: 12px;
+  text-align: center;
+  color: #2e7d32;
+  font-weight: 600;
+  margin: 10px 0;
+  padding: 10px;
+}
+
+.estado-mesa {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+

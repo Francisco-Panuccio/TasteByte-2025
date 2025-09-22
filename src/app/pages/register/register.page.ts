@@ -4,33 +4,50 @@ import { Router } from '@angular/router';
 import { User } from 'src/app/classes/user';
 import { AuthService } from 'src/app/services/auth/auth';
 import { Usuarios } from 'src/app/services/usuarios/usuarios';
+import { supabase } from 'src/supabase.client';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 
 @Component({
   selector: 'app-register',
   standalone: false,
   templateUrl: './register.page.html',
   styleUrls: ['./register.page.scss'],
-
 })
 export class RegisterPage implements OnInit {
   loading: boolean = true;
   errorMsg: boolean = false;
   errorText = "Ocurrió un error";
 
-  constructor(private fb: FormBuilder, private auth: AuthService, private router: Router, private usuarios: Usuarios) {
-    this.formRegister = this.fb.group({
-      fullname: ["", [Validators.required]],
-      lastname: ["", [Validators.required]],
-      documentType: ["dni", [Validators.required]],
-      documentNumber: ["", [Validators.required, this.dniValidator]],
-      profile: ["", [Validators.required]],
-      email: ["", [Validators.required, Validators.email]],
-      password: ["", [Validators.required, Validators.minLength(6)]],
-      confirm: ["", [Validators.required]],
-    }, { validators: this.passwordsMatch })
+  fotoPreview: string | null = null; // preview en el registro
+  fotoUrl: string | null = null;     // url subida a Supabase
+
+  constructor(
+    private fb: FormBuilder,
+    private auth: AuthService,
+    private router: Router,
+    private usuarios: Usuarios
+  ) {
+    this.formRegister = this.fb.group(
+      {
+        fullname: ["", [Validators.required]],
+        lastname: ["", [Validators.required]],
+        documentType: ["dni", [Validators.required]],
+        documentNumber: ["", [Validators.required, this.dniValidator]],
+        profile: ["", [Validators.required]],
+        email: ["", [Validators.required, Validators.email]],
+        password: ["", [Validators.required, Validators.minLength(6)]],
+        confirm: ["", [Validators.required]],
+      },
+      { validators: this.passwordsMatch }
+    );
   }
 
-  formRegister: ReturnType<FormBuilder["group"]>
+  formRegister: ReturnType<FormBuilder["group"]>;
+
+  // ✅ validación para habilitar el botón
+  get isFormValid(): boolean {
+    return this.formRegister.valid && !!this.fotoPreview;
+  }
 
   passwordsMatch: ValidatorFn = (group: AbstractControl): ValidationErrors | null => {
     const pass = group.get("password")?.value ?? "";
@@ -64,10 +81,28 @@ export class RegisterPage implements OnInit {
     this.formRegister.get("documentType")!.valueChanges.subscribe((t) => {
       const ctrl = this.formRegister.get("documentNumber")!;
       ctrl.clearValidators();
-      ctrl.addValidators([Validators.required, t === 'dni' ? this.dniValidator : this.cuilValidator]);
+      ctrl.addValidators([
+        Validators.required,
+        t === "dni" ? this.dniValidator : this.cuilValidator,
+      ]);
       ctrl.updateValueAndValidity({ emitEvent: false });
     });
-    setTimeout(() => this.loading = false, 2000);
+    setTimeout(() => (this.loading = false), 2000);
+  }
+
+  async tomarFoto() {
+    try {
+      const image = await Camera.getPhoto({
+        quality: 80,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Camera,
+      });
+
+      this.fotoPreview = image.dataUrl || null;
+    } catch (e) {
+      console.error("Error tomando foto", e);
+    }
   }
 
   async onRegister() {
@@ -75,6 +110,12 @@ export class RegisterPage implements OnInit {
     this.formRegister.markAllAsTouched();
     this.formRegister.updateValueAndValidity({ emitEvent: true });
     if (this.formRegister.invalid) return;
+
+    if (!this.fotoPreview) {
+      this.errorText = "Debes tomar una foto";
+      this.errorMsg = true;
+      return;
+    }
 
     const v = this.formRegister.value as any;
     const email: string = (v.email).trim().toLowerCase();
@@ -131,30 +172,56 @@ export class RegisterPage implements OnInit {
     );
 
     try {
-      await this.usuarios.createFromUser(user);
+      // 🔹 Subir foto al bucket
+      const fileName = `foto_${Date.now()}.jpeg`;
+      const { error: uploadError } = await supabase.storage
+        .from("empleados")
+        .upload(fileName, this.dataURLtoBlob(this.fotoPreview!), {
+          contentType: "image/jpeg",
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrl } = supabase.storage
+        .from("empleados")
+        .getPublicUrl(fileName);
+
+      this.fotoUrl = publicUrl.publicUrl;
+
+      // 🔹 Insertar en "usuarios" con foto
+      const usuarioDB = await this.usuarios.createFromUser(user, this.fotoUrl);
+
+      // 🔹 Insertar en "clientes"
+      await supabase.from("clientes").insert({
+        usuario_id: usuarioDB.id,
+        tipo: "cliente_registrado",
+        estado: "pendiente",
+      });
     } catch (e: any) {
-      const pgCode = e?.code as string | undefined;
-      const details = String(e?.details ?? "").toLowerCase();
-      if (pgCode === "23505" || details.includes("already exists")) {
-        if (details.includes("numero_documento")) {
-          this.errorText = "DNI ya registrado";
-        } else if (details.includes("numero_cuil")) {
-          this.errorText = "CUIL ya registrado";
-        } else if (details.includes("correo") || details.includes("email")) {
-          this.errorText = "Correo ya registrado";
-        } else {
-          this.errorText = "Registro duplicado";
-        }
-      } else {
-        console.log(e);
-        this.errorText = "Error guardando usuario";
-      }
+      console.log(e);
+      this.errorText = "Error guardando usuario/cliente";
       this.errorMsg = true;
       return;
     }
 
-    this.router.navigateByUrl(data.session ? "/home" : "/login", { replaceUrl: true });
+    this.router.navigateByUrl(data.session ? "/home" : "/login", {
+      replaceUrl: true,
+    });
   }
 
-  closeError() { this.errorMsg = false; }
+  private dataURLtoBlob(dataUrl: string): Blob {
+    const arr = dataUrl.split(",");
+    const mime = arr[0].match(/:(.*?);/)![1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], { type: mime });
+  }
+
+  closeError() {
+    this.errorMsg = false;
+  }
 }

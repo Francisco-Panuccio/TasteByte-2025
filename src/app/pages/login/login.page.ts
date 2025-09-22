@@ -29,16 +29,24 @@ export class LoginPage implements OnInit {
     });
   }
 
-
   async ngOnInit() {
     const session = await this.auth.getSession();
     if (session) {
       const { data } = await supabase.auth.getUser();
-      const userId = data.user?.id as string | undefined;
-      if (userId) {
-        const { data: u } = await supabase.from("usuarios").select("perfil").eq("id", userId).single();
+      const email = data.user?.email as string | undefined;
+      if (email) {
+        const { data: u, error } = await supabase
+          .from("usuarios")
+          .select("perfil")
+          .eq("correo_electronico", email)   // ✅ buscamos por correo
+          .maybeSingle();
+
+        if (error) {
+          console.error("Error cargando perfil del usuario", error);
+        }
+
         const role = u?.perfil === "mozo" ? "mozo" : "cliente";
-        await this.push.init(userId, role);
+        await this.push.init(data.user!.id, role);  // UUID de supabase.auth
         if (role === "mozo") this.push.initMozoHandlers();
         await this.push.ready();
       }
@@ -48,8 +56,8 @@ export class LoginPage implements OnInit {
   }
 
   goAnonRegister() {
-  this.router.navigateByUrl('/anon-register');
-}
+    this.router.navigateByUrl("/anon-register");
+  }
 
   async onLogin() {
     this.errorMsg = false;
@@ -63,7 +71,18 @@ export class LoginPage implements OnInit {
 
     const { data } = await supabase.auth.getUser();
     const userId = data.user?.id as string;
-    const { data: u } = await supabase.from("usuarios").select("perfil").eq("id", userId).single();
+    const correo = data.user?.email as string;
+
+    const { data: u, error: errUsuario } = await supabase
+      .from("usuarios")
+      .select("perfil")
+      .eq("correo_electronico", correo)   // ✅ buscamos por correo
+      .maybeSingle();
+
+    if (errUsuario) {
+      console.error("Error obteniendo perfil", errUsuario);
+    }
+
     const role = u?.perfil === "mozo" ? "mozo" : "cliente";
     await this.push.init(userId, role);
     if (role === "mozo") this.push.initMozoHandlers();

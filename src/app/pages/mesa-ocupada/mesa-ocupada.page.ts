@@ -82,42 +82,49 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   constructor(private platform: Platform, private zone: NgZone) {}
 
   async ngOnInit() {
-    const sub = this.platform.backButton.subscribeWithPriority(9999, () => {
-      if (this.kbOpen) { Keyboard.hide(); return; }
-      if (this.chatOpen) { this.closeChat(); return; }
-    });
-    this.backUnsub = () => sub.unsubscribe();
+  const sub = this.platform.backButton.subscribeWithPriority(9999, () => {
+    if (this.kbOpen) { Keyboard.hide(); return; }
+    if (this.chatOpen) { this.closeChat(); return; }
+  });
+  this.backUnsub = () => sub.unsubscribe();
 
-    try {
-      // ✅ Ahora solo usamos "mesaId" de queryParams
-      const qp = this.route.snapshot.queryParamMap.get("mesaId");
-      this.mesaId = qp ? Number(qp) : undefined;
+  try {
+    const qp = this.route.snapshot.queryParamMap.get("mesaId");
+    const anonimoId = this.route.snapshot.queryParamMap.get("anonimoId"); 
+    this.mesaId = qp ? Number(qp) : undefined;
 
-      if (!this.mesaId || Number.isNaN(this.mesaId)) throw new Error("Mesa inválida");
+    if (!this.mesaId || Number.isNaN(this.mesaId)) throw new Error("Mesa inválida");
 
-      this.mesa = await this.mesasSrv.getById(this.mesaId);
-      if (!this.mesa) throw new Error("Mesa no encontrada");
+    this.mesa = await this.mesasSrv.getById(this.mesaId);
+    if (!this.mesa) throw new Error("Mesa no encontrada");
 
-      this.mesaAsignada = !!this.mesa;
+    this.mesaAsignada = !!this.mesa;
 
-      const [allPlatos, bebidas] = await Promise.all([
-        this.platosSrv.list(),
-        this.bebidasSrv.list()
-      ]);
+    const [allPlatos, bebidas] = await Promise.all([
+      this.platosSrv.list(),
+      this.bebidasSrv.list()
+    ]);
 
-      this.postres = allPlatos.filter(p => !!p.esPostre);
-      this.platos = allPlatos.filter(p => !p.esPostre);
-      this.bebidas = bebidas;
+    this.postres = allPlatos.filter(p => !!p.esPostre);
+    this.platos = allPlatos.filter(p => !p.esPostre);
+    this.bebidas = bebidas;
 
+
+    if (anonimoId) {
+      this.myUserId = `anon-${anonimoId}`;
+    } else {
       this.myUserId = await this.chatSvc.getMyUserId();
-      await this.ensureChatAndSubscribe();
-    } catch (e: any) {
-      this.error = e?.message || "Error cargando mesa";
-      (await this.toast.create({ message: this.error, duration: 1500 })).present();
-    } finally {
-      setTimeout(() => (this.loading = false), 2000);
     }
+
+    await this.ensureChatAndSubscribe();
+  } catch (e: any) {
+    this.error = e?.message || "Error cargando mesa";
+    (await this.toast.create({ message: this.error, duration: 1500 })).present();
+  } finally {
+    setTimeout(() => (this.loading = false), 2000);
   }
+}
+
 
   ngAfterViewInit() { this.presentingEl = document.querySelector("ion-router-outlet") as HTMLElement; }
   ngOnDestroy() { this.chatSvc.unsubscribe(); this.backUnsub?.(); this.unsubEstado?.(); }
@@ -351,4 +358,22 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
       this.submitting = false;
     }
   }
+
+  volver() {
+  const anonimoId = this.route.snapshot.queryParamMap.get('anonimoId');
+  const userId = this.route.snapshot.queryParamMap.get('userId');
+
+  if (anonimoId) {
+    this.router.navigate(['/encuestas-espera'], { queryParams: { anonimoId } });
+  } else if (userId) {
+    this.router.navigate(['/encuestas-espera'], { queryParams: { userId } });
+  } else {
+    this.router.navigate(['/home']);
+  }
 }
+
+}
+
+
+
+
