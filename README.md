@@ -12,7 +12,7 @@
 - Fecha Final: 08/09/2025 (Todas las Tareas Finalizadas)
 - Branch: panuccio/altas
 
-<p align="center" style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin:0;">
+<p align="center">
   <img src="src/assets/imagesGithub/home_dueno.jpeg" alt="Home Dueño" width="400" height="800">
   <img src="src/assets/imagesGithub/home_maitre.jpeg" alt="Home Maitre" width="400" height="800">
   <img src="src/assets/imagesGithub/home_mozo.jpeg" alt="Home Mozo" width="400" height="800">
@@ -29,7 +29,7 @@
 - Fecha Final: 12/09/2025 (Todas las Tareas Finalizadas)
 - Branch: roman
 
-<p align="center" style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin:0;">
+<p align="center">
   <img src="src/assets/imagesGithub/splash.jpeg" alt="Splash Screen" width="400" height="800">
   <img src="src/assets/imagesGithub/loading.jpeg" alt="Loading" width="400" height="800">
   <img src="src/assets/imagesGithub/login.jpeg" alt="Login" width="400" height="800">
@@ -44,10 +44,10 @@
 - Fecha Final: 12/09/2025 (Todas las Tareas Finalizadas)
 - Branch: avallone
 
-<p align="center" style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin:0;">
-  <img src="src/assets/imagesGithub/alta_bebida.jpeg" alt="Alta Bebida">
-  <img src="src/assets/imagesGithub/alta_cliente_regi.jpeg" alt="Alta Cliente Registrado">
-  <img src="src/assets/imagesGithub/alta_cliente_anon.jpeg" alt="Alta Cliente Anónimo">
+<p align="center">
+  <img src="src/assets/imagesGithub/alta_bebida.jpeg" alt="Alta Bebida" width="400" height="800">
+  <img src="src/assets/imagesGithub/alta_cliente_regi.jpeg" alt="Alta Cliente Registrado" width="400" height="800">
+  <img src="src/assets/imagesGithub/alta_cliente_anon.jpeg" alt="Alta Cliente Anónimo" width="400" height="800">
 </p>
 
 ## Responsabilidades (Segunda Semana) 🛠️
@@ -57,11 +57,11 @@
 - Fecha Final: 19/09/2025 (Todas las Tareas Finalizadas)
 - Branch: panuccio/altas
 
-<p align="center" style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin:0;">
-  <img src="src/assets/imagesGithub/mesa_ocupada.jpeg" alt="Mesa Ocupada">
-  <img src="src/assets/imagesGithub/chat_cliente.jpeg" alt="Chat Cliente">
-  <img src="src/assets/imagesGithub/pedido.jpeg" alt="Pedido">
-  <img src="src/assets/imagesGithub/chat_mozo.jpeg" alt="Chat Mozo">
+<p align="center">
+  <img src="src/assets/imagesGithub/mesa_ocupada.jpeg" alt="Mesa Ocupada" width="400" height="800">
+  <img src="src/assets/imagesGithub/chat_cliente.jpeg" alt="Chat Cliente" width="400" height="800">
+  <img src="src/assets/imagesGithub/pedido.jpeg" alt="Pedido" width="400" height="800">
+  <img src="src/assets/imagesGithub/chat_mozo.jpeg" alt="Chat Mozo" width="400" height="800">
 </p>
 
 * Roman
@@ -70,7 +70,7 @@
 - Fecha Final: 19/09/2025 (Todas las Tareas Finalizadas)
 - Branch: roman
 
-<p align="center" style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin:0;">
+<p align="center">
   <img src="src/assets/imagesGithub/anon_register.jpeg" alt="Registro Anónimo" width="400" height="800">
   <img src="src/assets/imagesGithub/qr.jpeg" alt="QR" width="400" height="800">
 </p>
@@ -81,7 +81,7 @@
 - Fecha Final: 19/09/2025(Todas las Tareas Finalizadas)
 - Branch: avallone
 
-<p align="center" style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin:0;">
+<p align="center">
   <img src="src/assets/imagesGithub/clientes_pendientes.jpeg" alt="Clientes Pendientes" width="400" height="800">
 </p>
 
