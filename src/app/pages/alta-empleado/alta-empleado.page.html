@@ -7,24 +7,24 @@
 
   <ion-content class="ion-padding">
     <form [formGroup]="formAltaEmpleado" (ngSubmit)="enviar()">
-      <ion-item lines="none">
-        <ion-input type="text" label="Nombres" labelPlacement="floating" formControlName="nombres"></ion-input>
+      <ion-item lines="none" class="input-field">
+        <ion-input type="text" placeholder="Nombre" formControlName="nombres"></ion-input>
       </ion-item>
       <ion-text color="danger" *ngIf="f['nombres'].touched && f['nombres'].invalid">
         <p *ngIf="f['nombres'].errors?.['required']">El nombre es obligatorio</p>
         <p *ngIf="f['nombres'].errors?.['minlength']">Mínimo 2 caracteres</p>
       </ion-text>
 
-      <ion-item lines="none">
-        <ion-input type="text" label="Apellidos" labelPlacement="floating" formControlName="apellidos"></ion-input>
+      <ion-item lines="none" class="input-field">
+        <ion-input type="text" placeholder="Apellido" formControlName="apellidos"></ion-input>
       </ion-item>
       <ion-text color="danger" *ngIf="f['apellidos'].touched && f['apellidos'].invalid">
         <p *ngIf="f['apellidos'].errors?.['required']">El apellido es obligatorio</p>
         <p *ngIf="f['apellidos'].errors?.['minlength']">Mínimo 2 caracteres</p>
       </ion-text>
 
-      <ion-item lines="none">
-        <ion-input type="text" label="DNI" labelPlacement="floating" formControlName="dni"></ion-input>
+      <ion-item lines="none" class="input-field">
+        <ion-input type="text" placeholder="DNI" formControlName="dni"></ion-input>
         <ion-button slot="end" (click)="escanearDNI()" type="button">📷 Escanear QR</ion-button>
       </ion-item>
       <ion-text color="danger" *ngIf="f['dni'].touched && f['dni'].invalid">
@@ -32,32 +32,32 @@
         <p *ngIf="f['dni'].errors?.['pattern']">DNI inválido</p>
       </ion-text>
 
-      <ion-item lines="none">
-        <ion-input type="text" label="CUIL (11 dígitos)" labelPlacement="floating" formControlName="cuil"></ion-input>
+      <ion-item lines="none" class="input-field">
+        <ion-input type="text" placeholder="CUIL (11 dígitos)" formControlName="cuil"></ion-input>
       </ion-item>
       <ion-text color="danger" *ngIf="f['cuil'].touched && f['cuil'].invalid">
         <p *ngIf="f['cuil'].errors?.['required']">El CUIL es obligatorio</p>
         <p *ngIf="f['cuil'].errors?.['pattern']">CUIL inválido (debe tener 11 dígitos)</p>
       </ion-text>
 
-      <ion-item lines="none">
-        <ion-input type="email" label="Correo" labelPlacement="floating" formControlName="correo"></ion-input>
+      <ion-item lines="none" class="input-field">
+        <ion-input type="email" placeholder="Correo Electrónico" formControlName="correo"></ion-input>
       </ion-item>
       <ion-text color="danger" *ngIf="f['correo'].touched && f['correo'].invalid">
         <p *ngIf="f['correo'].errors?.['required']">El correo es obligatorio</p>
         <p *ngIf="f['correo'].errors?.['email']">Correo inválido</p>
       </ion-text>
 
-      <ion-item lines="none">
-        <ion-input type="password" label="Contraseña" labelPlacement="floating" formControlName="clave"></ion-input>
+      <ion-item lines="none" class="input-field">
+        <ion-input type="password" placeholder="Contraseña" formControlName="clave"></ion-input>
       </ion-item>
       <ion-text color="danger" *ngIf="f['clave'].touched && f['clave'].invalid">
         <p *ngIf="f['clave'].errors?.['required']">La contraseña es obligatoria</p>
         <p *ngIf="f['clave'].errors?.['minlength']">Mínimo 6 caracteres</p>
       </ion-text>
 
-      <ion-item lines="none">
-        <ion-select interface="popover" placeholder="Seleccioná perfil" formControlName="perfil" label="Perfil" labelPlacement="floating">
+      <ion-item lines="none" class="input-field">
+        <ion-select interface="popover" placeholder="Seleccioná perfil" formControlName="perfil">
           <ion-select-option value="maitre">Maître</ion-select-option>
           <ion-select-option value="mozo">Mozo</ion-select-option>
           <ion-select-option value="cocinero">Cocinero</ion-select-option>
@@ -68,8 +68,8 @@
         <p>El perfil es obligatorio</p>
       </ion-text>
 
-      <ion-item lines="none">
-        <ion-input type="text" label="Foto" labelPlacement="floating" formControlName="foto" readonly></ion-input>
+      <ion-item lines="none" class="input-field">
+        <ion-input type="text" placeholder="Foto" formControlName="foto" readonly></ion-input>
         <ion-button slot="end" type="button" (click)="sacarFoto()">📸 Tomar foto</ion-button>
       </ion-item>
       <div class="preview-foto" *ngIf="f['foto'].value">

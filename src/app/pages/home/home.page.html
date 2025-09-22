@@ -16,9 +16,9 @@
       </div>
 
       <div id="container">
-        <p routerLink="/alta-empleado">Alta Empleado</p>
-        <p routerLink="/alta-mesa">Alta Mesas</p>
-        <p routerLink="/listado-clientes">Clientes Pendientes</p>
+        <p routerLink="/alta-empleado">-Alta Empleado-</p>
+        <p routerLink="/alta-mesa">-Alta Mesas-</p>
+        <p routerLink="/listado-clientes">-Clientes Pendientes-</p>
       </div>
     </div>
   } @else if(isCocinero) {
@@ -32,7 +32,7 @@
       </div>
 
       <div id="container">
-        <p routerLink="/alta-plato">Alta Platos</p>
+        <p routerLink="/alta-plato">-Alta Platos-</p>
       </div>
     </div>
   } @else if(isBartender) {
@@ -46,7 +46,7 @@
       </div>
 
       <div id="container">
-        <p routerLink="/alta-bebida">Alta Bebidas</p>
+        <p routerLink="/alta-bebida">-Alta Bebidas-</p>
       </div>
     </div>
   } @else if(isMaitre) {
@@ -60,9 +60,9 @@
       </div>
 
       <div id="container">
-        <p routerLink="/alta-cliente">Alta Clientes</p>
-        <p routerLink="/lista-espera">Lista De Espera</p>
-        <p routerLink="/listado-mesas">Lista De Mesas</p>
+        <p routerLink="/alta-cliente">-Alta Clientes-</p>
+        <p routerLink="/lista-espera">-Lista De Espera-</p>
+        <p routerLink="/listado-mesas">-Lista De Mesas-</p>
       </div>
     </div>
   } @else if(isCliente) {
@@ -75,10 +75,7 @@
         </div>
       </div>
       <div id="container">
-        <p class="qr-button" (click)="escanearQrEntrada()">
-        Escanear QR de Entrada
-        </p>
-
+        <p class="qr-button" (click)="escanearQrEntrada()">-Escanear QR de Entrada-</p>
       </div>
     </div>
   } @else {
@@ -92,7 +89,7 @@
       </div>
 
       <div id="container">
-        <p routerLink="/pedidos-mozo">Pedidos</p>
+        <p routerLink="/pedidos-mozo">-Pedidos-</p>
       </div>
     </div>
   }

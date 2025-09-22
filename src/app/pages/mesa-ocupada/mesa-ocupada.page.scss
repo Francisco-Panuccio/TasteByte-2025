@@ -20,12 +20,24 @@ ion-segment-button:nth-child(3) {
   text-align: center;
 }
 
+ion-content::part(scroll) {
+  scroll-snap-type: y mandatory;
+  scroll-padding-top: calc(var(--sticky-h, 0px) + var(--seg-h, 0px) + var(--grid-pad, 20px));
+  scroll-padding-bottom: calc(var(--foot-h, 0px) + var(--grid-pad, 20px));
+}
+
 .grid {
   display: grid;
-  place-content: center;
-  gap: 20px;
   grid-template-columns: 1fr;
-  padding: 20px .75rem;
+  grid-auto-rows: calc(100svh - var(--sticky-h, 0px) - var(--seg-h, 0px) - var(--foot-h, 0px) - 2 * var(--grid-pad, 20px));
+  place-items: center;
+  gap: 0;
+  padding: var(--grid-pad, 20px) .75rem;
+}
+
+.grid>* {
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
 }
 
 .card {
@@ -34,13 +46,13 @@ ion-segment-button:nth-child(3) {
   background: #e6dacd;
   padding: .5rem;
   cursor: pointer;
+  height: 300px;
 }
 
 .imgs {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  margin-bottom: .5rem;
 }
 
 .imgs img {
@@ -203,16 +215,19 @@ ion-content.ion-content-chat {
   position: sticky;
   top: 0;
   z-index: 10;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-  background: #1b1b1b;
-  border-bottom: 2px solid black;
-  color: white;
-  padding: 8px 12px;
-  font-weight: 700;
+
+  .resumen {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    background: #1b1b1b;
+    border-bottom: 2px solid black;
+    color: white;
+    padding: 8px 12px;
+    font-weight: 700;
+  }
 
   .div_data {
     display: flex;
@@ -260,4 +275,8 @@ ion-content.ion-content-chat {
 
 ion-content.blocked {
   pointer-events: none;
+}
+
+ion-button {
+  --background: #554738;
 }

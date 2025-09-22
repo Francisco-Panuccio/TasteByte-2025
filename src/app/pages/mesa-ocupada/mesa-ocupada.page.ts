@@ -79,7 +79,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   etaMin = 0;
   userUid: string = "";
 
-  constructor(private platform: Platform, private zone: NgZone) {}
+  constructor(private platform: Platform, private zone: NgZone) { }
 
   async ngOnInit() {
     const sub = this.platform.backButton.subscribeWithPriority(9999, () => {
@@ -119,7 +119,26 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  ngAfterViewInit() { this.presentingEl = document.querySelector("ion-router-outlet") as HTMLElement; }
+  ngAfterViewInit(): void {
+    this.presentingEl = document.querySelector("ion-router-outlet") as HTMLElement;
+    const setVars = () => {
+      const sticky = document.querySelector(".resumen-flotante") as HTMLElement | null;
+      const seg = document.querySelector("ion-segment") as HTMLElement | null;
+      const foot = document.querySelector("ion-footer, footer") as HTMLElement | null;
+
+      const sh = sticky ? Math.round(sticky.getBoundingClientRect().height) : 0;
+      const sg = seg ? Math.round(seg.getBoundingClientRect().height) : 0;
+      const fh = foot ? Math.round(foot.getBoundingClientRect().height) : 0;
+
+      document.documentElement.style.setProperty("--sticky-h", `${sh}px`);
+      document.documentElement.style.setProperty("--seg-h", `${sg}px`);
+      document.documentElement.style.setProperty("--foot-h", `${fh}px`);
+      document.documentElement.style.setProperty("--grid-pad", `20px`);
+    };
+    setVars();
+    window.addEventListener("resize", setVars);
+  }
+
   ngOnDestroy() { this.chatSvc.unsubscribe(); this.backUnsub?.(); this.unsubEstado?.(); }
 
   private hhmm(d: Date): string {
@@ -212,7 +231,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   }
 
   trackMsg = (_: number, m: { id: string }) => m.id;
-  private scrollToBottom(ms: number = 200) { try { this.chatContent?.scrollToBottom(ms); } catch {} }
+  private scrollToBottom(ms: number = 200) { try { this.chatContent?.scrollToBottom(ms); } catch { } }
   private scrollToBottomAfterRender() { requestAnimationFrame(() => setTimeout(() => this.scrollToBottom(200), 0)); }
 
   incByPlato(p: Plato) {

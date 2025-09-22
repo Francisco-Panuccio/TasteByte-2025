@@ -4,17 +4,17 @@
   align-items: center;
   height: 100%;
   background-color: #bb714e;
-  padding: 20px;
+  padding: 20px 10px;
 }
 
 .auth-card {
   display: flex;
   flex-direction: column;
   background: #f8f5f0d2;
-  padding: 2rem;
   border-radius: 20px;
   width: 100%;
   max-width: 400px;
+  padding: 20px 10px;
   text-align: center;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
   gap: 1.5rem;
@@ -38,11 +38,12 @@ form {
 
 .input-field {
   --background: transparent;
-  width: 100%;
   --border-width: 0px;
   --padding-start: 0;
   --inner-padding-end: 0;
   --highlight-color-focused: transparent;
+  width: 280px;
+  height: 50px;
 }
 
 .div_error {
@@ -71,6 +72,9 @@ form {
 }
 
 ion-input {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   --color: #554738;
   --placeholder-color: #554738;
   border-radius: 12px;
@@ -78,6 +82,7 @@ ion-input {
   border: 1px solid #d3a87c;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
   font-size: 1rem;
+  height: 50px;
 }
 
 .btn-primary {
@@ -90,8 +95,7 @@ ion-input {
 }
 
 .btn-secondary {
-  --background: #d7b899;
-  --color: #554738;
+  --background: #554738;
   --border-radius: 12px;
   margin-top: 0.5rem;
   font-weight: 600;
@@ -119,8 +123,8 @@ ion-input {
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
-  width: 300px;
-  
+  width: 100%;
+
   ion-button {
     --padding-start: 0;
     --padding-end: 0;
@@ -130,8 +134,8 @@ ion-input {
     align-items: center;
     font-weight: 800;
     margin: 10px;
-    width: 53px;
-    height: 50px;
+    width: 65px;
+    height: 65px;
   }
 }
 
