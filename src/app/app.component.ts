@@ -23,7 +23,7 @@ export class AppComponent implements OnInit, OnDestroy {
     private media: Media,
     private push: Push
   ) {}
-
+  
   async ngOnInit() {
     const plat = Capacitor.getPlatform();
     const src = plat === "android"

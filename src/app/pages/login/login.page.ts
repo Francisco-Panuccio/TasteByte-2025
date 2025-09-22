@@ -11,7 +11,7 @@ type Role = "mozo" | "cliente";
   selector: "app-login",
   standalone: false,
   templateUrl: "./login.page.html",
-  styleUrls: ["./login.page.scss"]
+  styleUrls: ["./login.page.scss"],
 })
 export class LoginPage implements OnInit {
   loading: boolean = true;
@@ -28,15 +28,15 @@ export class LoginPage implements OnInit {
   ) {
     this.formLogin = this.fb.group({
       email: ["", [Validators.required, Validators.email]],
-      password: ["", [Validators.required, Validators.minLength(6)]]
+      password: ["", [Validators.required, Validators.minLength(6)]],
     });
   }
 
   private isApproved(perfil?: string, estado?: string): boolean {
-    if (perfil === "cliente_registrado") {
-      return estado === "activo";
+    if (perfil === "cliente_registrado" && estado === "activo") {
+      return true;
     }
-    return true;
+    return perfil !== "cliente_registrado";
   }
 
   private async initPush(userId: string, role: Role) {
@@ -54,7 +54,7 @@ export class LoginPage implements OnInit {
       if (email) {
         const { data: u, error } = await supabase
           .from("usuarios")
-          .select("perfil, estado")
+          .select("id, perfil")
           .eq("correo_electronico", email)
           .maybeSingle();
 
@@ -62,14 +62,33 @@ export class LoginPage implements OnInit {
           console.error("Error Cargando Perfil del Usuario", error);
         }
 
-        if (!this.isApproved(u?.perfil, u?.estado)) {
-          await supabase.auth.signOut();
-          this.loading = false;
-          return;
+        const perfil = u?.perfil;
+        const userId = u?.id;
+
+        let estado: string | undefined;
+        if (perfil === "cliente_registrado" && userId) {
+          const { data: cData, error: cErr } = await supabase
+            .from("clientes")
+            .select("estado")
+            .eq("usuario_id", userId)
+            .maybeSingle();
+          if (cErr) {
+            console.error("Error Cargando Estado del Cliente", cErr);
+          }
+          estado = cData?.estado;
+
+          if (!this.isApproved(perfil, estado)) {
+            await supabase.auth.signOut();
+            this.errorText = "Cuenta Pendiente de Aprobación.";
+            this.errorMsg = true;
+            return;
+          }
         }
 
         const role: Role = u?.perfil === "mozo" ? "mozo" : "cliente";
-        await this.initPush(authData.user!.id, role);
+        if (authData.user?.id) {
+          await this.initPush(authData.user.id, role);
+        }
       }
 
       await this.router.navigateByUrl("/home", { replaceUrl: true });
@@ -89,38 +108,70 @@ export class LoginPage implements OnInit {
     this.formLogin.updateValueAndValidity({ emitEvent: true });
     if (this.formLogin.invalid) return;
 
-    const { email, password } = this.formLogin.value as { email: string; password: string };
-    const { error } = await this.auth.signIn(email, password);
-    if (error) {
+    const { email, password } = this.formLogin.value as {
+      email: string;
+      password: string;
+    };
+
+    const { error: signErr } = await this.auth.signIn(email, password);
+    if (signErr) {
       this.errorText = "Credenciales Inválidas";
       this.errorMsg = true;
       return;
     }
 
-    const { data: authData } = await supabase.auth.getUser();
-    const userId = authData.user?.id as string | undefined;
-
-    if (!userId) {
+    const { data: authData, error: authErr } = await supabase.auth.getUser();
+    if (authErr || !authData.user) {
       this.errorText = "No se pudo obtener el usuario";
       this.errorMsg = true;
       return;
     }
 
-    const { data: u } = await supabase
-      .from("usuarios")
-      .select("perfil, estado")
-      .eq("auth_id", userId)
-      .single();
-
-    if (!this.isApproved(u?.perfil, u?.estado)) {
-      await supabase.auth.signOut();
-      this.errorText = "Cuenta Pendiente de Aprobación.";
+    const emailAut = authData.user.email as string | undefined;
+    if (!emailAut) {
+      this.errorText = "No se pudo obtener el email";
       this.errorMsg = true;
       return;
     }
 
-    const role: Role = u?.perfil === "mozo" ? "mozo" : "cliente";
-    await this.initPush(userId, role);
+    const { data: u, error: uErr } = await supabase
+      .from("usuarios")
+      .select("id, perfil")
+      .eq("correo_electronico", emailAut)
+      .maybeSingle();
+
+    if (uErr || !u) {
+      this.errorText = "No se encontró el perfil del usuario";
+      this.errorMsg = true;
+      return;
+    }
+
+    const perfil = u.perfil;
+    const userId = u.id;
+
+    let estado: string | undefined;
+    if (perfil === "cliente_registrado") {
+      const { data: cData, error: cErr } = await supabase
+        .from("clientes")
+        .select("estado")
+        .eq("usuario_id", userId)
+        .maybeSingle();
+
+      if (cErr) {
+        console.error("Error Cargando Estado del Cliente", cErr);
+      }
+      estado = cData?.estado;
+
+      if (!this.isApproved(perfil, estado)) {
+        await supabase.auth.signOut();
+        this.errorText = "Cuenta Pendiente de Aprobación.";
+        this.errorMsg = true;
+        return;
+      }
+    }
+
+    const role: Role = perfil === "mozo" ? "mozo" : "cliente";
+    await this.initPush(authData.user.id, role);
 
     await this.router.navigateByUrl("/home", { replaceUrl: true });
   }
@@ -129,5 +180,7 @@ export class LoginPage implements OnInit {
     this.formLogin.patchValue(user);
   }
 
-  closeError() { this.errorMsg = false; }
+  closeError() {
+    this.errorMsg = false;
+  }
 }

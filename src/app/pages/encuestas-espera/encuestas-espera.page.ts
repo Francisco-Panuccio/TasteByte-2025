@@ -4,7 +4,7 @@ import { ToastController } from '@ionic/angular';
 import { Qr } from 'src/app/services/qr/qr';
 import { supabase } from 'src/supabase.client';
 
-// Tipos para evitar el error de TS
+// Tipos
 type EstadoAsignacion = 'pendiente' | 'asignada' | 'sentado' | 'liberada' | 'cancelada';
 interface AsignacionMesaRow {
   mesa_id: number;
@@ -19,16 +19,18 @@ interface AsignacionMesaRow {
 })
 export class EncuestasEsperaPage implements OnInit, OnDestroy {
   nombreCliente: string | undefined;
-  usuarioId: string | undefined;     // id de usuarios (uuid)
-  anonimoId: string | undefined;     // id de clientes_anonimos (uuid)
+
+  usuarioId: number | null = null;     // 🔹 ahora es number (usuarios.id)
+  anonimoId: string | undefined;       // 🔹 sigue siendo string
+  clienteId: number | null = null;     // 🔹 sigue siendo number (clientes.id)
+
   encuestas: any[] = [];
   clientes: any[] = [];
-  qrValido = false;   
+  qrValido = false;
   loading = true;
-  tienePermiso = false;      
+  tienePermiso = false;
   yaRegistrado = false;
 
-  // Nueva info
   mesaAsignadaId: number | null = null;
   private subscription: any;
 
@@ -42,15 +44,15 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
 
   async ngOnInit() {
     this.route.queryParams.subscribe(async params => {
-      this.usuarioId = params['userId'];        
-      this.anonimoId = params['anonimoId'];     
+      this.clienteId = params['clienteId'] ? Number(params['clienteId']) : null;
+      this.usuarioId = params['usuarioId'] ? Number(params['usuarioId']) : null;
+      this.anonimoId = params['anonimoId'];
 
-      if (!this.usuarioId && !this.anonimoId) {
+      if (!this.clienteId && !this.anonimoId) {
         this.router.navigate(['/login'], { replaceUrl: true });
         return;
       }
 
-      // Nombre visible
       if (this.usuarioId) {
         const { data: usuario } = await supabase
           .from('usuarios')
@@ -67,14 +69,11 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
         this.nombreCliente = anonimo?.nombre || 'Cliente Anónimo';
       }
 
-      // Encuestas
       const { data: encuestas } = await supabase.from('encuestas').select('*');
       this.encuestas = encuestas || [];
 
-      // 👉 Cargar mesa asignada (si ya existe)
       await this.cargarMesaAsignada();
 
-      // 👉 Suscripción realtime a asignaciones para este cliente
       this.subscription = supabase
         .channel('asignaciones_mesa_sub')
         .on(
@@ -83,20 +82,15 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
             event: '*',
             schema: 'public',
             table: 'asignaciones_mesa',
-            filter: this.usuarioId
-              ? `cliente_id=eq.${this.usuarioId}`
+            filter: this.clienteId
+              ? `cliente_id=eq.${this.clienteId}`
               : `cliente_anonimo_id=eq.${this.anonimoId}`,
           },
           async (payload: { new?: Partial<AsignacionMesaRow> }) => {
             const mesa = payload?.new?.mesa_id;
             if (typeof mesa === 'number') {
               this.mesaAsignadaId = mesa;
-              const t = await this.toast.create({
-                message: `¡Te asignaron la mesa #${mesa}!`,
-                duration: 2000,
-                color: 'success'
-              });
-              t.present();
+              this.mostrarToast(`¡Te asignaron la mesa #${mesa}!`, 'success');
             }
           }
         )
@@ -112,7 +106,6 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     }
   }
 
-  // ----- NUEVO: carga inicial de la mesa asignada con tipado explícito -----
   private async cargarMesaAsignada() {
     let q = supabase
       .from('asignaciones_mesa')
@@ -121,112 +114,92 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       .order('asignada_en', { ascending: false })
       .limit(1);
 
-    if (this.usuarioId) q = q.eq('cliente_id', this.usuarioId);
+    if (this.clienteId) q = q.eq('cliente_id', this.clienteId);
     if (this.anonimoId) q = q.eq('cliente_anonimo_id', this.anonimoId);
 
     const { data, error } = await q.maybeSingle();
-    // data está tipado laxo -> lo “narroweamos” para que TS no se queje
     const fila = data as AsignacionMesaRow | null;
 
     if (!error && fila && typeof fila.mesa_id === 'number') {
       this.mesaAsignadaId = fila.mesa_id;
     }
   }
-  // ------------------------------------------------------------------------
-
-  async escanearQr() {
-    const qr = await this.qr.scanQr();
-    if (!qr) return;
-
-    const res = await this.qr.procesarQrCliente(qr, this.usuarioId, this.anonimoId);
-
-    if (res.error) {
-      alert(res.error);
-      return;
-    }
-
-    if (res.permiso) {
-      this.tienePermiso = true;  
-    }
-
-    if (res.yaRegistrado) {
-      this.yaRegistrado = true;
-      alert("Ya estás en lista de espera. Podés ver las encuestas mientras esperás.");
-    } else {
-      alert("Acceso habilitado. Ahora podés ver la lista de espera y decidir si anotarte.");
-    }
-
-    if (res.mesaAsignada) {
-      alert(`Bienvenido a la mesa ${res.mesaAsignada}. Disfrutá tu experiencia.`);
-    }
-  }
-
-  async cargarListaYEncuestas() {
-    const { data: encuestas } = await supabase.from('encuestas').select('*');
-    this.encuestas = encuestas || [];
-
-    const { data: lista } = await supabase
-      .from('lista_espera')
-      .select(`
-        id,
-        estado,
-        creado_en,
-        clientes_anonimos:cliente_anonimo_id (id, nombre, foto_url)
-      `)
-      .order('creado_en', { ascending: true });
-
-    this.clientes = lista || [];
-  }
 
   async registrarseListaEspera() {
     if (this.yaRegistrado) return;
 
-    const payload: any = { estado: 'pendiente' };
-    if (this.usuarioId) payload.cliente_id = this.usuarioId;
-    else payload.cliente_anonimo_id = this.anonimoId;
+    let payload: any = { estado: 'pendiente' };
+
+    if (this.clienteId) {
+      payload.cliente_id = this.clienteId; // int
+    } else if (this.anonimoId) {
+      payload.cliente_anonimo_id = this.anonimoId; // uuid string
+    } else {
+      this.mostrarToast('Error: no se detectó cliente', 'danger');
+      return;
+    }
 
     const { error } = await supabase.from('lista_espera').insert(payload);
     if (error) {
-      alert('Error al registrarse en la lista de espera');
+      console.error(error);
+      this.mostrarToast('Error al registrarse en la lista de espera', 'danger');
       return;
     }
 
     this.yaRegistrado = true;
-    alert('Te has registrado en la lista de espera. Espera a que el maître te asigne una mesa.');
+    this.mostrarToast('Te uniste a la lista de espera. Esperá a que el maître te asigne una mesa.', 'success');
   }
 
   async registrarEncuesta(encuestaId: string) {
     await supabase.from('respuestas_encuestas').insert({
-      usuario_id: this.usuarioId,
+      usuario_id: this.usuarioId, // int
       encuesta_id: encuestaId,
-      respondido_en: new Date().toISOString()
+      respondido_en: new Date().toISOString(),
     });
-    alert('Gracias por participar en la encuesta!');
+    this.mostrarToast('Gracias por participar en la encuesta!', 'success');
   }
 
   async escanearQrMesa() {
-  const qr = await this.qr.scanQr();
-  if (!qr) return;
+    const qr = await this.qr.scanQr();
+    if (!qr) return;
 
-  const res = await this.qr.procesarQrCliente(qr, this.usuarioId, this.anonimoId);
+    const res = await this.qr.procesarQrCliente(
+      qr,
+      this.clienteId ?? undefined,   // ✅ ahora number
+      this.anonimoId ?? undefined    // ✅ sigue string
+    );
 
-  if (res.error) {
-    const t = await this.toast.create({
-      message: res.error,
-      duration: 2000,
-      color: 'danger'
-    });
-    return t.present();
+
+    if (res.error) {
+      this.mostrarToast(res.error, 'danger');
+      return;
+    }
+
+    if (res.mesaAsignada) {
+      this.router.navigate(['/mesa-ocupada'], {
+        queryParams: {
+          mesaId: res.mesaAsignada,
+          numero: res.numero,
+          anonimoId: this.anonimoId,
+          usuarioId: this.usuarioId, // ahora number
+          clienteId: this.clienteId  // pasamos clienteId también
+        },
+      });
+    }
   }
-
-  if (res.mesaAsignada) {
-    this.router.navigate(['/mesa-ocupada'], {
-      queryParams: { mesaId: res.mesaAsignada, numero: res.numero }
-    });
-  }
-}
 
   salir() {
     this.router.navigate(['/login']);
+  }
+
+  private async mostrarToast(mensaje: string, color: string = 'primary') {
+    const t = await this.toast.create({
+      message: mensaje,
+      duration: 2500,
+      color,
+      position: 'bottom',
+      buttons: [{ text: 'OK', role: 'cancel' }],
+    });
+    await t.present();
   }
 }

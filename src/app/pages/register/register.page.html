@@ -19,6 +19,7 @@
           <h1 class="title">Registro</h1>
 
           <form [formGroup]="formRegister">
+            <!-- Apellido -->
             <ion-item class="input-field" lines="none">
               <ion-input placeholder="Apellido" formControlName="lastname"></ion-input>
             </ion-item>
@@ -29,6 +30,7 @@
               }
             </div>
 
+            <!-- Nombre -->
             <ion-item class="input-field" lines="none">
               <ion-input placeholder="Nombre" formControlName="fullname"></ion-input>
             </ion-item>
@@ -39,6 +41,7 @@
               }
             </div>
 
+            <!-- Email -->
             <ion-item class="input-field" lines="none">
               <ion-input placeholder="Correo Electrónico" formControlName="email"></ion-input>
             </ion-item>
@@ -50,6 +53,7 @@
               }
             </div>
 
+            <!-- Password -->
             <ion-item class="input-field" lines="none">
               <ion-input placeholder="Contraseña" type="password" formControlName="password"></ion-input>
             </ion-item>
@@ -61,6 +65,7 @@
               }
             </div>
 
+            <!-- Confirm Password -->
             <ion-item class="input-field" lines="none">
               <ion-input placeholder="Repetir Contraseña" type="password" formControlName="confirm"></ion-input>
             </ion-item>
@@ -72,6 +77,7 @@
               }
             </div>
 
+            <!-- Documento -->
             <div class="div_dni_items">
               <ion-item class="input-field-dni" lines="none">
                 <ion-input
@@ -97,6 +103,7 @@
               }
             </div>
 
+            <!-- Perfil -->
             <ion-item class="input-field" lines="none">
               <select formControlName="profile" class="profile-select">
                 <option value="" disabled selected>Selecciona un Perfil</option>
@@ -116,8 +123,27 @@
               }
             </div>
 
-            <ion-button expand="block" (click)="onRegister()" class="btn-primary" [disabled]="formRegister.invalid">Registrarse</ion-button>
-            <ion-button expand="block" routerLink="/login" style="--background: #554738; --color: white;">Iniciar Sesión</ion-button>
+            <!-- Foto obligatoria -->
+            <div class="foto-section">
+              <ion-button expand="block" (click)="tomarFoto()">Tomar Foto</ion-button>
+              <div class="preview" *ngIf="fotoPreview">
+                <img [src]="fotoPreview" alt="Foto previa" style="max-width: 100%; margin-top: 10px; border-radius: 8px;" />
+              </div>
+              <div class="error" *ngIf="!fotoPreview && formRegister.touched">
+                <span>Debes tomar una foto</span>
+              </div>
+            </div>
+
+            <!-- Botones -->
+            <ion-button expand="block" 
+                        (click)="onRegister()" 
+                        class="btn-primary" 
+                        [disabled]="!isFormValid">
+              Registrarse
+            </ion-button>
+            <ion-button expand="block" routerLink="/login" style="--background: #554738; --color: white;">
+              Iniciar Sesión
+            </ion-button>
           </form>
         </div>
       </div>

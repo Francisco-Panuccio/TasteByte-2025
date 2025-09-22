@@ -9,23 +9,24 @@
     <ion-list *ngIf="clientes.length > 0; else vacio">
       <ion-item *ngFor="let c of clientes; let i = index">
         <ion-avatar slot="start">
-          <img [src]="c.clientes_anonimos?.foto_url" />
+          <img [src]="c.foto_url || 'assets/img/default-user.png'" />
         </ion-avatar>
 
         <ion-label>
-          <h2>{{ c.clientes_anonimos?.nombre || 'Cliente anónimo' }}</h2>
+          <h2>{{ c.nombre }}</h2>
           <p>Estado: {{ c.estado }}</p>
           <p>Ingresó: {{ c.creado_en | date:'short' }}</p>
-          @if(esCliente && c.cliente_anonimo_id === anonimoId) {
+          @if(esCliente && (c.cliente_anonimo_id === anonimoId || c.cliente_id === usuarioId)) {
             <p><strong>Tu posición en la fila: {{ i + 1 }}</strong></p>
           }
         </ion-label>
 
-        @if(!esCliente) {
-  <ion-button (click)="aprobar(c)" color="success" slot="end" fill="solid" shape="round">
-    Aprobar
-  </ion-button>
-}
+      @if(esMaitre) {
+        <ion-button (click)="aprobar(c)" color="success" slot="end" fill="solid" shape="round">
+          Aprobar
+        </ion-button>
+      }
+
 
       </ion-item>
     </ion-list>

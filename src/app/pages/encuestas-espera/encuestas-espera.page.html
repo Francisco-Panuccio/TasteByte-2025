@@ -24,6 +24,10 @@
           Unirse a la Lista de Espera
         </ion-button>
 
+        <ion-button expand="block" color="medium" routerLink="/pedido">
+          Pedido
+        </ion-button>
+
         <div class="encuestas">
           <h2>Encuestas de Clientes</h2>
           <ion-card *ngFor="let encuesta of encuestas">
@@ -41,33 +45,34 @@
   </div>
 </ion-content>
 
-<div *ngIf="mesaAsignadaId; else esperando">
-  <ion-card color="success">
+<div *ngIf="mesaAsignadaId; else esperando" class="estado-mesa">
+  <ion-card class="card-success">
     <ion-card-header>Mesa asignada</ion-card-header>
     <ion-card-content>
       Ya podés operar en la mesa <b>#{{ mesaAsignadaId }}</b>.
     </ion-card-content>
   </ion-card>
 
-  <ion-button expand="block" color="primary" (click)="escanearQrMesa()">
-  Escanear QR de mi mesa
+  <ion-button expand="block" class="btns_main" (click)="escanearQrMesa()">
+    Escanear QR de mi mesa
   </ion-button>
 
+  
 </div>
 
 <ng-template #esperando>
-  <ion-card color="warning">
+  <ion-card class="card-pending">
     <ion-card-content>
-      Aún no se te ha asignado una mesa. Por favor, esperá al maitre.
+      Aún no se te ha asignado una mesa. <br />
+      <span class="resalta">Por favor, esperá al maître.</span>
     </ion-card-content>
   </ion-card>
 </ng-template>
 
-
 <footer>
     <ion-toolbar>
       <ion-buttons class="ion_btns">
-        <ion-button class="btn_logged" (click)="salir()">Salir</ion-button>
+        <ion-button class="btn_logged" (click)="salir()">Volver</ion-button>
       </ion-buttons>
     </ion-toolbar>
 </footer>
