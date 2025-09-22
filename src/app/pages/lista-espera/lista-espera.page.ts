@@ -13,9 +13,12 @@ import { ListadoMesasPage } from '../listado-mesas/listado-mesas.page';
 export class ListaEsperaPage implements OnInit {
   clientes: any[] = [];
   loading = true;
+
   esCliente = false;
+  esMaitre = false;
+
   anonimoId: string | null = null;
-  usuarioId: string | null = null;
+  usuarioId: string | null = null; // dejamos este param tal cual para no romper tu "volver()"
 
   constructor(
     private router: Router,
@@ -24,14 +27,46 @@ export class ListaEsperaPage implements OnInit {
     private modalCtrl: ModalController
   ) {}
 
+  private normalizarPerfil(p?: string): string {
+    return (p ?? '')
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, ''); // quita acentos (maître -> maitre)
+  }
+
   async ngOnInit() {
+    // Tomamos params (los seguimos leyendo para tu "volver()")
     this.anonimoId = this.route.snapshot.queryParamMap.get('anonimoId');
     this.usuarioId = this.route.snapshot.queryParamMap.get('userId');
 
-    console.log('anonimoId:', this.anonimoId);
-    console.log('usuarioId:', this.usuarioId);
+    // Si viene anonimoId, seguro es cliente
+    if (this.anonimoId) this.esCliente = true;
 
-    this.esCliente = Boolean(this.anonimoId || this.usuarioId);
+    // Detectar rol a partir del usuario logueado (no confiamos en userId del query param)
+    try {
+      const { data: authData, error: authErr } = await supabase.auth.getUser();
+      if (!authErr && authData?.user?.email) {
+        const email = authData.user.email;
+
+        const { data: usuario, error: uErr } = await supabase
+          .from('usuarios')
+          .select('perfil')
+          .eq('correo_electronico', email)
+          .maybeSingle();
+
+        if (!uErr && usuario?.perfil) {
+          const perfil = this.normalizarPerfil(usuario.perfil);
+          this.esMaitre = perfil === 'maitre';
+          // si es cliente registrado, marcamos esCliente
+          if (perfil === 'cliente_registrado') this.esCliente = true;
+        }
+      }
+    } catch (e) {
+      // Si algo falla, no bloqueamos la UI; por defecto no es maître
+      console.warn('[lista-espera][rol]', e);
+    }
+
     await this.cargarLista();
   }
 
@@ -39,50 +74,41 @@ export class ListaEsperaPage implements OnInit {
     this.loading = true;
 
     const { data, error } = await supabase
-      .from('lista_espera')
-      .select(`
-        id,
-        estado,
-        creado_en,
-        cliente_id,
-        clientes_anonimos:cliente_anonimo_id (id, nombre, foto_url),
-        clientes!inner (
-          usuario_id,
-          usuarios!inner (id, nombres, apellidos, foto_url)
-        )
-      `)
+      .from('lista_espera_v')
+      .select('*')
       .eq('estado', 'pendiente')
       .order('creado_en', { ascending: true });
 
     if (error) {
-      console.error("Error loading lista de espera", error);
+      console.error('Error loading lista de espera', error);
       this.clientes = [];
     } else {
-      this.clientes = (data || []).map(c => {
-        const anon = (c.clientes_anonimos && c.clientes_anonimos.length > 0)
-          ? c.clientes_anonimos[0]
-          : null;
+      this.clientes = (data || []).map((c) => {
+        const nombre =
+          c.cliente_anonimo_nombre ||
+          (c.usuario_nombre && c.usuario_apellido
+            ? `${c.usuario_nombre} ${c.usuario_apellido}`
+            : null);
 
-        const usuario = (c.clientes && c.clientes.length > 0 && c.clientes[0].usuarios && c.clientes[0].usuarios.length > 0)
-          ? c.clientes[0].usuarios[0]
-          : null;
+        const foto = c.cliente_anonimo_foto || c.usuario_foto || null;
 
         return {
           ...c,
-          nombre: anon?.nombre || (usuario ? `${usuario.nombres} ${usuario.apellidos}` : `Cliente #${c.cliente_id || 'N/A'}`),
-          foto_url: anon?.foto_url || usuario?.foto_url || null
+          nombre: nombre ?? 'Cliente anónimo',
+          foto_url: foto
         };
       });
     }
 
-    setTimeout(() => (this.loading = false), 2000);
+    setTimeout(() => (this.loading = false), 1000);
   }
 
   async aprobar(cliente: any) {
-    if (this.esCliente) return;
+    // Solo maître puede aprobar
+    if (!this.esMaitre) return;
 
     const modal = await this.modalCtrl.create({
-      component: ListadoMesasPage,
+      component: ListadoMesasPage
     });
 
     await modal.present();
@@ -90,36 +116,35 @@ export class ListaEsperaPage implements OnInit {
 
     if (!mesaSeleccionada) return;
 
+    // actualizar lista_espera
     const { error: errorLista } = await supabase
       .from('lista_espera')
       .update({ estado: 'aprobado', mesa_id: mesaSeleccionada.id })
       .eq('id', cliente.id);
 
     if (errorLista) {
-      console.error("Error al actualizar lista_espera", errorLista);
+      console.error('Error al actualizar lista_espera', errorLista);
       return;
     }
 
+    // insertar asignación
     const payload: any = {
       mesa_id: mesaSeleccionada.id,
       estado: 'asignada'
     };
 
-    if (cliente.cliente_id) {
-      payload.cliente_id = cliente.cliente_id;
-    } else if (cliente.clientes_anonimos?.id || cliente.cliente_anonimo_id) {
-      payload.cliente_anonimo_id = cliente.clientes_anonimos?.id ?? cliente.cliente_anonimo_id;
-    }
+    if (cliente.cliente_id) payload.cliente_id = cliente.cliente_id;
+    if (cliente.cliente_anonimo_id) payload.cliente_anonimo_id = cliente.cliente_anonimo_id;
 
     const { error: errorAsignacion } = await supabase
       .from('asignaciones_mesa')
       .insert(payload);
 
     if (errorAsignacion) {
-      console.error("Error al insertar en asignaciones_mesa", errorAsignacion);
+      console.error('Error al insertar en asignaciones_mesa', errorAsignacion);
     }
 
-    this.clientes = this.clientes.filter(c => c.id !== cliente.id);
+    this.clientes = this.clientes.filter((c) => c.id !== cliente.id);
     this.mostrarToast(
       `${cliente.nombre || 'Cliente'} fue aprobado y se le asignó la mesa ${mesaSeleccionada.numero}`
     );
@@ -137,7 +162,7 @@ export class ListaEsperaPage implements OnInit {
 
   getPosicionCliente(): number | null {
     if (!this.anonimoId) return null;
-    const idx = this.clientes.findIndex(c => c.cliente_anonimo_id === this.anonimoId);
+    const idx = this.clientes.findIndex((c) => c.cliente_anonimo_id === this.anonimoId);
     return idx >= 0 ? idx + 1 : null;
   }
 

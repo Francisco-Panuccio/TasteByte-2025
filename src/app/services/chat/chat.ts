@@ -16,25 +16,44 @@ export class Chat {
   private channel?: ReturnType<typeof supabase.channel>;
   private push = inject(Push);
 
-  async getMyUserId(): Promise<string> {
-    const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user?.id) throw new Error("Sin sesión.");
-    return data.user.id;
+  async getMyUserId(anonimoId?: string): Promise<string> {
+
+  if (anonimoId) return `anon-${anonimoId}`;
+
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data.user?.id) throw new Error("Sin sesión.");
+  return data.user.id;
+}
+
+
+  private async getMyRole(anonimoId?: string): Promise<Role> {
+  if (anonimoId) return "cliente"; // siempre será cliente
+  const id = await this.getMyUserId();
+  const { data } = await supabase.from("usuarios").select("perfil").eq("id", id).single();
+  return data?.perfil === "mozo" ? "mozo" : "cliente";
+}
+
+  private async getMyDisplayName(anonimoId?: string): Promise<string> {
+  if (anonimoId) {
+    const { data, error } = await supabase
+      .from("clientes_anonimos")
+      .select("nombre")
+      .eq("id", anonimoId)
+      .single();
+    if (!error && data?.nombre) return data.nombre;
+    return "Cliente Anónimo";
   }
 
-  private async getMyRole(): Promise<Role> {
-    const id = await this.getMyUserId();
-    const { data } = await supabase.from("usuarios").select("perfil").eq("id", id).single();
-    return data?.perfil === "mozo" ? "mozo" : "cliente";
-  }
-
-  private async getMyDisplayName(): Promise<string> {
-    const id = await this.getMyUserId();
-    const { data } = await supabase.from("usuarios").select("nombres, apellidos").eq("id", id).single();
-    const n = (data?.nombres ?? "").trim();
-    const a = (data?.apellidos ?? "").trim();
-    return (n || a) ? `${n} ${a}`.trim() : "Usuario";
-  }
+  const id = await this.getMyUserId();
+  const { data } = await supabase
+    .from("usuarios")
+    .select("nombres, apellidos")
+    .eq("id", id)
+    .single();
+  const n = (data?.nombres ?? "").trim();
+  const a = (data?.apellidos ?? "").trim();
+  return (n || a) ? `${n} ${a}`.trim() : "Usuario";
+}
 
   async getOrCreateForMesa(mesaId: number, role: Role = "cliente"): Promise<Chat> {
     let { data: chats, error } = await supabase.from("chats").select("*").eq("mesa_id", mesaId).limit(1);
@@ -100,63 +119,75 @@ export class Chat {
     }
   }
 
-  async sendMessage(chatId: string, text: string): Promise<ChatMessage> {
-    const userId = await this.getMyUserId();
-    const role = await this.getMyRole();
-    const fromName = await this.getMyDisplayName();
+  async sendMessage(chatId: string, text: string, anonimoId?: string): Promise<ChatMessage> {
 
-    const { data, error } = await supabase
-      .from("chat_messages")
-      .insert({ chat_id: chatId, user_id: userId, body: text })
-      .select("*")
-      .single();
-    if (error) throw error;
+  let userId: string;
+  let role: Role;
+  let fromName: string;
 
-    const chat = await supabase.from("chats").select("mesa_id").eq("id", chatId).single();
-    const mesaId = chat.data?.mesa_id as number;
-
-    try {
-      const preview = text.slice(0, 80);
-      if (role === "cliente") {
-        const tokens = await this.getMozosTokens();
-        if (tokens.length) {
-          await this.push.send(tokens, "Consulta al mozo", `Mesa ${mesaId}: ${text}`, {
-            tipo: "chat",
-            mesaId,
-            chatId,
-            fromRole: "cliente",
-            fromName,
-            preview
-          });
-        } else if ((this.push as any).sendToTopic) {
-          await (this.push as any).sendToTopic("mozos", "Consulta al mozo", `Mesa ${mesaId}: ${text}`, {
-            tipo: "chat",
-            mesaId,
-            chatId,
-            fromRole: "cliente",
-            fromName,
-            preview
-          });
-        }
-      } else {
-        const tokens = await this.getClienteTokenByMesa(mesaId);
-        if (tokens.length) {
-          await this.push.send(tokens, "Respuesta del mozo", text, {
-            tipo: "chat",
-            mesaId,
-            chatId,
-            fromRole: "mozo",
-            fromName,
-            preview
-          });
-        }
-      }
-    } catch (e) {
-      console.warn("[chat][push][error]", e);
-    }
-
-    return data as ChatMessage;
+  if (anonimoId) {
+    userId = `anon-${anonimoId}`;
+    role = "cliente";
+    fromName = await this.getMyDisplayName(anonimoId);
+  } else {
+    userId = await this.getMyUserId();
+    role = await this.getMyRole();
+    fromName = await this.getMyDisplayName();
   }
+
+  const { data, error } = await supabase
+    .from("chat_messages")
+    .insert({ chat_id: chatId, user_id: userId, body: text })
+    .select("*")
+    .single();
+  if (error) throw error;
+
+  const chat = await supabase.from("chats").select("mesa_id").eq("id", chatId).single();
+  const mesaId = chat.data?.mesa_id as number;
+
+  try {
+    const preview = text.slice(0, 80);
+    if (role === "cliente") {
+      const tokens = await this.getMozosTokens();
+      if (tokens.length) {
+        await this.push.send(tokens, "Consulta al mozo", `Mesa ${mesaId}: ${text}`, {
+          tipo: "chat",
+          mesaId,
+          chatId,
+          fromRole: "cliente",
+          fromName,
+          preview
+        });
+      } else if ((this.push as any).sendToTopic) {
+        await (this.push as any).sendToTopic("mozos", "Consulta al mozo", `Mesa ${mesaId}: ${text}`, {
+          tipo: "chat",
+          mesaId,
+          chatId,
+          fromRole: "cliente",
+          fromName,
+          preview
+        });
+      }
+    } else {
+      const tokens = await this.getClienteTokenByMesa(mesaId);
+      if (tokens.length) {
+        await this.push.send(tokens, "Respuesta del mozo", text, {
+          tipo: "chat",
+          mesaId,
+          chatId,
+          fromRole: "mozo",
+          fromName,
+          preview
+        });
+      }
+    }
+  } catch (e) {
+    console.warn("[chat][push][error]", e);
+  }
+
+  return data as ChatMessage;
+}
+
 
   toViewMessage(m: ChatMessage, myUserId: string): { id: string; from: "yo" | "mozo"; text: string; time: string } {
     return {

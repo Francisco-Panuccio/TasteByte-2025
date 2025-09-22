@@ -4,7 +4,7 @@
   @if(errorMsg) {
   <ion-content class="ion-padding">
     <div class="div_error">
-      <span>Correo electrónico o contraseña inválidos</span>
+      <span>{{errorText}}</span>
       <ion-button expand="block" class="btn_close" (click)="closeError()">Cerrar</ion-button>
     </div>
 
