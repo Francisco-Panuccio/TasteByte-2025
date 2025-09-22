@@ -12,14 +12,16 @@
 - Fecha Final: 08/09/2025 (Todas las Tareas Finalizadas)
 - Branch: panuccio/altas
 
-<img src="src/assets/imagesGithub/home_dueno.jpeg" alt="Home Dueño" width="100" height="200">
-<img src="src/assets/imagesGithub/home_maitre.jpeg" alt="Home Maitre" width="100" height="200">
-<img src="src/assets/imagesGithub/home_mozo.jpeg" alt="Home Mozo" width="100" height="200">
-<img src="src/assets/imagesGithub/home_cocinero.jpeg" alt="Home Cocinero" width="100" height="200">
-<img src="src/assets/imagesGithub/home_cliente.jpeg" alt="Home Cliente" width="100" height="200">
-<img src="src/assets/imagesGithub/home_bartender.jpeg" alt="Home Bartender" width="100" height="200">
-<img src="src/assets/imagesGithub/alta_plato.jpeg" alt="Alta Plato" width="100" height="200">
-<img src="src/assets/imagesGithub/alta_mesa.jpeg" alt="Alta Mesa" width="100" height="200">
+<p align="center">
+  <img src="src/assets/imagesGithub/home_dueno.jpeg" alt="Home Dueño" width="100" height="400">
+  <img src="src/assets/imagesGithub/home_maitre.jpeg" alt="Home Maitre" width="100" height="400">
+  <img src="src/assets/imagesGithub/home_mozo.jpeg" alt="Home Mozo" width="100" height="400">
+  <img src="src/assets/imagesGithub/home_cocinero.jpeg" alt="Home Cocinero" width="100" height="400">
+  <img src="src/assets/imagesGithub/home_cliente.jpeg" alt="Home Cliente" width="100" height="400">
+  <img src="src/assets/imagesGithub/home_bartender.jpeg" alt="Home Bartender" width="100" height="400">
+  <img src="src/assets/imagesGithub/alta_plato.jpeg" alt="Alta Plato" width="100" height="400">
+  <img src="src/assets/imagesGithub/alta_mesa.jpeg" alt="Alta Mesa" width="100" height="400">
+</p>
 
 * Roman
 - Objetivos: Splash Screen, Login y Registro, Punto 1 (Alta Empleado)
