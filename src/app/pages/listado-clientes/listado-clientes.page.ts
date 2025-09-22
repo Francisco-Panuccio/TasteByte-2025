@@ -14,7 +14,7 @@ export class ListadoClientesPage implements OnInit {
   private clientesSvc = inject(Clientes);
   private emailSvc = inject(Email);
 
-  loading = true;
+  loading: boolean = true;
   err: string | null = null;
   ok: string | null = null;
 
@@ -33,7 +33,7 @@ export class ListadoClientesPage implements OnInit {
     } catch (e: any) {
       this.err = e.message || 'Error al cargar clientes';
     } finally {
-      this.loading = false;
+      setTimeout(() => { this.loading = false; }, 2000);
     }
   }
 

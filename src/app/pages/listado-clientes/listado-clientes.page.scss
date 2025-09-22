@@ -4,25 +4,9 @@ ion-content {
   padding: 16px;
 }
 
-/* Header */
-ion-toolbar {
-  --background: #d7b899;
-  --color: #554738;
-  --border-width: 0;
-}
-
 ion-title {
   font-weight: 800;
   font-size: 1.2rem;
-}
-
-/* Spinner de carga */
-ion-spinner {
-  margin: 2rem auto;
-  display: block;
-  --color: #f8f5f0;
-  width: 48px;
-  height: 48px;
 }
 
 /* Mensajes de estado */
@@ -60,13 +44,17 @@ ion-list {
 ion-item {
   --background: #f8f5f0;
   --border-radius: 16px;
-  --padding-start: 16px;
-  --padding-end: 16px;
   --inner-padding-end: 8px;
   margin-bottom: 16px;
   border: 2px solid #d3a87c;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   border-radius: 16px;
+  padding: 16px;
+  background-color: #f8f5f0;
+}
+
+ion-item:last-child {
+  margin-bottom: 0;
 }
 
 /* Avatar cliente */
@@ -113,65 +101,42 @@ ion-buttons {
   min-width: 100px;
 }
 
-ion-button {
-  --border-radius: 12px;
-  --padding-top: 12px;
-  --padding-bottom: 12px;
-  font-weight: 600;
-  margin: 0;
-  height: 40px;
-}
-
 .btn-success {
-    --background: #d7b899;
-    --color: #bb714e;
-    --border-radius: 12px;
-    font-weight: 700;
-    height: 48px;
-    margin-top: 0px;
-    width: 80%;
+  background-color: rgb(70, 194, 87);
+  color: white;
+  border-radius: 12px !important;
+  font-weight: 700;
+  height: 48px;
+  margin-top: 0px;
+  padding: 10px;
+  width: 95px;
 }
 
 .btn-danger {
-    --background: #d7b899;
-    --color: #bb714e;
-    --border-radius: 12px;
-    font-weight: 700;
-    height: 48px;
-    width: 80%;
-    margin-top: 0px;
+  background-color: rgb(170, 61, 61);
+  color: white;
+  border-radius: 12px !important;
+  font-weight: 700;
+  height: 48px;
+  margin-top: 0px;
+  padding: 10px;
+  width: 95px;
 }
 
-@media (min-width: 768px) {
-  ion-content {
-    --background: #bb714e;
-    display: flex;
-    justify-content: center;
-  }
-  
-  ion-list {
-    width: 100%;
-    max-width: 800px;
-    background: transparent;
-  }
-  
-  ion-buttons {
-    flex-direction: row;
-    min-width: 180px;
-  }
-  
-  ion-button {
-    flex: 1;
-    min-width: 80px;
-  }
+.p_clientes {
+  text-align: center;
+  color: white;
+  font-size: 20px;
+  font-weight: 800;
 }
 
+.ion_btns {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
-.volver{
---background: #d7b899;
---color: #bb714e;
---border-radius: 12px;
-font-weight: 800;
-height: 48px;
-margin-top: 0px;
+.btn_logged {
+  font-size: 20px;
+  font-weight: 1000;
 }

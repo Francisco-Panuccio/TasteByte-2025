@@ -107,10 +107,18 @@ ion-text[color="success"] {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-.volver {
-  --background: #d7b899;
-  --color: #bb714e;
+.btn_guardar {
+  --background: #554738 !important;
+  color: white !important;
   --border-radius: 12px;
+}
+
+.volver {
+  color: #554738 !important;
+  --background: white !important;
+  border: 2px solid #554738;
+  --border-radius: 12px;
+  border-radius: 12px;
   font-weight: 800;
   height: 48px;
   margin-top: 0px;

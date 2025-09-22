@@ -108,7 +108,7 @@
         <ion-text color="danger" *ngIf="err">{{ err }}</ion-text>
         <ion-text color="success" *ngIf="ok">Cliente registrado correctamente!</ion-text>
 
-        <ion-button expand="block" type="submit" [disabled]="loading">
+        <ion-button class="btn_guardar" type="submit" [disabled]="loading">
           {{ loading ? 'Guardando...' : 'Registrar Cliente' }}
         </ion-button>
       
@@ -143,7 +143,7 @@
           <ion-text color="danger" *ngIf="err">{{ err }}</ion-text>
           <ion-text color="success" *ngIf="ok">Cliente anónimo registrado correctamente!</ion-text>
 
-          <ion-button expand="block" type="submit" [disabled]="loading">
+          <ion-button class="btn_guardar" type="submit" [disabled]="loading">
             {{ loading ? 'Guardando...' : 'Registrar Cliente Anónimo' }}
           </ion-button>
 

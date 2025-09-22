@@ -7,14 +7,16 @@ import { IonicModule } from '@ionic/angular';
 import { ListadoClientesPageRoutingModule } from './listado-clientes-routing.module';
 
 import { ListadoClientesPage } from './listado-clientes.page';
+import { LoadingPage } from "../loading/loading.page";
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
-    ListadoClientesPageRoutingModule
-  ],
+    ListadoClientesPageRoutingModule,
+    LoadingPage
+],
   declarations: [ListadoClientesPage]
 })
 export class ListadoClientesPageModule {}

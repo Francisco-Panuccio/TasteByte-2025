@@ -44,7 +44,7 @@ export class AppComponent implements OnInit, OnDestroy {
       }
     } catch {}
 
-    // setTimeout(() => this.iniciarAnimacionesElementos(), 100);
+    setTimeout(() => this.iniciarAnimacionesElementos(), 100);
   }
 
   ngOnDestroy() {
@@ -52,45 +52,45 @@ export class AppComponent implements OnInit, OnDestroy {
     try { this.splashAudio?.release(); } catch {}
   }
 
-  // private iniciarAnimacionesElementos() {
-  //   const logoElement = document.querySelector(".logo");
-  //   const tituloElement = document.querySelector(".titulo");
-  //   const integrantesElement = document.querySelector(".integrantes");
-  //
-  //   const animations: Promise<void>[] = [];
-  //
-  //   if (logoElement) {
-  //     const logoAnimation = this.animationCtrl.create()
-  //       .addElement(logoElement)
-  //       .duration(1500)
-  //       .fromTo("transform", "scale(0)", "scale(1)")
-  //       .fromTo("opacity", "0", "1");
-  //     animations.push(logoAnimation.play());
-  //   }
-  //
-  //   if (tituloElement) {
-  //     const tituloAnimation = this.animationCtrl.create()
-  //       .addElement(tituloElement)
-  //       .duration(1000)
-  //       .delay(500)
-  //       .fromTo("opacity", "0", "1");
-  //     animations.push(tituloAnimation.play());
-  //   }
-  //
-  //   if (integrantesElement) {
-  //     const integrantesAnimation = this.animationCtrl.create()
-  //       .addElement(integrantesElement)
-  //       .duration(1200)
-  //       .delay(1500)
-  //       .fromTo("opacity", "0", "1");
-  //     animations.push(integrantesAnimation.play());
-  //   }
-  //
-  //   setTimeout(async () => {
-  //     if (this.lottieAnimation) { this.lottieAnimation.destroy(); }
-  //     try { this.splashAudio?.stop(); } catch {}
-  //     this.showSplash = false;
-  //     this.router.navigate(["/login"]);
-  //   }, 5000);
-  // }
+  private iniciarAnimacionesElementos() {
+    const logoElement = document.querySelector(".logo");
+    const tituloElement = document.querySelector(".titulo");
+    const integrantesElement = document.querySelector(".integrantes");
+  
+    const animations: Promise<void>[] = [];
+  
+    if (logoElement) {
+      const logoAnimation = this.animationCtrl.create()
+        .addElement(logoElement)
+        .duration(1500)
+        .fromTo("transform", "scale(0)", "scale(1)")
+        .fromTo("opacity", "0", "1");
+      animations.push(logoAnimation.play());
+    }
+  
+    if (tituloElement) {
+      const tituloAnimation = this.animationCtrl.create()
+        .addElement(tituloElement)
+        .duration(1000)
+        .delay(500)
+        .fromTo("opacity", "0", "1");
+      animations.push(tituloAnimation.play());
+    }
+  
+    if (integrantesElement) {
+      const integrantesAnimation = this.animationCtrl.create()
+        .addElement(integrantesElement)
+        .duration(1200)
+        .delay(1500)
+        .fromTo("opacity", "0", "1");
+      animations.push(integrantesAnimation.play());
+    }
+  
+    setTimeout(async () => {
+      if (this.lottieAnimation) { this.lottieAnimation.destroy(); }
+      try { this.splashAudio?.stop(); } catch {}
+      this.showSplash = false;
+      this.router.navigate(["/login"]);
+    }, 5000);
+  }
 }
