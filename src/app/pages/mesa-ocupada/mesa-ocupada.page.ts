@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, inject, NgZone, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
-import { IonContent, IonModal, Platform, ToastController } from "@ionic/angular";
+import { IonContent, IonModal, NavController, Platform, ToastController } from "@ionic/angular";
 import { Bebida } from "src/app/interfaces/bebida";
 import { ChatMessage } from "src/app/interfaces/chat-message";
 import { Mesa } from "src/app/interfaces/mesa";
@@ -79,7 +79,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   etaMin = 0;
   userUid: string = "";
 
-  constructor(private platform: Platform, private zone: NgZone) { }
+  constructor(private platform: Platform, private zone: NgZone,private navCtrl: NavController) { }
 
   async ngOnInit() {
   const sub = this.platform.backButton.subscribeWithPriority(9999, () => {
@@ -379,17 +379,15 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   }
 
   volver() {
-  const anonimoId = this.route.snapshot.queryParamMap.get('anonimoId');
-  const userId = this.route.snapshot.queryParamMap.get('userId');
+  const anonimoId = this.route.snapshot.queryParamMap.get("anonimoId");
+  const usuarioId = this.route.snapshot.queryParamMap.get("usuarioId");
+  const clienteId = this.route.snapshot.queryParamMap.get("clienteId");
 
-  if (anonimoId) {
-    this.router.navigate(['/encuestas-espera'], { queryParams: { anonimoId } });
-  } else if (userId) {
-    this.router.navigate(['/encuestas-espera'], { queryParams: { userId } });
-  } else {
-    this.router.navigate(['/home']);
-  }
+  this.router.navigate(['/encuestas-espera'], {
+    queryParams: { anonimoId, usuarioId, clienteId }
+  });
 }
+
 
 }
 

@@ -107,23 +107,40 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   }
 
   private async cargarMesaAsignada() {
-    let q = supabase
-      .from('asignaciones_mesa')
-      .select('mesa_id, estado')
-      .in('estado', ['pendiente', 'asignada', 'sentado'] as EstadoAsignacion[])
-      .order('asignada_en', { ascending: false })
-      .limit(1);
+ 
+  let q = supabase
+    .from('asignaciones_mesa')
+    .select('mesa_id, estado')
+    .in('estado', ['pendiente', 'asignada', 'sentado'] as EstadoAsignacion[])
+    .order('asignada_en', { ascending: false })
+    .limit(1);
 
-    if (this.clienteId) q = q.eq('cliente_id', this.clienteId);
-    if (this.anonimoId) q = q.eq('cliente_anonimo_id', this.anonimoId);
+  if (this.clienteId) q = q.eq('cliente_id', this.clienteId);
+  if (this.anonimoId) q = q.eq('cliente_anonimo_id', this.anonimoId);
 
-    const { data, error } = await q.maybeSingle();
-    const fila = data as AsignacionMesaRow | null;
+  const { data: asignacion, error: errAsignacion } = await q.maybeSingle();
 
-    if (!error && fila && typeof fila.mesa_id === 'number') {
-      this.mesaAsignadaId = fila.mesa_id;
-    }
+  if (!errAsignacion && asignacion && typeof asignacion.mesa_id === 'number') {
+    this.mesaAsignadaId = asignacion.mesa_id;
+    this.yaRegistrado = true; 
+    return;
   }
+
+
+  let qLista = supabase
+    .from('lista_espera')
+    .select('id, estado')
+    .in('estado', ['pendiente', 'aprobado']);
+
+  if (this.clienteId) qLista = qLista.eq('cliente_id', this.clienteId);
+  if (this.anonimoId) qLista = qLista.eq('cliente_anonimo_id', this.anonimoId);
+
+  const { data: espera, error: errLista } = await qLista.maybeSingle();
+
+  if (!errLista && espera) {
+    this.yaRegistrado = true; 
+  }
+}
 
   async registrarseListaEspera() {
     if (this.yaRegistrado) return;
@@ -165,8 +182,8 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
 
     const res = await this.qr.procesarQrCliente(
       qr,
-      this.clienteId ?? undefined,   // ✅ ahora number
-      this.anonimoId ?? undefined    // ✅ sigue string
+      this.clienteId ?? undefined,   
+      this.anonimoId ?? undefined   
     );
 
 
@@ -181,16 +198,23 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
           mesaId: res.mesaAsignada,
           numero: res.numero,
           anonimoId: this.anonimoId,
-          usuarioId: this.usuarioId, // ahora number
-          clienteId: this.clienteId  // pasamos clienteId también
+          usuarioId: this.usuarioId, 
+          clienteId: this.clienteId 
         },
       });
     }
   }
 
-  salir() {
-    this.router.navigate(['/login']);
+  async salir() {
+  try {
+    await supabase.auth.signOut(); 
+  } catch (e) {
+    console.error("Error cerrando sesión", e);
   }
+
+  this.router.navigate(['/login'], { replaceUrl: true });
+}
+
 
   private async mostrarToast(mensaje: string, color: string = 'primary') {
     const t = await this.toast.create({
