@@ -17,7 +17,7 @@
           <p>Estado: {{ c.estado }}</p>
           <p>Ingresó: {{ c.creado_en | date:'short' }}</p>
           @if(esCliente && (c.cliente_anonimo_id === anonimoId || c.cliente_id === usuarioId)) {
-            <p><strong>Tu posición en la fila: {{ i + 1 }}</strong></p>
+            <p><strong>Posición en la fila: {{ i + 1 }}</strong></p>
           }
         </ion-label>
 

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { NavController } from '@ionic/angular';
 import { Pedidos } from 'src/app/services/pedidos/pedidos';
 
 @Component({
@@ -14,7 +15,7 @@ export class PedidoPage implements OnInit {
   loading: boolean = true;
   items: any[] = [];
 
-  constructor(private ar: ActivatedRoute, private pedidos: Pedidos) { }
+  constructor(private ar: ActivatedRoute, private pedidos: Pedidos,  private navCtrl: NavController) { }
 
   async ngOnInit() {
     this.pedidoId =
@@ -27,5 +28,9 @@ export class PedidoPage implements OnInit {
     this.ped = ped;
     this.items = items;
     setTimeout(() => this.loading = false, 2000);
+  }
+
+  volver() {
+    this.navCtrl.back();  
   }
 }

@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ToastController, ModalController } from '@ionic/angular';
+import { ToastController, ModalController, NavController } from '@ionic/angular';
 import { Router, ActivatedRoute } from '@angular/router';
 import { supabase } from 'src/supabase.client';
 import { ListadoMesasPage } from '../listado-mesas/listado-mesas.page';
@@ -18,13 +18,13 @@ export class ListaEsperaPage implements OnInit {
   esMaitre = false;
 
   anonimoId: string | null = null;
-  usuarioId: string | null = null; // dejamos este param tal cual para no romper tu "volver()"
-
+  usuarioId: string | null = null; 
   constructor(
     private router: Router,
     private toastCtrl: ToastController,
     private route: ActivatedRoute,
-    private modalCtrl: ModalController
+    private modalCtrl: ModalController,
+    private navCtrl: NavController
   ) {}
 
   private normalizarPerfil(p?: string): string {
@@ -32,18 +32,16 @@ export class ListaEsperaPage implements OnInit {
       .trim()
       .toLowerCase()
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, ''); // quita acentos (maître -> maitre)
+      .replace(/[\u0300-\u036f]/g, ''); //para sacar los acentos y las cosas raras del maitre
   }
 
   async ngOnInit() {
-    // Tomamos params (los seguimos leyendo para tu "volver()")
+
     this.anonimoId = this.route.snapshot.queryParamMap.get('anonimoId');
     this.usuarioId = this.route.snapshot.queryParamMap.get('userId');
 
-    // Si viene anonimoId, seguro es cliente
     if (this.anonimoId) this.esCliente = true;
 
-    // Detectar rol a partir del usuario logueado (no confiamos en userId del query param)
     try {
       const { data: authData, error: authErr } = await supabase.auth.getUser();
       if (!authErr && authData?.user?.email) {
@@ -58,12 +56,11 @@ export class ListaEsperaPage implements OnInit {
         if (!uErr && usuario?.perfil) {
           const perfil = this.normalizarPerfil(usuario.perfil);
           this.esMaitre = perfil === 'maitre';
-          // si es cliente registrado, marcamos esCliente
           if (perfil === 'cliente_registrado') this.esCliente = true;
         }
       }
     } catch (e) {
-      // Si algo falla, no bloqueamos la UI; por defecto no es maître
+
       console.warn('[lista-espera][rol]', e);
     }
 
@@ -166,16 +163,8 @@ export class ListaEsperaPage implements OnInit {
     return idx >= 0 ? idx + 1 : null;
   }
 
+  
   volver() {
-    const anonimoId = this.anonimoId;
-    const userId = this.usuarioId;
-
-    if (anonimoId || userId) {
-      this.router.navigate(['/encuestas-espera'], {
-        queryParams: { anonimoId, userId }
-      });
-    } else {
-      this.router.navigate(['/home']);
-    }
+    this.navCtrl.back();  
   }
 }
