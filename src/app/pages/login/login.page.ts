@@ -79,7 +79,7 @@ export class LoginPage implements OnInit {
 
           if (!this.isApproved(perfil, estado)) {
             await supabase.auth.signOut();
-            this.errorText = "Cuenta Pendiente de Aprobación.";
+            this.errorText = "Cuenta Rechazada o Pendiente de Aprobación.";
             this.errorMsg = true;
             return;
           }
@@ -164,7 +164,7 @@ export class LoginPage implements OnInit {
 
       if (!this.isApproved(perfil, estado)) {
         await supabase.auth.signOut();
-        this.errorText = "Cuenta Pendiente de Aprobación.";
+        this.errorText = "Cuenta Rechazada o Pendiente de Aprobación.";
         this.errorMsg = true;
         return;
       }

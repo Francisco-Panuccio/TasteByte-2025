@@ -125,12 +125,12 @@
 
             <!-- Foto obligatoria -->
             <div class="foto-section">
-              <ion-button expand="block" (click)="tomarFoto()">Tomar Foto</ion-button>
+              <ion-button class="btn_photo" (click)="tomarFoto()">Tomar Foto</ion-button>
               <div class="preview" *ngIf="fotoPreview">
-                <img [src]="fotoPreview" alt="Foto previa" style="max-width: 100%; margin-top: 10px; border-radius: 8px;" />
+                <img [src]="fotoPreview" alt="Foto previa"/>
               </div>
               <div class="error" *ngIf="!fotoPreview && formRegister.touched">
-                <span>Debes tomar una foto</span>
+                <span>Debe tomar una foto</span>
               </div>
             </div>
 

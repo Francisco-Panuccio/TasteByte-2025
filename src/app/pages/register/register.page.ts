@@ -124,7 +124,7 @@ export class RegisterPage implements OnInit {
     if (this.formRegister.invalid) return;
 
     if (!this.fotoPreview) {
-      this.errorText = 'Debes tomar una foto';
+      this.errorText = 'Debe tomar una foto';
       this.errorMsg = true;
       return;
     }

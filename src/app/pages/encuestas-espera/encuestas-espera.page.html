@@ -1,8 +1,6 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Bienvenido {{ nombreCliente }}</ion-title>
-  </ion-toolbar>
-</ion-header>
+<header>
+    <title>Bienvenido {{ nombreCliente }}</title>
+</header>
 
 <ion-content class="ion-padding">
   <!-- <ion-button expand="block" color="primary" (click)="escanearQr()">
@@ -13,7 +11,7 @@
   <div>
     <ion-card>
       <ion-card-header>
-        Opciones disponibles
+        Opciones Disponibles
       </ion-card-header>
       <ion-card-content>
         <ion-button expand="block" routerLink="/lista-espera" [queryParams]="{ anonimoId: anonimoId, userId: usuarioId }" color="tertiary">
@@ -24,12 +22,14 @@
           Unirse a la Lista de Espera
         </ion-button>
 
-        <ion-button expand="block" color="medium" routerLink="/pedido">
+        <ion-button expand="block" class="btn_pedido" routerLink="/pedido">
           Pedido
         </ion-button>
 
         <div class="encuestas">
-          <h2>Encuestas de Clientes</h2>
+          <ion-button expand="block" class="btn_encuesta">
+            Encuestas de Clientes
+          </ion-button>
           <ion-card *ngFor="let encuesta of encuestas">
             <ion-card-header>{{ encuesta.titulo }}</ion-card-header>
             <ion-card-content>
@@ -40,6 +40,10 @@
             </ion-card-content>
           </ion-card>
         </div>
+
+        <ion-button expand="block" class="btn_juegos">
+          Juegos
+        </ion-button>
       </ion-card-content>
     </ion-card>
   </div>
@@ -47,9 +51,9 @@
 
 <div *ngIf="mesaAsignadaId; else esperando" class="estado-mesa">
   <ion-card class="card-success">
-    <ion-card-header>Mesa asignada</ion-card-header>
+    <ion-card-header>Mesa Asignada</ion-card-header>
     <ion-card-content>
-      Ya podés operar en la mesa <b>#{{ mesaAsignadaId }}</b>.
+      Ya puede tomar asiento en la mesa <b>#{{ mesaAsignadaId }}</b>.
     </ion-card-content>
   </ion-card>
 
@@ -63,8 +67,8 @@
 <ng-template #esperando>
   <ion-card class="card-pending">
     <ion-card-content>
-      Aún no se te ha asignado una mesa. <br />
-      <span class="resalta">Por favor, esperá al maître.</span>
+      Aún no se le ha asignado una mesa. <br />
+      <span class="resalta">Por favor, espere al maître.</span>
     </ion-card-content>
   </ion-card>
 </ng-template>

@@ -9,6 +9,21 @@
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
 
+:root {
+  --ion-color-primary: #554738;
+  --ion-color-secondary: #d3a87c; 
+  --ion-color-tertiary: #7b5e40;
+  --ion-color-light: #e6d5c3;
+  --ion-color-medium: #9b8a78;
+  --ion-color-dark: #3b2d20;
+}
+
+ion-card {
+  border-radius: 12px;
+  --background: #f9f4ef;
+  --color: #554738;
+}
+
 ion-header {
   margin: 50px 0 0 0;
   text-align: center;

@@ -63,7 +63,6 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild("chatModal", { read: IonModal }) chatModal?: IonModal;
   messages: { id: string; from: "yo" | "mozo"; role: "mozo" | "cliente"; text: string; time: string }[] = [];
   newMsg: string = "";
-
   myName: string = "Cliente";
 
   qtyMap = new Map<number, number>();
@@ -79,52 +78,75 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   etaMin = 0;
   userUid: string = "";
 
-  constructor(private platform: Platform, private zone: NgZone,private navCtrl: NavController) { }
+  pedidoEnCurso: boolean = false;
+  pedidoActualId?: string;
+  cocina?: {
+    titulo: string;
+    total: number;
+    cantidad: number;
+    items: Array<{ nombre: string; cantidad: number; precioUnit: number; duracionMin: number; subtotal: number }>;
+  };
+  bebidaObj?: {
+    titulo: string;
+    total: number;
+    cantidad: number;
+    items: Array<{ nombre: string; cantidad: number; precioUnit: number; duracionMin: number; subtotal: number }>;
+  };
+  clienteEmail: string | null = null;
+
+  constructor(private platform: Platform, private zone: NgZone, private navCtrl: NavController) { }
 
   async ngOnInit() {
-  const sub = this.platform.backButton.subscribeWithPriority(9999, () => {
-    if (this.kbOpen) { Keyboard.hide(); return; }
-    if (this.chatOpen) { this.closeChat(); return; }
-  });
-  this.backUnsub = () => sub.unsubscribe();
+    const sub = this.platform.backButton.subscribeWithPriority(9999, () => {
+      if (this.kbOpen) { Keyboard.hide(); return; }
+      if (this.chatOpen) { this.closeChat(); return; }
+    });
+    this.backUnsub = () => sub.unsubscribe();
 
-  try {
-    const qp = this.route.snapshot.queryParamMap.get("mesaId");
-    const anonimoId = this.route.snapshot.queryParamMap.get("anonimoId"); 
-    this.mesaId = qp ? Number(qp) : undefined;
+    try {
+      const qp = this.route.snapshot.queryParamMap.get("mesaId");
+      const anonimoId = this.route.snapshot.queryParamMap.get("anonimoId");
+      this.mesaId = qp ? Number(qp) : undefined;
 
-    if (!this.mesaId || Number.isNaN(this.mesaId)) throw new Error("Mesa inválida");
+      if (!this.mesaId || Number.isNaN(this.mesaId)) throw new Error("Mesa inválida");
 
-    this.mesa = await this.mesasSrv.getById(this.mesaId);
-    if (!this.mesa) throw new Error("Mesa no encontrada");
+      this.mesa = await this.mesasSrv.getById(this.mesaId);
+      if (!this.mesa) throw new Error("Mesa no encontrada");
 
-    this.mesaAsignada = !!this.mesa;
+      this.mesaAsignada = !!this.mesa;
 
-    const [allPlatos, bebidas] = await Promise.all([
-      this.platosSrv.list(),
-      this.bebidasSrv.list()
-    ]);
+      const [allPlatos, bebidas] = await Promise.all([this.platosSrv.list(), this.bebidasSrv.list()]);
+      this.postres = allPlatos.filter(p => !!p.esPostre);
+      this.platos = allPlatos.filter(p => !p.esPostre);
+      this.bebidas = bebidas;
 
-    this.postres = allPlatos.filter(p => !!p.esPostre);
-    this.platos = allPlatos.filter(p => !p.esPostre);
-    this.bebidas = bebidas;
+      const { data: au } = await supabase.auth.getUser();
+      this.userUid = au.user?.id ?? "";
+      this.clienteEmail = au.user?.email ?? null;
 
+      if (anonimoId) this.myUserId = `anon-${anonimoId}`;
+      else this.myUserId = await this.chatSvc.getMyUserId();
 
-    if (anonimoId) {
-      this.myUserId = `anon-${anonimoId}`;
-    } else {
-      this.myUserId = await this.chatSvc.getMyUserId();
+      if (this.mesaId) {
+        const activo = await this.pedidos.getPedidoActivo({
+          mesaId: this.mesaId,
+          clienteUid: this.userUid || undefined,
+          clienteEmail: this.clienteEmail || undefined
+        });
+        if (activo) {
+          this.pedidoEnCurso = true;
+          this.pedidoActualId = activo.id as string;
+        }
+      }
+
+      await this.ensureChatAndSubscribe();
+    } catch (e: any) {
+      this.error = e?.message || "Error cargando mesa";
+      (await this.toast.create({ message: this.error, duration: 1500 })).present();
+    } finally {
+      setTimeout(() => (this.loading = false), 2000);
     }
-
-    await this.ensureChatAndSubscribe();
-  } catch (e: any) {
-    this.error = e?.message || "Error cargando mesa";
-    (await this.toast.create({ message: this.error, duration: 1500 })).present();
-  } finally {
-    setTimeout(() => (this.loading = false), 2000);
   }
-}
-
 
   ngAfterViewInit(): void {
     this.presentingEl = document.querySelector("ion-router-outlet") as HTMLElement;
@@ -244,8 +266,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   incByPlato(p: Plato) {
     if (this.submitting) return;
     const id = p.id!;
-    const prev = this.qtyMap.get(id) || 0;
-    this.qtyMap.set(id, prev + 1);
+    this.qtyMap.set(id, (this.qtyMap.get(id) || 0) + 1);
     this.syncItems();
   }
 
@@ -259,8 +280,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
 
   inc(p: AddItem): void {
     if (this.submitting) return;
-    const prev = this.qtyMap.get(p.id) || 0;
-    this.qtyMap.set(p.id, prev + 1);
+    this.qtyMap.set(p.id, (this.qtyMap.get(p.id) || 0) + 1);
     this.syncItems();
   }
 
@@ -318,6 +338,28 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     return new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", currencyDisplay: "symbol" }).format(n);
   }
 
+  private buildCocinaYBebida(): void {
+    const mk = (tipos: Array<"plato" | "postre" | "bebida">) => {
+      const sel = this.itemsSel.filter(i => tipos.includes(i.tipo));
+      const items = sel.map(i => ({
+        nombre: i.nombre,
+        cantidad: i.cantidad,
+        precioUnit: i.precioUnit,
+        duracionMin: i.duracionMin,
+        subtotal: Number((i.precioUnit * i.cantidad).toFixed(2))
+      }));
+      const total = Number(items.reduce((a, b) => a + b.subtotal, 0).toFixed(2));
+      const cantidad = items.reduce((a, b) => a + b.cantidad, 0);
+      return { items, total, cantidad };
+    };
+
+    const c = mk(["plato", "postre"]);
+    const b = mk(["bebida"]);
+    const mesaNumero = this.mesa?.numero ?? "NN";
+    this.cocina = { titulo: `Cocina • Mesa ${mesaNumero}`, total: c.total, cantidad: c.cantidad, items: c.items };
+    this.bebidaObj = { titulo: `Bebidas • Mesa ${mesaNumero}`, total: b.total, cantidad: b.cantidad, items: b.items };
+  }
+
   async terminarPedido() {
     try {
       if (!this.itemsSel.length) return;
@@ -325,30 +367,50 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
 
       this.submitting = true;
 
-      if (!this.userUid) {
+      if (!this.userUid && !this.clienteEmail) {
         const { data } = await supabase.auth.getUser();
         this.userUid = data.user?.id ?? "";
+        this.clienteEmail = data.user?.email ?? null;
       }
 
-      const pedidoId = await this.pedidos.crearPedido(
-        this.mesaId,
-        this.userUid,
-        this.itemsSel,
-        this.total,
-        this.etaMin
-      );
+      const existente = await this.pedidos.getPedidoActivo({
+        mesaId: this.mesaId,
+        clienteUid: this.userUid || undefined,
+        clienteEmail: this.clienteEmail || undefined
+      });
+
+      let pedidoId: string;
+
+      if (existente && existente.estado !== "rechazado") {
+        this.pedidoEnCurso = true;
+        this.pedidoActualId = existente.id as string;
+        (await this.toast.create({ message: "Pedido en curso.", duration: 1800, position: "top", cssClass: "toast" })).present();
+        return;
+      } else if (existente && existente.estado === "rechazado") {
+        await this.pedidos.reemplazarItems(existente.id as string, this.itemsSel, this.total, this.etaMin, "pendiente");
+        pedidoId = existente.id as string;
+      } else {
+        pedidoId = await this.pedidos.crearPedido(
+          this.mesaId,
+          this.userUid,
+          this.clienteEmail,
+          this.itemsSel,
+          this.total,
+          this.etaMin
+        );
+      }
+
+      this.pedidoEnCurso = true;
+      this.pedidoActualId = pedidoId;
 
       const mesaNumero = this.mesa?.numero ?? "NN";
-      await this.chatSvc.notifyMozosNuevoPedido(
-        mesaNumero as any,
-        this.formatARS(this.total),
-        pedidoId,
-        this.mesaId
-      );
+      await this.chatSvc.notifyMozosNuevoPedido(mesaNumero as any, this.formatARS(this.total), pedidoId, this.mesaId);
 
+      this.unsubEstado?.();
       this.unsubEstado = this.pedidos.onEstadoPedido(pedidoId, async (estado) => {
         this.zone.run(async () => {
           if (estado === "aceptado") {
+            this.buildCocinaYBebida();
             this.router.navigate(["/pedido", pedidoId]);
           } else if (estado === "rechazado") {
             this.submitting = false;
@@ -379,18 +441,12 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   }
 
   volver() {
-  const anonimoId = this.route.snapshot.queryParamMap.get("anonimoId");
-  const usuarioId = this.route.snapshot.queryParamMap.get("usuarioId");
-  const clienteId = this.route.snapshot.queryParamMap.get("clienteId");
+    const anonimoId = this.route.snapshot.queryParamMap.get("anonimoId");
+    const usuarioId = this.route.snapshot.queryParamMap.get("usuarioId");
+    const clienteId = this.route.snapshot.queryParamMap.get("clienteId");
 
-  this.router.navigate(['/encuestas-espera'], {
-    queryParams: { anonimoId, usuarioId, clienteId }
-  });
+    this.router.navigate(["/encuestas-espera"], {
+      queryParams: { anonimoId, usuarioId, clienteId }
+    });
+  }
 }
-
-
-}
-
-
-
-
