@@ -240,7 +240,6 @@ export class AltaClientePage implements OnInit {
           console.error("Error enviando email:", e);
         }
 
-        // Edge nueva: usar 'to' con perfiles o data.perfiles. Elijo 'to: "profiles:..."'.
         try {
           await supabase.functions.invoke("send-push", {
             body: {

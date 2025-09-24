@@ -280,3 +280,14 @@ ion-content.blocked {
 ion-button {
   --background: #554738;
 }
+
+.pedido-banner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  color: white;
+  font-size: 20px;
+  margin: 20px 0 0 0;
+  font-weight: 600;
+}

@@ -106,15 +106,21 @@ export class Pedidos {
       .maybeSingle();
     if (error) throw error;
     if (!ped) return { ped: null, items: [] };
-    const { data: items, error: e2 } = await supabase.from("pedido_items").select("*").eq("pedido_id", id);
+
+    const { data: items, error: e2 } = await supabase
+      .from("pedido_items")
+      .select("*")
+      .eq("pedido_id", id);
     if (e2) throw e2;
+
     return { ped, items: items ?? [] };
   }
 
   async getPedidoActivo(opts: { mesaId?: number; clienteUid?: string; clienteEmail?: string }): Promise<any | null> {
-    let q = supabase.from("pedidos")
+    let q = supabase
+      .from("pedidos")
       .select("id, mesa_id, estado, created_at")
-      .in("estado", ["pendiente", "aceptado"])
+      .in("estado", ["pendiente", "aceptado", "terminado"])
       .order("created_at", { ascending: false })
       .limit(1);
 
@@ -132,10 +138,11 @@ export class Pedidos {
       .from("pedidos")
       .select("id")
       .eq("cliente_email", email)
-      .in("estado", ["pendiente", "aceptado"])
+      .in("estado", ["pendiente", "aceptado", "terminado"])
       .order("created_at", { ascending: false })
       .limit(1);
     if (error) throw error;
+
     const id = data?.[0]?.id as string | undefined;
     if (!id) return { ped: null, items: [] };
     return this.getPedido(id);
@@ -146,6 +153,7 @@ export class Pedidos {
       .from("pedidos")
       .select("id, mesa_id, total, eta_minutos, estado, created_at, mesa:mesas!pedidos_mesa_id_fkey (numero)")
       .order("created_at", { ascending: false });
+
     const { data, error } = estado ? await base.eq("estado", estado) : await base;
     if (error) throw error;
     return data;
