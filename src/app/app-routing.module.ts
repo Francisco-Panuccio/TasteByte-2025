@@ -72,7 +72,8 @@ const routes: Routes = [
   {
     path: 'listado-mesas',
     loadChildren: () => import('./pages/listado-mesas/listado-mesas.module').then(m => m.ListadoMesasPageModule)
-  },  {
+  },
+  {
     path: 'anon-register',
     loadChildren: () => import('./pages/anon-register/anon-register.module').then( m => m.AnonRegisterPageModule)
   },
@@ -84,7 +85,6 @@ const routes: Routes = [
     path: 'bar',
     loadChildren: () => import('./pages/bar/bar.module').then( m => m.BarPageModule)
   }
-
 ];
 
 @NgModule({

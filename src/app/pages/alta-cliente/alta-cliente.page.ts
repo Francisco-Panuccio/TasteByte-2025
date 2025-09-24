@@ -9,6 +9,7 @@ import { Usuarios } from "src/app/services/usuarios/usuarios";
 import { Email } from "src/app/services/email/email";
 import { Router } from "@angular/router";
 import { ToastController } from "@ionic/angular";
+import { Push } from "src/app/services/push/push";
 
 @Component({
   selector: "app-alta-cliente",
@@ -21,6 +22,7 @@ export class AltaClientePage implements OnInit {
   private usuarios = inject(Usuarios);
   private email = inject(Email);
   private toast = inject(ToastController);
+  private push = inject(Push);
   private readonly platform = Capacitor.getPlatform();
 
   formAnonimo!: FormGroup;
@@ -241,19 +243,31 @@ export class AltaClientePage implements OnInit {
         }
 
         try {
-          await supabase.functions.invoke("send-push", {
-            body: {
-              to: "profiles:dueño,supervisor",
-              title: "📋 Nuevo Cliente Pendiente",
-              body: `${nombres} ${apellidos} espera aprobación`,
-              data: {
-                screen: "clientes-pendientes",
-                tipo: "nuevo_cliente",
-                cliente_id: (usuarioDB as any).id,
-                cliente_nombre: `${nombres} ${apellidos}`
-              }
+          const { data: rows, error: tkErr } = await supabase
+            .from("push_tokens")
+            .select("token")
+            .in("role", ["dueño", "supervisor"])
+            .eq("active", true)
+            .eq("revoked", false);
+
+          if (tkErr) {
+            console.warn("[alta-cliente][push][tokens]", tkErr);
+          } else {
+            const tokens = (rows ?? []).map((r: any) => r.token as string).filter(Boolean);
+            if (tokens.length) {
+              await this.push.send(
+                tokens,
+                "📋 Nuevo Cliente Pendiente",
+                `${nombres} ${apellidos} espera aprobación`,
+                {
+                  screen: "clientes-pendientes",
+                  tipo: "nuevo_cliente",
+                  cliente_id: (usuarioDB as any).id,
+                  cliente_nombre: `${nombres} ${apellidos}`
+                }
+              );
             }
-          });
+          }
 
           await this.presentPushToast(
             "📋 Nuevo Cliente Pendiente",
@@ -262,7 +276,7 @@ export class AltaClientePage implements OnInit {
             { highlight: (usuarioDB as any).id }
           );
         } catch (pushError) {
-          console.warn("Error enviando push notification:", pushError);
+          console.warn("[alta-cliente][push] error", pushError);
           await this.presentPushToast(
             "Notificación no enviada",
             "No se pudo notificar a dueños/supervisores."

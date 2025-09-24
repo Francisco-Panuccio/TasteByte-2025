@@ -11,7 +11,7 @@
 
 :root {
   --ion-color-primary: #554738;
-  --ion-color-secondary: #d3a87c; 
+  --ion-color-secondary: #d3a87c;
   --ion-color-tertiary: #7b5e40;
   --ion-color-light: #e6d5c3;
   --ion-color-medium: #9b8a78;
@@ -122,4 +122,34 @@ ion-toast.toast::part(button) {
   font-weight: 600;
   background-color: #554738;
   text-align: center;
+}
+
+ion-toast.toast::part(header) {
+  font-weight: 600;
+  text-align: center;
+  color: #554738;
+}
+
+.toasty {
+  --background: #bb714e;
+  --color: black;
+  font-weight: 800;
+  font-size: 16px;
+  --border-color: black;
+  --border-style: solid;
+  --border-width: 2px;
+  --border-radius: 12px;
+  text-align: start;
+  margin-top: 50px;
+  padding: 0;
+}
+
+ion-toast.toasty::part(button) {
+  color: white;
+  font-weight: 600;
+  background-color: #554738;
+  text-align: center;
+  margin: 0 5px;
+  border: 2px solid white;
+  border-radius: 12px;
 }

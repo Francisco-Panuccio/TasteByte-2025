@@ -12,17 +12,16 @@ ion-segment-button {
   --color-checked: #554738;
 }
 
-ion-label {
-  font-weight: 600;
-}
-
 .input-field {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   --background: transparent;
   --border-width: 0px;
   --padding-start: 0;
   --inner-padding-end: 0;
   --highlight-color-focused: transparent;
-  width: 280px;
+  width: 330px;
   height: 50px;
 }
 
@@ -43,15 +42,6 @@ form {
 }
 
 /* Inputs */
-ion-item {
-  --background: transparent;
-  border-radius: 12px;
-  --border-width: 0px;
-  --inner-padding-end: 0;
-  --highlight-color-focused: transparent;
-  width: 100%;
-}
-
 ion-input {
   display: flex;
   justify-content: center;
@@ -143,5 +133,17 @@ ion-text[color="success"] {
   ion-button {
     --background: rgb(107, 170, 238);
     --border-radius: 10px;
+  }
+}
+
+.div_img {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  img {
+    width: 300px;
+    height: 300px;
+    border-radius: 10px;
   }
 }

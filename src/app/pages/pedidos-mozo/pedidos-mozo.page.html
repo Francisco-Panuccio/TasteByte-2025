@@ -18,7 +18,7 @@
         <div class="div_data_pedido">
           <p>Mesa: {{ p.mesa?.numero ?? p.mesa_id }} • ${{ p.total }}</p>
           <p>Espera: {{ p.eta_minutos }} min</p>
-          <p>Estado: {{ p.estado }}</p>
+          <p>Estado: {{ p.estado | titlecase }}</p>
           <p>Fecha: {{ p.created_at | date:'short' }}</p>
         </div>
 

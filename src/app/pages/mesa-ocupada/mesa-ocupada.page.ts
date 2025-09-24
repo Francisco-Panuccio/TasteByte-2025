@@ -12,16 +12,10 @@ import { Platos } from "src/app/services/platos/platos";
 import { supabase } from "src/supabase.client";
 import { Keyboard } from "@capacitor/keyboard";
 import { Pedidos } from "src/app/services/pedidos/pedidos";
+import { Push } from "src/app/services/push/push";
 
 type Tab = "platos" | "bebidas" | "postres";
-type AddItem = {
-  id: number;
-  nombre: string;
-  precio: number;
-  duracionMin: number;
-  tipo: "plato" | "bebida" | "postre";
-};
-
+type AddItem = { id: number; nombre: string; precio: number; duracionMin: number; tipo: "plato" | "bebida" | "postre" };
 type Estado = "pendiente" | "aceptado" | "rechazado" | "terminado";
 
 @Component({
@@ -39,11 +33,13 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   private chatSvc = inject(Chat);
   private router = inject(Router);
   private pedidos = inject(Pedidos);
+  private push = inject(Push);
 
   private kbOpen = false;
   private backUnsub?: () => void;
   private seenIds = new Set<string>();
   private unsubEstado?: () => void;
+  private despachados = new Set<string>();
 
   chatId?: string;
   myUserId?: string;
@@ -54,52 +50,35 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   platos: Plato[] = [];
   postres: Plato[] = [];
   bebidas: Bebida[] = [];
-  mesaAsignada: boolean = false;
-  loading: boolean = true;
-  submitting: boolean = false;
-  chatReady: boolean = false;
+  mesaAsignada = false;
+  loading = true;
+  submitting = false;
+  chatReady = false;
 
-  chatOpen: boolean = false;
+  chatOpen = false;
   presentingEl?: HTMLElement;
   @ViewChild("chatContent") chatContent?: IonContent;
   @ViewChild("chatModal", { read: IonModal }) chatModal?: IonModal;
   messages: { id: string; from: "yo" | "mozo"; role: "mozo" | "cliente"; text: string; time: string }[] = [];
-  newMsg: string = "";
-  myName: string = "Cliente";
+  newMsg = "";
+  myName = "Cliente";
 
   qtyMap = new Map<number, number>();
-  itemsSel: {
-    productoId: number;
-    tipo: "plato" | "bebida" | "postre";
-    nombre: string;
-    precioUnit: number;
-    cantidad: number;
-    duracionMin: number;
-  }[] = [];
+  itemsSel: { productoId: number; tipo: "plato" | "bebida" | "postre"; nombre: string; precioUnit: number; cantidad: number; duracionMin: number }[] = [];
   total = 0;
   etaMin = 0;
-  userUid: string = "";
+  userUid = "";
 
-  pedidoEnCurso: boolean = false;
+  pedidoEnCurso = false;
   pedidoActualId?: string;
   estadoPedido: Estado | null = null;
-  bannerMsg: string = "";
+  bannerMsg = "";
   clienteEmail: string | null = null;
 
-  cocina?: {
-    titulo: string;
-    total: number;
-    cantidad: number;
-    items: Array<{ nombre: string; cantidad: number; precioUnit: number; duracionMin: number; subtotal: number }>;
-  };
-  bebidaObj?: {
-    titulo: string;
-    total: number;
-    cantidad: number;
-    items: Array<{ nombre: string; cantidad: number; precioUnit: number; duracionMin: number; subtotal: number }>;
-  };
+  plato?: { titulo: string; total: number; cantidad: number; items: Array<{ nombre: string; cantidad: number; precioUnit: number; duracionMin: number; subtotal: number }> };
+  bebidaObj?: { titulo: string; total: number; cantidad: number; items: Array<{ nombre: string; cantidad: number; precioUnit: number; duracionMin: number; subtotal: number }> };
 
-  constructor(private platform: Platform, private zone: NgZone, private navCtrl: NavController) {}
+  constructor(private platform: Platform, private zone: NgZone, private navCtrl: NavController) { }
 
   async ngOnInit() {
     const sub = this.platform.backButton.subscribeWithPriority(9999, () => {
@@ -107,29 +86,24 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
       if (this.chatOpen) { this.closeChat(); return; }
     });
     this.backUnsub = () => sub.unsubscribe();
-
     try {
       const qp = this.route.snapshot.queryParamMap.get("mesaId");
       const anonimoId = this.route.snapshot.queryParamMap.get("anonimoId");
       this.mesaId = qp ? Number(qp) : undefined;
-
       if (!this.mesaId || Number.isNaN(this.mesaId)) throw new Error("Mesa inválida");
-
       this.mesa = await this.mesasSrv.getById(this.mesaId);
       if (!this.mesa) throw new Error("Mesa no encontrada");
       this.mesaAsignada = !!this.mesa;
-
       const [allPlatos, bebidas] = await Promise.all([this.platosSrv.list(), this.bebidasSrv.list()]);
       this.postres = allPlatos.filter(p => !!p.esPostre);
       this.platos = allPlatos.filter(p => !p.esPostre);
       this.bebidas = bebidas;
-
       const { data: au } = await supabase.auth.getUser();
       this.userUid = au.user?.id ?? "";
       this.clienteEmail = au.user?.email ?? null;
-
       this.myUserId = anonimoId ? `anon-${anonimoId}` : await this.chatSvc.getMyUserId();
-
+      await this.push.init(undefined, "cliente");
+      await this.push.ready();
       await this.detectarYPoblarPedido();
       await this.ensureChatAndSubscribe();
     } catch (e: any) {
@@ -163,13 +137,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
 
   private async detectarYPoblarPedido(): Promise<void> {
     if (!this.mesaId) return;
-
-    const activo = await this.pedidos.getPedidoActivo({
-      mesaId: this.mesaId,
-      clienteUid: this.userUid || undefined,
-      clienteEmail: this.clienteEmail || undefined
-    });
-
+    const activo = await this.pedidos.getPedidoActivo({ mesaId: this.mesaId, clienteUid: this.userUid || undefined, clienteEmail: this.clienteEmail || undefined });
     if (activo) {
       this.pedidoEnCurso = true;
       this.pedidoActualId = activo.id as string;
@@ -177,47 +145,25 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
       await this.cargarItemsDePedido(this.pedidoActualId);
       return;
     }
-
-    const { data: pedRej } = await supabase
-      .from("pedidos")
-      .select("id")
-      .eq("mesa_id", this.mesaId)
-      .eq("cliente_email", this.clienteEmail)
-      .eq("estado", "rechazado")
-      .order("created_at", { ascending: false })
-      .limit(1);
-
+    const { data: pedRej } = await supabase.from("pedidos").select("id").eq("mesa_id", this.mesaId).eq("cliente_email", this.clienteEmail).eq("estado", "rechazado").order("created_at", { ascending: false }).limit(1);
     if (pedRej && pedRej[0]?.id) {
       await this.cargarItemsDePedido(pedRej[0].id as string);
       this.pedidoEnCurso = false;
       this.applyEstado("rechazado");
     } else {
       this.pedidoEnCurso = false;
-      this.applyEstado(null); 
+      this.applyEstado(null);
     }
   }
 
   private async cargarItemsDePedido(pedidoId: string): Promise<void> {
-    const { data: items } = await supabase
-      .from("pedido_items")
-      .select("producto_id, tipo, nombre, precio_unit, cantidad, duracion_min")
-      .eq("pedido_id", pedidoId);
-
+    const { data: items } = await supabase.from("pedido_items").select("producto_id, tipo, nombre, precio_unit, cantidad, duracion_min").eq("pedido_id", pedidoId);
     this.qtyMap.clear();
     this.itemsSel = [];
-
     for (const it of items ?? []) {
       this.qtyMap.set(it.producto_id as number, it.cantidad as number);
-      this.itemsSel.push({
-        productoId: it.producto_id as number,
-        tipo: it.tipo as any,
-        nombre: it.nombre as string,
-        precioUnit: it.precio_unit as number,
-        cantidad: it.cantidad as number,
-        duracionMin: it.duracion_min as number
-      });
+      this.itemsSel.push({ productoId: it.producto_id as number, tipo: it.tipo as any, nombre: it.nombre as string, precioUnit: it.precio_unit as number, cantidad: it.cantidad as number, duracionMin: it.duracion_min as number });
     }
-
     let total = 0;
     let maxDur = 0;
     for (const i of this.itemsSel) {
@@ -238,11 +184,9 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
       const sticky = document.querySelector(".resumen-flotante") as HTMLElement | null;
       const seg = document.querySelector("ion-segment") as HTMLElement | null;
       const foot = document.querySelector("ion-footer, footer") as HTMLElement | null;
-
       const sh = sticky ? Math.round(sticky.getBoundingClientRect().height) : 0;
       const sg = seg ? Math.round(seg.getBoundingClientRect().height) : 0;
       const fh = foot ? Math.round(foot.getBoundingClientRect().height) : 0;
-
       document.documentElement.style.setProperty("--sticky-h", `${sh}px`);
       document.documentElement.style.setProperty("--seg-h", `${sg}px`);
       document.documentElement.style.setProperty("--foot-h", `${fh}px`);
@@ -264,7 +208,6 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     if (!this.mesaId) return;
     const chat = await this.chatSvc.getOrCreateForMesa(this.mesaId, "cliente");
     this.chatId = chat.id;
-
     const msgs = await this.chatSvc.loadMessages(chat.id, 200);
     this.seenIds.clear();
     this.messages = msgs.map(m => {
@@ -274,21 +217,15 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
       return { ...vm, role };
     });
     this.scrollToBottomAfterRender();
-
     this.chatSvc.subscribeToMessages(chat.id, async (m: ChatMessage) => {
       if (this.seenIds.has(m.id)) return;
-      this.seenIds.add(m.id);
       const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
-      const role = vm.from === "yo" ? "cliente" : "mozo";
+      if (vm.from === "yo") { this.seenIds.add(m.id); return; }
+      const role: "mozo" | "cliente" = "mozo";
       this.messages.push({ ...vm, role });
+      this.seenIds.add(m.id);
       if (!this.chatOpen) {
-        (await this.toast.create({
-          message: `${role === "mozo" ? "Mozo" : "Cliente"}: ${vm.text}`,
-          duration: 3000,
-          position: "top",
-          cssClass: "toast",
-          buttons: [{ text: "Abrir", handler: () => this.openChat() }]
-        })).present();
+        (await this.toast.create({ message: `Mozo: ${vm.text}`, duration: 3000, position: "top", cssClass: "toast", buttons: [{ text: "Abrir", handler: () => this.openChat() }] })).present();
       } else {
         this.scrollToBottom();
       }
@@ -316,19 +253,11 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     if (this.submitting || !this.chatReady) return;
     const txt = this.newMsg.trim();
     if (!txt || !this.chatId) return;
-
     const tempId = "temp-" + Date.now();
     const now = new Date();
-    this.messages.push({
-      id: tempId,
-      from: "yo",
-      role: "cliente",
-      text: txt,
-      time: this.hhmm(now)
-    });
+    this.messages.push({ id: tempId, from: "yo", role: "cliente", text: txt, time: this.hhmm(now) });
     this.scrollToBottomAfterRender();
     this.newMsg = "";
-
     const saved = await this.chatSvc.sendMessage(this.chatId, txt);
     const vm = this.chatSvc.toViewMessage(saved, this.myUserId!);
     const role: "mozo" | "cliente" = "cliente";
@@ -341,10 +270,13 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
       }
     }
     this.seenIds.add(saved.id);
+    try {
+      await this.push.sendToRoles(["mozo"], "Mensaje del cliente", txt, { tipo: "chat", chatId: this.chatId, mesaId: this.mesaId, fromRole: "cliente", fromName: this.myName, preview: txt.slice(0, 80) });
+    } catch { }
   }
 
   trackMsg = (_: number, m: { id: string }) => m.id;
-  private scrollToBottom(ms: number = 200) { try { this.chatContent?.scrollToBottom(ms); } catch {} }
+  private scrollToBottom(ms: number = 200) { try { this.chatContent?.scrollToBottom(ms); } catch { } }
   private scrollToBottomAfterRender() { requestAnimationFrame(() => setTimeout(() => this.scrollToBottom(200), 0)); }
 
   incByPlato(p: Plato) {
@@ -374,12 +306,8 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private syncItems() {
-    const arr: {
-      productoId: number; tipo: "plato" | "bebida" | "postre"; nombre: string;
-      precioUnit: number; cantidad: number; duracionMin: number;
-    }[] = [];
+    const arr: { productoId: number; tipo: "plato" | "bebida" | "postre"; nombre: string; precioUnit: number; cantidad: number; duracionMin: number }[] = [];
     let total = 0, maxDur = 0, penalty = 0;
-
     const acumPlatos = (list: Plato[], tipo: "plato" | "postre") => {
       for (const p of list) {
         if (p.id == null) continue;
@@ -392,7 +320,6 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
         }
       }
     };
-
     const acumBebidas = (list: Bebida[]) => {
       for (const b of list) {
         const id = (b as any).id as number | undefined;
@@ -408,11 +335,9 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
         }
       }
     };
-
     acumPlatos(this.platos, "plato");
     acumPlatos(this.postres, "postre");
     acumBebidas(this.bebidas);
-
     this.itemsSel = arr;
     this.total = Number(total.toFixed(2));
     this.etaMin = arr.length ? Math.round(maxDur + 10 + penalty) : 0;
@@ -422,26 +347,42 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     return new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", currencyDisplay: "symbol" }).format(n);
   }
 
-  private buildCocinaYBebida(): void {
+  private buildPlatoYBebida(): void {
     const mk = (tipos: Array<"plato" | "postre" | "bebida">) => {
       const sel = this.itemsSel.filter(i => tipos.includes(i.tipo));
-      const items = sel.map(i => ({
-        nombre: i.nombre,
-        cantidad: i.cantidad,
-        precioUnit: i.precioUnit,
-        duracionMin: i.duracionMin,
-        subtotal: Number((i.precioUnit * i.cantidad).toFixed(2))
-      }));
+      const items = sel.map(i => ({ nombre: i.nombre, cantidad: i.cantidad, precioUnit: i.precioUnit, duracionMin: i.duracionMin, subtotal: Number((i.precioUnit * i.cantidad).toFixed(2)) }));
       const total = Number(items.reduce((a, b) => a + b.subtotal, 0).toFixed(2));
       const cantidad = items.reduce((a, b) => a + b.cantidad, 0);
       return { items, total, cantidad };
     };
-
     const c = mk(["plato", "postre"]);
     const b = mk(["bebida"]);
     const mesaNumero = this.mesa?.numero ?? "NN";
-    this.cocina = { titulo: `Cocina • Mesa ${mesaNumero}`, total: c.total, cantidad: c.cantidad, items: c.items };
+    this.plato = { titulo: `Plato • Mesa ${mesaNumero}`, total: c.total, cantidad: c.cantidad, items: c.items };
     this.bebidaObj = { titulo: `Bebidas • Mesa ${mesaNumero}`, total: b.total, cantidad: b.cantidad, items: b.items };
+  }
+
+  private async enviarAProduccion(pedidoId: string): Promise<void> {
+    if (!this.mesaId || this.despachados.has(pedidoId)) return;
+    const mesaNumero = this.mesa?.numero ?? 0;
+    const ahora = new Date().toISOString();
+    const cocinaItems = this.itemsSel.filter(i => i.tipo === "plato" || i.tipo === "postre").map(i => ({ nombre: i.nombre, cantidad: i.cantidad, precioUnit: i.precioUnit, duracionMin: i.duracionMin, subtotal: Number((i.precioUnit * i.cantidad).toFixed(2)) }));
+    const barItems = this.itemsSel.filter(i => i.tipo === "bebida").map(i => ({ nombre: i.nombre, cantidad: i.cantidad, precioUnit: i.precioUnit, duracionMin: i.duracionMin, subtotal: Number((i.precioUnit * i.cantidad).toFixed(2)) }));
+    const cocinaTotal = Number(cocinaItems.reduce((a, b) => a + b.subtotal, 0).toFixed(2));
+    const barTotal = Number(barItems.reduce((a, b) => a + b.subtotal, 0).toFixed(2));
+    const cocinaCant = cocinaItems.reduce((a, b) => a + b.cantidad, 0);
+    const barCant = barItems.reduce((a, b) => a + b.cantidad, 0);
+    try {
+      if (cocinaItems.length) {
+        await supabase.from("cocina_pedidos").insert({ pedido_id: pedidoId, mesa_id: this.mesaId, mesa_numero: mesaNumero, creado_en: ahora, total: cocinaTotal, cantidad: cocinaCant, items: cocinaItems, estado: "pendiente" });
+        await this.push.sendToCocina("Nuevo pedido", `Nuevo Pedido de la Mesa ${mesaNumero}`, { tipo: "cocina_pedido", pedidoId, mesaId: this.mesaId, mesaNumero });
+      }
+      if (barItems.length) {
+        await supabase.from("bar_pedidos").insert({ pedido_id: pedidoId, mesa_id: this.mesaId, mesa_numero: mesaNumero, creado_en: ahora, total: barTotal, cantidad: barCant, items: barItems, estado: "pendiente" });
+        await this.push.sendToBar("Nuevo pedido", `Nuevo Pedido de la Mesa ${mesaNumero}`, { tipo: "bar_pedido", pedidoId, mesaId: this.mesaId, mesaNumero });
+      }
+      this.despachados.add(pedidoId);
+    } catch { }
   }
 
   async terminarPedido() {
@@ -452,81 +393,48 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
         this.updateBanner();
         return;
       }
-
       this.submitting = true;
-
       if (!this.userUid && !this.clienteEmail) {
         const { data } = await supabase.auth.getUser();
         this.userUid = data.user?.id ?? "";
         this.clienteEmail = data.user?.email ?? null;
       }
-
-      const existente = await this.pedidos.getPedidoActivo({
-        mesaId: this.mesaId,
-        clienteUid: this.userUid || undefined,
-        clienteEmail: this.clienteEmail || undefined
-      });
-
+      const existente = await this.pedidos.getPedidoActivo({ mesaId: this.mesaId, clienteUid: this.userUid || undefined, clienteEmail: this.clienteEmail || undefined });
       let pedidoId: string;
-
       if (existente && existente.estado !== "rechazado") {
         this.pedidoEnCurso = true;
         this.pedidoActualId = existente.id as string;
-        this.applyEstado((existente as any).estado);   // << normaliza acá
+        this.applyEstado((existente as any).estado);
         return;
       } else if (existente && existente.estado === "rechazado") {
         await this.pedidos.reemplazarItems(existente.id as string, this.itemsSel, this.total, this.etaMin, "pendiente");
         pedidoId = existente.id as string;
       } else {
-        pedidoId = await this.pedidos.crearPedido(
-          this.mesaId,
-          this.userUid,
-          this.clienteEmail,
-          this.itemsSel,
-          this.total,
-          this.etaMin
-        );
+        pedidoId = await this.pedidos.crearPedido(this.mesaId, this.userUid, this.clienteEmail, this.itemsSel, this.total, this.etaMin);
       }
-
       this.pedidoEnCurso = true;
-      this.applyEstado("pendiente");                   // << normaliza acá
+      this.applyEstado("pendiente");
       this.pedidoActualId = pedidoId;
-
       const mesaNumero = this.mesa?.numero ?? "NN";
       await this.chatSvc.notifyMozosNuevoPedido(mesaNumero as any, this.formatARS(this.total), pedidoId, this.mesaId);
-
       this.unsubEstado?.();
       this.unsubEstado = this.pedidos.onEstadoPedido(pedidoId, async (estado) => {
         this.zone.run(async () => {
-          this.applyEstado(estado);                    // << normaliza acá
+          this.applyEstado(estado);
           if (this.estadoPedido === "aceptado") {
-            this.buildCocinaYBebida();
+            await this.enviarAProduccion(pedidoId);
+            this.buildPlatoYBebida();
             this.router.navigate(["/pedido", pedidoId]);
           } else if (this.estadoPedido === "rechazado") {
             this.pedidoEnCurso = false;
             this.submitting = false;
-            (await this.toast.create({
-              message: "Su pedido fue rechazado. Puede modificarlo y reenviarlo.",
-              duration: 2000,
-              position: "top",
-              cssClass: "toast"
-            })).present();
+            (await this.toast.create({ message: "Su pedido fue rechazado, por favor modifíquelo correctamente y reenvíelo.", position: "top", cssClass: "toasty", duration: undefined, buttons: [{ text: "Cerrar", role: "cancel" }] })).present();
           }
         });
       });
-
-      (await this.toast.create({
-        message: "Pedido enviado. Esperando confirmación del mozo.",
-        duration: 2000,
-        position: "top",
-        cssClass: "toast"
-      })).present();
+      (await this.toast.create({ message: "Pedido enviado. Esperando confirmación del mozo.", duration: 2000, position: "top", cssClass: "toast" })).present();
     } catch (e: any) {
-      (await this.toast.create({
-        message: e?.message ?? "Error al enviar pedido",
-        duration: 1800,
-        position: "top"
-      })).present();
+      (await this.toast.create({ message: e?.message ?? "Error al enviar pedido", duration: 1800, position: "top" })).present();
       this.submitting = false;
     }
   }
@@ -535,9 +443,6 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     const anonimoId = this.route.snapshot.queryParamMap.get("anonimoId");
     const usuarioId = this.route.snapshot.queryParamMap.get("usuarioId");
     const clienteId = this.route.snapshot.queryParamMap.get("clienteId");
-
-    this.router.navigate(["/encuestas-espera"], {
-      queryParams: { anonimoId, usuarioId, clienteId }
-    });
+    this.router.navigate(["/encuestas-espera"], { queryParams: { anonimoId, usuarioId, clienteId } });
   }
 }

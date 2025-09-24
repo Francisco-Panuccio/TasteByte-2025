@@ -15,8 +15,8 @@
         <ion-button class="btn_foto" expand="block" (click)="sacarFoto()">Tomar Foto</ion-button>
       </div>
 
-      <div *ngIf="formAnon.value.foto">
-        <ion-img [src]="formAnon.value.foto"></ion-img>
+      <div class="div_img" *ngIf="formAnon.value.foto">
+        <img [src]="formAnon.value.foto">
       </div>
 
       <ion-button class="btn_continuar" expand="block" (click)="registrarAnonimo()" [disabled]="formAnon.invalid || loading">

@@ -7,14 +7,16 @@ import { IonicModule } from '@ionic/angular';
 import { BarPageRoutingModule } from './bar-routing.module';
 
 import { BarPage } from './bar.page';
+import { LoadingPage } from "../loading/loading.page";
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
-    BarPageRoutingModule
-  ],
+    BarPageRoutingModule,
+    LoadingPage
+],
   declarations: [BarPage]
 })
 export class BarPageModule {}
