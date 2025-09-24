@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -12,6 +12,7 @@ import { AuthService } from 'src/app/services/auth/auth';
 import { Usuarios } from 'src/app/services/usuarios/usuarios';
 import { supabase } from 'src/supabase.client';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Email } from 'src/app/services/email/email';
 
 @Component({
   selector: 'app-register',
@@ -21,12 +22,13 @@ import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
   styleUrls: ['./register.page.scss'],
 })
 export class RegisterPage implements OnInit {
+  private email = inject(Email);
   loading: boolean = true;
   errorMsg: boolean = false;
   errorText = 'Ocurrió un error';
 
-  fotoPreview: string | null = null; // preview en el registro
-  fotoUrl: string | null = null; // url subida a Supabase
+  fotoPreview: string | null = null;
+  fotoUrl: string | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -51,7 +53,6 @@ export class RegisterPage implements OnInit {
 
   formRegister: ReturnType<FormBuilder['group']>;
 
-  // ✅ validación para habilitar el botón
   get isFormValid(): boolean {
     return this.formRegister.valid && !!this.fotoPreview;
   }
@@ -184,7 +185,6 @@ export class RegisterPage implements OnInit {
     );
 
     try {
-
       const fileName = `foto_${Date.now()}.jpeg`;
       const { error: uploadError } = await supabase.storage
         .from('empleados')
@@ -200,8 +200,19 @@ export class RegisterPage implements OnInit {
 
       this.fotoUrl = publicUrl.publicUrl;
 
-
       const usuarioDB = await this.usuarios.createFromUser(user, this.fotoUrl);
+      const name = (user.apellido + " " + user.nombre)
+
+      try {
+        await this.email.sendEmail(
+          email,
+          "Registro Recibido - En Revisión",
+          "registro_pendiente",
+          { name }
+        );
+      } catch (e) {
+        console.error("Error enviando email:", e);
+      }
 
       await supabase.from('clientes').insert({
         tipo: 'cliente_registrado',
@@ -217,7 +228,7 @@ export class RegisterPage implements OnInit {
     if (v.profile === 'cliente_registrado') {
       try {
         await supabase.auth.signOut();
-      } catch {}
+      } catch { }
       await this.router.navigateByUrl('/login', { replaceUrl: true });
       return;
     }

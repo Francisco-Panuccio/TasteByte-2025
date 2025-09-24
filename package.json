@@ -31,7 +31,7 @@
     "@capacitor/camera": "^7.0.2",
     "@capacitor/core": "^7.4.3",
     "@capacitor/filesystem": "^7.1.4",
-    "@capacitor/haptics": "7.0.2",
+    "@capacitor/haptics": "^7.0.2",
     "@capacitor/keyboard": "7.0.3",
     "@capacitor/push-notifications": "^7.0.3",
     "@ionic/angular": "^8.0.0",

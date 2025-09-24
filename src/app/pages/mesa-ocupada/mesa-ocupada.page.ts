@@ -22,6 +22,8 @@ type AddItem = {
   tipo: "plato" | "bebida" | "postre";
 };
 
+type Estado = "pendiente" | "aceptado" | "rechazado" | "terminado";
+
 @Component({
   selector: "app-mesa-ocupada",
   templateUrl: "./mesa-ocupada.page.html",
@@ -80,6 +82,10 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
 
   pedidoEnCurso: boolean = false;
   pedidoActualId?: string;
+  estadoPedido: Estado | null = null;
+  bannerMsg: string = "";
+  clienteEmail: string | null = null;
+
   cocina?: {
     titulo: string;
     total: number;
@@ -92,9 +98,8 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     cantidad: number;
     items: Array<{ nombre: string; cantidad: number; precioUnit: number; duracionMin: number; subtotal: number }>;
   };
-  clienteEmail: string | null = null;
 
-  constructor(private platform: Platform, private zone: NgZone, private navCtrl: NavController) { }
+  constructor(private platform: Platform, private zone: NgZone, private navCtrl: NavController) {}
 
   async ngOnInit() {
     const sub = this.platform.backButton.subscribeWithPriority(9999, () => {
@@ -112,7 +117,6 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
 
       this.mesa = await this.mesasSrv.getById(this.mesaId);
       if (!this.mesa) throw new Error("Mesa no encontrada");
-
       this.mesaAsignada = !!this.mesa;
 
       const [allPlatos, bebidas] = await Promise.all([this.platosSrv.list(), this.bebidasSrv.list()]);
@@ -124,21 +128,9 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
       this.userUid = au.user?.id ?? "";
       this.clienteEmail = au.user?.email ?? null;
 
-      if (anonimoId) this.myUserId = `anon-${anonimoId}`;
-      else this.myUserId = await this.chatSvc.getMyUserId();
+      this.myUserId = anonimoId ? `anon-${anonimoId}` : await this.chatSvc.getMyUserId();
 
-      if (this.mesaId) {
-        const activo = await this.pedidos.getPedidoActivo({
-          mesaId: this.mesaId,
-          clienteUid: this.userUid || undefined,
-          clienteEmail: this.clienteEmail || undefined
-        });
-        if (activo) {
-          this.pedidoEnCurso = true;
-          this.pedidoActualId = activo.id as string;
-        }
-      }
-
+      await this.detectarYPoblarPedido();
       await this.ensureChatAndSubscribe();
     } catch (e: any) {
       this.error = e?.message || "Error cargando mesa";
@@ -146,6 +138,98 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     } finally {
       setTimeout(() => (this.loading = false), 2000);
     }
+  }
+
+  private applyEstado(raw: any) {
+    const norm = (raw ?? "").toString().trim().toLowerCase();
+    const ok = ["pendiente", "aceptado", "rechazado", "terminado"] as const;
+    this.estadoPedido = (ok as readonly string[]).includes(norm) ? (norm as Estado) : null;
+    this.updateBanner();
+  }
+
+  private updateBanner(): void {
+    switch (this.estadoPedido) {
+      case "pendiente":
+      case "aceptado":
+        this.bannerMsg = "Pedido en curso, espere por favor.";
+        break;
+      case "terminado":
+        this.bannerMsg = "Pedido entregado, disfrute su comida";
+        break;
+      default:
+        this.bannerMsg = "";
+    }
+  }
+
+  private async detectarYPoblarPedido(): Promise<void> {
+    if (!this.mesaId) return;
+
+    const activo = await this.pedidos.getPedidoActivo({
+      mesaId: this.mesaId,
+      clienteUid: this.userUid || undefined,
+      clienteEmail: this.clienteEmail || undefined
+    });
+
+    if (activo) {
+      this.pedidoEnCurso = true;
+      this.pedidoActualId = activo.id as string;
+      this.applyEstado((activo as any).estado);
+      await this.cargarItemsDePedido(this.pedidoActualId);
+      return;
+    }
+
+    const { data: pedRej } = await supabase
+      .from("pedidos")
+      .select("id")
+      .eq("mesa_id", this.mesaId)
+      .eq("cliente_email", this.clienteEmail)
+      .eq("estado", "rechazado")
+      .order("created_at", { ascending: false })
+      .limit(1);
+
+    if (pedRej && pedRej[0]?.id) {
+      await this.cargarItemsDePedido(pedRej[0].id as string);
+      this.pedidoEnCurso = false;
+      this.applyEstado("rechazado");
+    } else {
+      this.pedidoEnCurso = false;
+      this.applyEstado(null); 
+    }
+  }
+
+  private async cargarItemsDePedido(pedidoId: string): Promise<void> {
+    const { data: items } = await supabase
+      .from("pedido_items")
+      .select("producto_id, tipo, nombre, precio_unit, cantidad, duracion_min")
+      .eq("pedido_id", pedidoId);
+
+    this.qtyMap.clear();
+    this.itemsSel = [];
+
+    for (const it of items ?? []) {
+      this.qtyMap.set(it.producto_id as number, it.cantidad as number);
+      this.itemsSel.push({
+        productoId: it.producto_id as number,
+        tipo: it.tipo as any,
+        nombre: it.nombre as string,
+        precioUnit: it.precio_unit as number,
+        cantidad: it.cantidad as number,
+        duracionMin: it.duracion_min as number
+      });
+    }
+
+    let total = 0;
+    let maxDur = 0;
+    for (const i of this.itemsSel) {
+      total += i.precioUnit * i.cantidad;
+      maxDur = Math.max(maxDur, i.duracionMin);
+    }
+    this.total = Number(total.toFixed(2));
+    this.etaMin = this.itemsSel.length ? Math.round(maxDur + 10) : 0;
+  }
+
+  get pedidoBloqueado(): boolean {
+    return !!this.pedidoEnCurso && this.estadoPedido !== "rechazado";
   }
 
   ngAfterViewInit(): void {
@@ -260,18 +344,18 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   }
 
   trackMsg = (_: number, m: { id: string }) => m.id;
-  private scrollToBottom(ms: number = 200) { try { this.chatContent?.scrollToBottom(ms); } catch { } }
+  private scrollToBottom(ms: number = 200) { try { this.chatContent?.scrollToBottom(ms); } catch {} }
   private scrollToBottomAfterRender() { requestAnimationFrame(() => setTimeout(() => this.scrollToBottom(200), 0)); }
 
   incByPlato(p: Plato) {
-    if (this.submitting) return;
+    if (this.submitting || this.pedidoBloqueado) return;
     const id = p.id!;
     this.qtyMap.set(id, (this.qtyMap.get(id) || 0) + 1);
     this.syncItems();
   }
 
   decById(id: number) {
-    if (this.submitting) return;
+    if (this.submitting || this.pedidoBloqueado) return;
     const prev = this.qtyMap.get(id) || 0;
     if (prev <= 0) return;
     this.qtyMap.set(id, prev - 1);
@@ -279,13 +363,13 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   }
 
   inc(p: AddItem): void {
-    if (this.submitting) return;
+    if (this.submitting || this.pedidoBloqueado) return;
     this.qtyMap.set(p.id, (this.qtyMap.get(p.id) || 0) + 1);
     this.syncItems();
   }
 
   dec(id: number): void {
-    if (this.submitting) return;
+    if (this.submitting || this.pedidoBloqueado) return;
     this.decById(id);
   }
 
@@ -364,6 +448,10 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     try {
       if (!this.itemsSel.length) return;
       if (!this.mesaId) throw new Error("Mesa inválida.");
+      if (this.pedidoBloqueado) {
+        this.updateBanner();
+        return;
+      }
 
       this.submitting = true;
 
@@ -384,7 +472,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
       if (existente && existente.estado !== "rechazado") {
         this.pedidoEnCurso = true;
         this.pedidoActualId = existente.id as string;
-        (await this.toast.create({ message: "Pedido en curso.", duration: 1800, position: "top", cssClass: "toast" })).present();
+        this.applyEstado((existente as any).estado);   // << normaliza acá
         return;
       } else if (existente && existente.estado === "rechazado") {
         await this.pedidos.reemplazarItems(existente.id as string, this.itemsSel, this.total, this.etaMin, "pendiente");
@@ -401,6 +489,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
       }
 
       this.pedidoEnCurso = true;
+      this.applyEstado("pendiente");                   // << normaliza acá
       this.pedidoActualId = pedidoId;
 
       const mesaNumero = this.mesa?.numero ?? "NN";
@@ -409,13 +498,15 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
       this.unsubEstado?.();
       this.unsubEstado = this.pedidos.onEstadoPedido(pedidoId, async (estado) => {
         this.zone.run(async () => {
-          if (estado === "aceptado") {
+          this.applyEstado(estado);                    // << normaliza acá
+          if (this.estadoPedido === "aceptado") {
             this.buildCocinaYBebida();
             this.router.navigate(["/pedido", pedidoId]);
-          } else if (estado === "rechazado") {
+          } else if (this.estadoPedido === "rechazado") {
+            this.pedidoEnCurso = false;
             this.submitting = false;
             (await this.toast.create({
-              message: "Tu pedido fue rechazado. Podés modificarlo y reenviarlo.",
+              message: "Su pedido fue rechazado. Puede modificarlo y reenviarlo.",
               duration: 2000,
               position: "top",
               cssClass: "toast"

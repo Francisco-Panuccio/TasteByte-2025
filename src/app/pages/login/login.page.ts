@@ -4,6 +4,8 @@ import { AuthService } from "src/app/services/auth/auth";
 import { FormBuilder, Validators } from "@angular/forms";
 import { Push } from "src/app/services/push/push";
 import { supabase } from "src/supabase.client";
+import { Capacitor } from "@capacitor/core";
+import { Haptics, NotificationType, ImpactStyle } from "@capacitor/haptics";
 
 type Role = "mozo" | "cliente";
 
@@ -20,6 +22,8 @@ export class LoginPage implements OnInit {
 
   formLogin: ReturnType<FormBuilder["group"]>;
 
+  private errorAudio = new Audio("assets/sounds/error.mp3");
+
   constructor(
     private fb: FormBuilder,
     private auth: AuthService,
@@ -30,12 +34,12 @@ export class LoginPage implements OnInit {
       email: ["", [Validators.required, Validators.email]],
       password: ["", [Validators.required, Validators.minLength(6)]],
     });
+    this.errorAudio.preload = "auto";
+    try { this.errorAudio.load(); } catch { }
   }
 
   private isApproved(perfil?: string, estado?: string): boolean {
-    if (perfil === "cliente_registrado" && estado === "activo") {
-      return true;
-    }
+    if (perfil === "cliente_registrado" && estado === "activo") return true;
     return perfil !== "cliente_registrado";
   }
 
@@ -43,6 +47,32 @@ export class LoginPage implements OnInit {
     await this.push.init(userId, role);
     if (role === "mozo") this.push.initMozoHandlers();
     await this.push.ready();
+  }
+
+  private sleep(ms: number) { return new Promise(res => setTimeout(res, ms)); }
+
+  private async errorFeedback() {
+    try {
+      const isNative = Capacitor.isNativePlatform();
+      if (isNative) {
+        const plat = Capacitor.getPlatform();
+        if (plat === "android") {
+          try { await Haptics.vibrate({ duration: 1500 }); } catch { }
+          try { await Haptics.impact({ style: ImpactStyle.Heavy }); } catch { }
+        } else {
+          for (let i = 0; i < 4; i++) {
+            try { await Haptics.notification({ type: NotificationType.Error }); } catch { }
+            await this.sleep(250);
+          }
+        }
+      } else {
+        try { (navigator as any).vibrate?.(1500); } catch { }
+      }
+    } catch { }
+    try {
+      this.errorAudio.currentTime = 0;
+      await this.errorAudio.play();
+    } catch { }
   }
 
   async ngOnInit() {
@@ -58,9 +88,7 @@ export class LoginPage implements OnInit {
           .eq("correo_electronico", email)
           .maybeSingle();
 
-        if (error) {
-          console.error("Error Cargando Perfil del Usuario", error);
-        }
+        if (error) { console.error("Error Cargando Perfil del Usuario", error); }
 
         const perfil = u?.perfil;
         const userId = u?.id;
@@ -72,9 +100,7 @@ export class LoginPage implements OnInit {
             .select("estado")
             .eq("usuario_id", userId)
             .maybeSingle();
-          if (cErr) {
-            console.error("Error Cargando Estado del Cliente", cErr);
-          }
+          if (cErr) { console.error("Error Cargando Estado del Cliente", cErr); }
           estado = cData?.estado;
 
           if (!this.isApproved(perfil, estado)) {
@@ -98,9 +124,7 @@ export class LoginPage implements OnInit {
     setTimeout(() => (this.loading = false), 2000);
   }
 
-  goAnonRegister() {
-    this.router.navigateByUrl("/anon-register");
-  }
+  goAnonRegister() { this.router.navigateByUrl("/anon-register"); }
 
   async onLogin() {
     this.errorMsg = false;
@@ -108,15 +132,13 @@ export class LoginPage implements OnInit {
     this.formLogin.updateValueAndValidity({ emitEvent: true });
     if (this.formLogin.invalid) return;
 
-    const { email, password } = this.formLogin.value as {
-      email: string;
-      password: string;
-    };
+    const { email, password } = this.formLogin.value as { email: string; password: string; };
 
     const { error: signErr } = await this.auth.signIn(email, password);
     if (signErr) {
       this.errorText = "Credenciales Inválidas";
       this.errorMsg = true;
+      await this.errorFeedback();
       return;
     }
 
@@ -124,6 +146,7 @@ export class LoginPage implements OnInit {
     if (authErr || !authData.user) {
       this.errorText = "No se pudo obtener el usuario";
       this.errorMsg = true;
+      await this.errorFeedback();
       return;
     }
 
@@ -131,6 +154,7 @@ export class LoginPage implements OnInit {
     if (!emailAut) {
       this.errorText = "No se pudo obtener el email";
       this.errorMsg = true;
+      await this.errorFeedback();
       return;
     }
 
@@ -143,6 +167,7 @@ export class LoginPage implements OnInit {
     if (uErr || !u) {
       this.errorText = "No se encontró el perfil del usuario";
       this.errorMsg = true;
+      await this.errorFeedback();
       return;
     }
 
@@ -156,16 +181,14 @@ export class LoginPage implements OnInit {
         .select("estado")
         .eq("usuario_id", userId)
         .maybeSingle();
-
-      if (cErr) {
-        console.error("Error Cargando Estado del Cliente", cErr);
-      }
+      if (cErr) { console.error("Error Cargando Estado del Cliente", cErr); }
       estado = cData?.estado;
 
       if (!this.isApproved(perfil, estado)) {
         await supabase.auth.signOut();
         this.errorText = "Cuenta Rechazada o Pendiente de Aprobación.";
         this.errorMsg = true;
+        await this.errorFeedback();
         return;
       }
     }
@@ -180,7 +203,5 @@ export class LoginPage implements OnInit {
     this.formLogin.patchValue(user);
   }
 
-  closeError() {
-    this.errorMsg = false;
-  }
+  closeError() { this.errorMsg = false; }
 }
