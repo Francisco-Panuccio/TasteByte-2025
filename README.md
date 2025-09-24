@@ -33,7 +33,7 @@
   <img src="src/assets/imagesGithub/splash.jpeg" alt="Splash Screen" width="400" height="800">
   <img src="src/assets/imagesGithub/loading.jpeg" alt="Loading" width="400" height="800">
   <img src="src/assets/imagesGithub/login.jpeg" alt="Login" width="400" height="800">
-  <img src="src/assets/imagesGithub/register.jpeg" alt="Register" width="400" height="800">
+  <img src="" alt="Register" width="400" height="800">
   <img src="src/assets/imagesGithub/alta_empleado.jpeg" alt="Alta Empleado" width="400" height="800">
 </p>
 
@@ -62,6 +62,7 @@
   <img src="src/assets/imagesGithub/chat_cliente.jpeg" alt="Chat Cliente" width="400" height="800">
   <img src="src/assets/imagesGithub/pedido.jpeg" alt="Pedido" width="400" height="800">
   <img src="src/assets/imagesGithub/chat_mozo.jpeg" alt="Chat Mozo" width="400" height="800">
+  <img src="" alt="Notificación" width="400" height="800">
 </p>
 
 * Roman
@@ -83,6 +84,7 @@
 
 <p align="center">
   <img src="src/assets/imagesGithub/clientes_pendientes.jpeg" alt="Clientes Pendientes" width="400" height="800">
+  <img src="" alt="Email" width="400" height="200">
 </p>
 
 
@@ -98,6 +100,10 @@
 - Fecha Inicial: 22/09/2025
 - Fecha Final: 
 - Branch: roman
+
+<p align="center">
+  <img src="" alt="Main Cliente" width="400" height="800">
+</p>
 
 * Avallone
 - Objetivos: Puntos 16 (Cocina Recibe Productos), 17 (Bar Recibe Productos), 18 (Pedido Completado)
