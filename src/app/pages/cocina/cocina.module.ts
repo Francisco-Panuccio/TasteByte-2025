@@ -7,13 +7,15 @@ import { IonicModule } from '@ionic/angular';
 import { CocinaPageRoutingModule } from './cocina-routing.module';
 
 import { CocinaPage } from './cocina.page';
+import { LoadingPage } from '../loading/loading.page';
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
-    CocinaPageRoutingModule
+    CocinaPageRoutingModule,
+    LoadingPage
   ],
   declarations: [CocinaPage]
 })

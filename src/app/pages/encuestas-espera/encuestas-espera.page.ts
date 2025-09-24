@@ -4,7 +4,6 @@ import { ToastController } from '@ionic/angular';
 import { Qr } from 'src/app/services/qr/qr';
 import { supabase } from 'src/supabase.client';
 
-// Tipos
 type EstadoAsignacion = 'pendiente' | 'asignada' | 'sentado' | 'liberada' | 'cancelada';
 interface AsignacionMesaRow {
   mesa_id: number;
@@ -19,10 +18,9 @@ interface AsignacionMesaRow {
 })
 export class EncuestasEsperaPage implements OnInit, OnDestroy {
   nombreCliente: string | undefined;
-
-  usuarioId: number | null = null;     // 🔹 ahora es number (usuarios.id)
-  anonimoId: string | undefined;       // 🔹 sigue siendo string
-  clienteId: number | null = null;     // 🔹 sigue siendo number (clientes.id)
+  usuarioId: number | null = null;
+  anonimoId: string | undefined;
+  clienteId: number | null = null;
 
   encuestas: any[] = [];
   clientes: any[] = [];
@@ -88,9 +86,12 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
           },
           async (payload: { new?: Partial<AsignacionMesaRow> }) => {
             const mesa = payload?.new?.mesa_id;
+            const estado = payload?.new?.estado as EstadoAsignacion | undefined;
             if (typeof mesa === 'number') {
               this.mesaAsignadaId = mesa;
-              this.mostrarToast(`¡Te asignaron la mesa #${mesa}!`, 'success');
+              if (estado === 'asignada') {
+                await this.presentAsignadaPush();
+              }
             }
           }
         )
@@ -106,41 +107,50 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     }
   }
 
+  private async presentAsignadaPush() {
+    const t = await this.toast.create({
+      header: 'Su mesa ha sido asignada',
+      message: '',
+      duration: 3000,
+      position: 'top',
+      cssClass: 'toast'
+    });
+    await t.present();
+  }
+
   private async cargarMesaAsignada() {
- 
-  let q = supabase
-    .from('asignaciones_mesa')
-    .select('mesa_id, estado')
-    .in('estado', ['pendiente', 'asignada', 'sentado'] as EstadoAsignacion[])
-    .order('asignada_en', { ascending: false })
-    .limit(1);
+    let q = supabase
+      .from('asignaciones_mesa')
+      .select('mesa_id, estado')
+      .in('estado', ['pendiente', 'asignada', 'sentado'] as EstadoAsignacion[])
+      .order('asignada_en', { ascending: false })
+      .limit(1);
 
-  if (this.clienteId) q = q.eq('cliente_id', this.clienteId);
-  if (this.anonimoId) q = q.eq('cliente_anonimo_id', this.anonimoId);
+    if (this.clienteId) q = q.eq('cliente_id', this.clienteId);
+    if (this.anonimoId) q = q.eq('cliente_anonimo_id', this.anonimoId);
 
-  const { data: asignacion, error: errAsignacion } = await q.maybeSingle();
+    const { data: asignacion, error: errAsignacion } = await q.maybeSingle();
 
-  if (!errAsignacion && asignacion && typeof asignacion.mesa_id === 'number') {
-    this.mesaAsignadaId = asignacion.mesa_id;
-    this.yaRegistrado = true; 
-    return;
+    if (!errAsignacion && asignacion && typeof asignacion.mesa_id === 'number') {
+      this.mesaAsignadaId = asignacion.mesa_id;
+      this.yaRegistrado = true;
+      return;
+    }
+
+    let qLista = supabase
+      .from('lista_espera')
+      .select('id, estado')
+      .in('estado', ['pendiente', 'aprobado']);
+
+    if (this.clienteId) qLista = qLista.eq('cliente_id', this.clienteId);
+    if (this.anonimoId) qLista = qLista.eq('cliente_anonimo_id', this.anonimoId);
+
+    const { data: espera, error: errLista } = await qLista.maybeSingle();
+
+    if (!errLista && espera) {
+      this.yaRegistrado = true;
+    }
   }
-
-
-  let qLista = supabase
-    .from('lista_espera')
-    .select('id, estado')
-    .in('estado', ['pendiente', 'aprobado']);
-
-  if (this.clienteId) qLista = qLista.eq('cliente_id', this.clienteId);
-  if (this.anonimoId) qLista = qLista.eq('cliente_anonimo_id', this.anonimoId);
-
-  const { data: espera, error: errLista } = await qLista.maybeSingle();
-
-  if (!errLista && espera) {
-    this.yaRegistrado = true; 
-  }
-}
 
   async registrarseListaEspera() {
     if (this.yaRegistrado) return;
@@ -148,9 +158,9 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     let payload: any = { estado: 'pendiente' };
 
     if (this.clienteId) {
-      payload.cliente_id = this.clienteId; // int
+      payload.cliente_id = this.clienteId;
     } else if (this.anonimoId) {
-      payload.cliente_anonimo_id = this.anonimoId; // uuid string
+      payload.cliente_anonimo_id = this.anonimoId;
     } else {
       this.mostrarToast('Error: no se detectó cliente', 'danger');
       return;
@@ -158,7 +168,6 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
 
     const { error } = await supabase.from('lista_espera').insert(payload);
     if (error) {
-      console.error(error);
       this.mostrarToast('Error al registrarse en la lista de espera', 'danger');
       return;
     }
@@ -169,7 +178,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
 
   async registrarEncuesta(encuestaId: string) {
     await supabase.from('respuestas_encuestas').insert({
-      usuario_id: this.usuarioId, // int
+      usuario_id: this.usuarioId,
       encuesta_id: encuestaId,
       respondido_en: new Date().toISOString(),
     });
@@ -182,10 +191,9 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
 
     const res = await this.qr.procesarQrCliente(
       qr,
-      this.clienteId ?? undefined,   
-      this.anonimoId ?? undefined   
+      this.clienteId ?? undefined,
+      this.anonimoId ?? undefined
     );
-
 
     if (res.error) {
       this.mostrarToast(res.error, 'danger');
@@ -198,23 +206,19 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
           mesaId: res.mesaAsignada,
           numero: res.numero,
           anonimoId: this.anonimoId,
-          usuarioId: this.usuarioId, 
-          clienteId: this.clienteId 
+          usuarioId: this.usuarioId,
+          clienteId: this.clienteId
         },
       });
     }
   }
 
   async salir() {
-  try {
-    await supabase.auth.signOut(); 
-  } catch (e) {
-    console.error("Error cerrando sesión", e);
+    try {
+      await supabase.auth.signOut();
+    } catch {}
+    this.router.navigate(['/login'], { replaceUrl: true });
   }
-
-  this.router.navigate(['/login'], { replaceUrl: true });
-}
-
 
   private async mostrarToast(mensaje: string, color: string = 'primary') {
     const t = await this.toast.create({

@@ -5,6 +5,7 @@ import { Mesas } from "src/app/services/mesas/mesas";
 import { Pedidos } from "src/app/services/pedidos/pedidos";
 import { supabase } from "src/supabase.client";
 import { Push } from "src/app/services/push/push";
+import { Subscription } from "rxjs";
 
 type Filtro = "todos" | "pendiente" | "aceptado" | "rechazado";
 
@@ -43,16 +44,61 @@ export class PedidosMozoPage implements OnInit {
   @ViewChild("inboxModal", { read: IonModal }) inboxModal?: IonModal;
   inbox: Array<{ chatId: string; mesaId: number; mesaNumero?: number; lastText: string; time: string }> = [];
 
+  private pushSub?: Subscription;
+  private rtChannel?: ReturnType<typeof supabase.channel>;
+
   async ngOnInit() {
     await this.ensureMozo();
     this.myUserId = await this.chatSvc.getMyUserId();
     await this.cargar();
     this.sub = this.pedidosSrv.subscribeCambios(() => this.cargar());
+
+    await this.push.init(undefined, "mozo");
+    await this.push.ready();
+    this.pushSub = this.push.onPush$.subscribe(async (data: any) => {
+      const isChat = (data?.tipo ?? "") === "chat" || data?.chatId;
+      if (isChat) {
+        const txt = (data?.preview as string) || (data?.body as string) || "Nuevo mensaje";
+        const fromName = (data?.fromName as string) || (data?.fromRole === "cliente" ? "Cliente" : "Mensaje");
+        const mesaId = Number(data?.mesaId);
+        (await this.toast.create({
+          message: `${fromName}: ${txt}`,
+          duration: 3000,
+          position: "top",
+          cssClass: "toast",
+          buttons: [{ text: "Abrir", handler: () => (mesaId ? this.abrirChat(mesaId) : this.abrirInbox()) }]
+        })).present();
+      }
+    });
+
+    this.rtChannel = supabase
+      .channel("rt-chat-mozo")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages" }, async (payload) => {
+        const row: any = payload.new;
+        const chatId = row?.chat_id as string | undefined;
+        if (!chatId) return;
+        const fromId = row?.from_id ?? row?.sender_id ?? row?.user_id ?? null;
+        if (!this.myUserId) this.myUserId = await this.chatSvc.getMyUserId();
+        if (fromId && this.myUserId && String(fromId) === String(this.myUserId)) return;
+        const txt = (row?.body as string) || "Nuevo mensaje";
+        const { data: chat } = await supabase.from("chats").select("mesa_id").eq("id", chatId).maybeSingle();
+        const mesaId = chat?.mesa_id as number | undefined;
+        (await this.toast.create({
+          message: `Cliente: ${txt}`,
+          duration: 3000,
+          position: "top",
+          cssClass: "toast",
+          buttons: [{ text: "Abrir", handler: () => (mesaId ? this.abrirChat(mesaId) : this.abrirInbox()) }]
+        })).present();
+      })
+      .subscribe();
   }
 
   ngOnDestroy() {
     this.sub?.unsubscribe?.();
     this.chatSvc.unsubscribe();
+    try { this.pushSub?.unsubscribe(); } catch { }
+    try { if (this.rtChannel) supabase.removeChannel(this.rtChannel); } catch { }
   }
 
   private async ensureMozo() {
@@ -77,34 +123,21 @@ export class PedidosMozoPage implements OnInit {
     this.busy = true;
     try {
       await this.pedidosSrv.actualizarEstado(pedidoId, estado as any);
-
       try {
         const { data: ped } = await supabase.from("pedidos").select("mesa_id").eq("id", pedidoId).single();
         const mesaId = ped?.mesa_id as number | undefined;
-
         if (mesaId != null) {
           const tokens = await this.chatSvc.getClienteTokenByMesa(mesaId);
           if (tokens.length) {
             const mesaNumero = this.mesasNum.get(mesaId) ?? mesaId;
             const title = estado === "aceptado" ? "Pedido aceptado" : "Pedido rechazado";
-            const body =
-              estado === "aceptado"
-                ? `Mesa ${mesaNumero}: tu pedido fue aceptado`
-                : `Mesa ${mesaNumero}: tu pedido fue rechazado. Podés modificarlo y reenviarlo`;
-
-            await this.push.send(tokens, title, body, {
-              tipo: "pedido",
-              pedidoId,
-              mesaId,
-              estado
-            });
+            const body = estado === "aceptado" ? `Mesa ${mesaNumero}: tu pedido fue aceptado` : `Mesa ${mesaNumero}: tu pedido fue rechazado. Podés modificarlo y reenviarlo`;
+            await this.push.send(tokens, title, body, { tipo: "pedido", pedidoId, mesaId, estado });
           }
         }
-      } catch {}
-
+      } catch { }
       const msg = estado === "aceptado" ? "Pedido aceptado" : "Pedido rechazado";
       (await this.toast.create({ message: msg, duration: 1200, position: "top", cssClass: "toast" })).present();
-
       await this.cargar();
     } finally {
       this.busy = false;
@@ -137,19 +170,15 @@ export class PedidosMozoPage implements OnInit {
       const m = await this.mesasSrv.getById(mesaId);
       if (m) this.mesasNum.set(mesaId, m.numero!);
     }
-
     const chat = await this.chatSvc.getOrCreateForMesa(mesaId, "mozo");
     this.chatId = chat.id;
-
     const msgs = await this.chatSvc.loadMessages(chat.id, 200);
     this.messages = msgs.map(m => {
       const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
       return { ...vm, role: vm.from === "yo" ? "mozo" : "cliente" };
     });
-
     this.chatOpen = true;
     this.scrollToBottomAfterRender();
-
     this.chatSvc.unsubscribe();
     this.chatSvc.subscribeToMessages(chat.id, (m) => {
       const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
@@ -158,7 +187,7 @@ export class PedidosMozoPage implements OnInit {
     });
   }
 
-  private scrollToBottom(ms: number = 200) { try { this.chatContent?.scrollToBottom(ms); } catch {} }
+  private scrollToBottom(ms: number = 200) { try { this.chatContent?.scrollToBottom(ms); } catch { } }
   private scrollToBottomAfterRender() { requestAnimationFrame(() => setTimeout(() => this.scrollToBottom(200), 0)); }
 
   async cerrarChat() {
@@ -170,10 +199,8 @@ export class PedidosMozoPage implements OnInit {
   async enviar() {
     const t = this.newMsg.trim();
     if (!t || !this.chatId || !this.mesaChatId || this.busy) return;
-
     await this.chatSvc.sendMessage(this.chatId, t);
     this.newMsg = "";
-
     try {
       const to = await this.chatSvc.getClienteTokenByMesa(this.mesaChatId);
       if (to.length) {
@@ -186,7 +213,7 @@ export class PedidosMozoPage implements OnInit {
           preview: t.slice(0, 80)
         });
       }
-    } catch {}
+    } catch { }
   }
 
   async abrirInbox() {

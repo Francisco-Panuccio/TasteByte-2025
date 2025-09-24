@@ -1,13 +1,59 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>cocina</ion-title>
-  </ion-toolbar>
-</ion-header>
+@if(loading) {
+  <app-loading/>
+} @else {
+  <header>
+    <title>Cocina</title>
+  </header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
+  <ion-content>
+    <ion-refresher slot="fixed" (ionRefresh)="cargar(); $event.target.complete()">
+      <ion-refresher-content></ion-refresher-content>
+    </ion-refresher>
+
+    <ng-container *ngIf="pedidos.length; else empty">
+      <ion-list>
+        <ion-card *ngFor="let p of pedidos">
+          <ion-card-header>
+            <ion-card-title>Mesa {{ p.mesa_numero }}</ion-card-title>
+            <ion-card-subtitle>{{ p.creado_en | date:'short' }}</ion-card-subtitle>
+          </ion-card-header>
+
+          <ion-card-content>
+            <ion-chip>
+              <ion-label>{{ p.cantidad }} ítems</ion-label>
+            </ion-chip>
+            <ion-chip>
+              <ion-label>Total: {{ p.total | currency:'ARS':'symbol' }}</ion-label>
+            </ion-chip>
+
+            <ion-list lines="none">
+              <ion-item *ngFor="let it of p.items">
+                <ion-label>
+                  <h3>{{ it.nombre }}</h3>
+                  <p>Prep: {{ it.duracionMin }} min</p>
+                </ion-label>
+                <ion-note slot="end">x{{ it.cantidad }} · {{ it.subtotal | currency:'ARS':'symbol' }}</ion-note>
+              </ion-item>
+            </ion-list>
+
+            <ion-button expand="block" color="success" (click)="terminar(p.id)">Marcar terminado</ion-button>
+          </ion-card-content>
+        </ion-card>
+      </ion-list>
+    </ng-container>
+
+    <ng-template #empty>
+      <ion-item lines="none">
+        <ion-label>No hay pedidos pendientes</ion-label>
+      </ion-item>
+    </ng-template>
+  </ion-content>
+
+  <footer>
     <ion-toolbar>
-      <ion-title size="large">cocina</ion-title>
+      <ion-buttons class="ion_btns">
+        <ion-button class="btn_logged" routerLink="/home">Volver</ion-button>
+      </ion-buttons>
     </ion-toolbar>
-  </ion-header>
-</ion-content>
+  </footer>
+}

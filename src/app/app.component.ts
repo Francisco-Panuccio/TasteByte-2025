@@ -18,8 +18,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private lottieAnimation: any;
   private splashAudio?: MediaObject;
   private closeAudio?: MediaObject;
-  private backListener?: PluginListenerHandle;
-  private stateListener?: PluginListenerHandle;
+  private backListener?: Promise<PluginListenerHandle>;
 
   showSplash: boolean = true;
 
@@ -28,7 +27,7 @@ export class AppComponent implements OnInit, OnDestroy {
     private animationCtrl: AnimationController,
     private media: Media,
     private push: Push
-  ) { }
+  ) {}
 
   async ngOnInit() {
     const plat = Capacitor.getPlatform();
@@ -37,7 +36,7 @@ export class AppComponent implements OnInit, OnDestroy {
       : "assets/sounds/start.mp3";
 
     this.splashAudio = this.media.create(startSrc);
-    try { this.splashAudio.play(); } catch { }
+    try { this.splashAudio.play(); } catch {}
 
     try {
       const { data } = await supabase.auth.getUser();
@@ -48,9 +47,9 @@ export class AppComponent implements OnInit, OnDestroy {
         await this.push.init(userId, role);
         if (role === "mozo") this.push.initMozoHandlers();
       }
-    } catch { }
+    } catch {}
 
-    this.backListener = await App.addListener("backButton", ({ canGoBack }) => {
+    this.backListener = App.addListener("backButton", ({ canGoBack }) => {
       if (canGoBack) {
         window.history.back();
       } else {
@@ -58,22 +57,15 @@ export class AppComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.stateListener = await App.addListener("appStateChange", ({ isActive }) => {
-      if (!isActive) {
-        this.playCloseSound();
-      }
-    });
-
     setTimeout(() => this.iniciarAnimacionesElementos(), 100);
   }
 
   ngOnDestroy() {
-    try { this.splashAudio?.stop(); } catch { }
-    try { this.splashAudio?.release(); } catch { }
-    try { this.closeAudio?.stop(); } catch { }
-    try { this.closeAudio?.release(); } catch { }
-    void this.backListener?.remove();
-    void this.stateListener?.remove();
+    try { this.splashAudio?.stop(); } catch {}
+    try { this.splashAudio?.release(); } catch {}
+    try { this.closeAudio?.stop(); } catch {}
+    try { this.closeAudio?.release(); } catch {}
+    this.backListener?.then(h => h.remove()).catch(() => {});
   }
 
   private playCloseSound() {
@@ -82,22 +74,22 @@ export class AppComponent implements OnInit, OnDestroy {
       ? "file:///android_asset/public/assets/sounds/close.mp3"
       : "assets/sounds/close.mp3";
     try {
-      try { this.closeAudio?.stop(); } catch { }
-      try { this.closeAudio?.release(); } catch { }
+      try { this.closeAudio?.stop(); } catch {}
+      try { this.closeAudio?.release(); } catch {}
       this.closeAudio = this.media.create(closeSrc);
       this.closeAudio.play();
       setTimeout(() => {
-        try { this.closeAudio?.stop(); } catch { }
-        try { this.closeAudio?.release(); } catch { }
+        try { this.closeAudio?.stop(); } catch {}
+        try { this.closeAudio?.release(); } catch {}
         this.closeAudio = undefined;
       }, 1500);
-    } catch { }
+    } catch {}
   }
 
   private playCloseAndExit() {
     this.playCloseSound();
     setTimeout(() => {
-      try { App.exitApp(); } catch { }
+      try { App.exitApp(); } catch {}
     }, 900);
   }
 
@@ -137,7 +129,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
     setTimeout(async () => {
       if (this.lottieAnimation) { this.lottieAnimation.destroy(); }
-      try { this.splashAudio?.stop(); } catch { }
+      try { this.splashAudio?.stop(); } catch {}
       this.showSplash = false;
       this.router.navigate(["/login"]);
     }, 5000);
