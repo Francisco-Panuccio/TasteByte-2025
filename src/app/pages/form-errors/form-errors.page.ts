@@ -27,7 +27,7 @@ export class FormErrorsPage {
     if (errors['nombreExistente']) return 'Ya existe en la carta';
     if (errors['dni']) return 'DNI inválido';
     if (errors['cuil']) return 'CUIL inválido';
-    if (errors['fotosIncompletas']) return 'Debes subir las 3 fotos';
+    if (errors['fotosIncompletas']) return 'Debe subir las 3 fotos';
 
     return 'Error desconocido';
   }

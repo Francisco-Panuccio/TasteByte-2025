@@ -32,10 +32,12 @@ h2 {
   gap: 8px;
 }
 
-.slot ion-card-header {
+ion-card-header {
   font-weight: 600;
   text-align: center;
   color: #554738;
+  font-size: 16px;
+  text-decoration: underline;
 }
 
 .slot ion-card-content {
@@ -69,6 +71,7 @@ ion-button {
   --background: #554738;
   border: 2px solid white;
   border-radius: 5px;
+  margin: -15px 0 10px 0;
 }
 
 .btns_main_back {
@@ -91,8 +94,8 @@ ion-button {
 }
 
 .card-pending {
-  background: #f5e6d3; /* Beige suave */
-  border: 2px solid #d3a87c; /* Marrón claro */
+  background: #f5e6d3;
+  border: 2px solid #d3a87c;
   border-radius: 12px;
   text-align: center;
   color: #554738;
@@ -102,12 +105,12 @@ ion-button {
 }
 
 .card-pending .resalta {
-  color: #a45c2b; /* marrón intermedio */
+  color: #a45c2b;
   font-weight: bold;
 }
 
 .card-success {
-  background: #e8f5e9; /* Verde muy claro */
+  background: #e8f5e9;
   border: 2px solid #4caf50;
   border-radius: 12px;
   text-align: center;
@@ -123,6 +126,18 @@ ion-button {
   align-items: center;
   gap: 12px;
   width: 100%;
+  background-color: #e6dacd;
+  border-top: 2px solid black;
 }
 
+.btn_pedido {
+  --background: rgb(112, 112, 112);
+}
 
+.btn_encuesta {
+  --background: rgb(70, 194, 87);
+}
+
+.btn_juegos {
+  --background: rgb(107, 170, 238);
+}

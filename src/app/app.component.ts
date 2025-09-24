@@ -44,7 +44,7 @@ export class AppComponent implements OnInit, OnDestroy {
       }
     } catch {}
 
-    setTimeout(() => this.iniciarAnimacionesElementos(), 100);
+    // setTimeout(() => this.iniciarAnimacionesElementos(), 100);
   }
 
   ngOnDestroy() {

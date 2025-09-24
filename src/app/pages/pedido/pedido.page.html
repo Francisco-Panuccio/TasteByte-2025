@@ -7,7 +7,7 @@
 
   <ion-content>
       @if(!loading && !ped) {
-        <div class="vacio">Pedido no Encontrado</div>
+        <div class="vacio">Pedido no encontrado</div>
       } @else {
         @for (it of items; track it.id) {
           <ion-item>
@@ -22,7 +22,7 @@
         <div class="div_total">
           <p><span style="color: black;">Total: </span> {{ ped?.total | currency:"ARS":"symbol-narrow" }}</p>
           <p><span style="color: black;">Espera: </span> {{ ped?.eta_minutos }} min</p>
-          <p><span style="color: black;">Estado: </span> {{ ped?.estado }}</p>
+          <p><span style="color: black;">Estado: </span> {{ ped?.estado | titlecase }}</p>
         </div>
       }
   </ion-content>
