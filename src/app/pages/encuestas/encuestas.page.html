@@ -1,0 +1,79 @@
+@if (loading) {
+  <app-loading/>
+} @else {
+  <header>
+    <title>Encuestas</title>
+  </header>
+
+  <ion-content class="ion-padding">
+    <ion-segment [(ngModel)]="segment">
+      <ion-segment-button value="encuestas">Encuestas</ion-segment-button>
+      <ion-segment-button value="graficos">Gráficos</ion-segment-button>
+    </ion-segment>
+
+    @if (segment === 'encuestas') {
+      <div class="ion-padding-top">
+        @if (puedeRealizar) {
+          <ion-button expand="block" routerLink="/encuesta-nueva">Realizar Encuesta</ion-button>
+        }
+        <ion-list>
+          <ion-item-divider>Últimas Encuestas</ion-item-divider>
+          <ion-item *ngFor="let r of respuestas">
+            <ion-label>
+              <h3>{{ r.creado_en | date:'short' }}</h3>
+              <p>Calificación General: {{ r.calificacion_general || '—' }}</p>
+              <p>Calidad de la Comida: {{ r.calidad_comida || '—' }}</p>
+              <p>Tiempo de Espera: {{ r.tiempo_espera || '—' }}</p>
+              @if (r.opinion) { <p><i>Opinión General:</i> {{ r.opinion }}</p> }
+            </ion-label>
+          </ion-item>
+        </ion-list>
+      </div>
+    }
+
+    @if (segment === 'graficos') {
+      <div class="ion-padding-top">
+        <ion-card>
+          <ion-card-header>Calificación General (1–10)</ion-card-header>
+          <ion-card-content>
+            <apx-chart
+              [series]="ratingChart.series"
+              [chart]="ratingChart.chart"
+              [xaxis]="ratingChart.xaxis">
+            </apx-chart>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-card>
+          <ion-card-header>Tiempo de Espera</ion-card-header>
+          <ion-card-content>
+            <apx-chart
+              [series]="waitChart.series"
+              [chart]="waitChart.chart"
+              [xaxis]="waitChart.xaxis">
+            </apx-chart>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-card>
+          <ion-card-header>Calidad de la Comida</ion-card-header>
+          <ion-card-content>
+            <apx-chart
+              [series]="qualityChart.series"
+              [labels]="qualityChart.labels"
+              [chart]="qualityChart.chart">
+            </apx-chart>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    }
+  </ion-content>
+
+  <footer>
+    <ion-toolbar>
+      <ion-buttons class="ion_btns">
+        <ion-button class="btn_logged" (click)="volver()">Volver</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </footer>
+}

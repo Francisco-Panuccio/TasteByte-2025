@@ -17,7 +17,6 @@ import { LoadingPage } from '../loading/loading.page';
     EncuestasEsperaPageRoutingModule,
     LoadingPage,
     QRCodeComponent
-    
   ],
 
 

@@ -64,7 +64,6 @@ const routes: Routes = [
     path: 'pedido',
     loadChildren: () => import('./pages/pedido/pedido.module').then(m => m.PedidoPageModule)
   },
-
   {
     path: 'pedidos-mozo',
     loadChildren: () => import('./pages/pedidos-mozo/pedidos-mozo.module').then(m => m.PedidosMozoPageModule)
@@ -84,7 +83,16 @@ const routes: Routes = [
   {
     path: 'bar',
     loadChildren: () => import('./pages/bar/bar.module').then( m => m.BarPageModule)
+  },
+  {
+    path: 'encuestas',
+    loadChildren: () => import('./pages/encuestas/encuestas.module').then( m => m.EncuestasPageModule)
+  },  {
+    path: 'encuesta-nueva',
+    loadChildren: () => import('./pages/encuesta-nueva/encuesta-nueva.module').then( m => m.EncuestaNuevaPageModule)
   }
+
+
 ];
 
 @NgModule({

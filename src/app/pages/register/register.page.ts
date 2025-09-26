@@ -27,6 +27,7 @@ export class RegisterPage implements OnInit {
 
   loading: boolean = true;
   errorMsg: boolean = false;
+  submitting = false;
   errorText = "Ocurrió un error";
 
   fotoPreview: string | null = null;
@@ -66,10 +67,8 @@ export class RegisterPage implements OnInit {
     const conf = group.get("confirm")?.value ?? "";
     const confirmCtrl = group.get("confirm");
     if (!confirmCtrl) return null;
-
     const others = { ...(confirmCtrl.errors ?? {}) };
     delete (others as any)["passwordmatch"];
-
     if (conf && pass !== conf) {
       confirmCtrl.setErrors({ ...others, passwordmatch: true });
       return { passwordmatch: true };
@@ -119,72 +118,44 @@ export class RegisterPage implements OnInit {
   }
 
   async onRegister() {
+    if (this.submitting) return;
+    this.submitting = true;
     this.errorMsg = false;
-    this.formRegister.markAllAsTouched();
-    this.formRegister.updateValueAndValidity({ emitEvent: true });
-    if (this.formRegister.invalid) return;
-
-    if (!this.fotoPreview) {
-      this.errorText = "Debe tomar una foto";
-      this.errorMsg = true;
-      return;
-    }
-
-    const v = this.formRegister.value as any;
-    const email: string = String(v.email).trim().toLowerCase();
-    const password: string = v.password;
-
-    const digits = String(v.documentNumber ?? "").replace(/\D/g, "");
-    const isDni = v.documentType === "dni";
-    const dniStr = isDni ? digits : undefined;
-    const cuilStr = !isDni ? digits : undefined;
-
     try {
-      if (await this.usuarios.existsByEmail(email)) {
-        this.errorText = "Correo ya registrado";
-        this.errorMsg = true;
-        return;
-      }
+      this.formRegister.markAllAsTouched();
+      this.formRegister.updateValueAndValidity({ emitEvent: true });
+      if (this.formRegister.invalid) throw new Error("Formulario inválido");
+      if (!this.fotoPreview) throw new Error("Debe tomar una foto");
 
-      if (isDni && dniStr) {
-        const dup = await this.usuarios.existsByDni(Number(dniStr));
-        if (dup) {
-          this.errorText = "DNI ya registrado";
-          this.errorMsg = true;
-          return;
-        }
-      } else if (!isDni && cuilStr) {
-        const dup = await this.usuarios.existsByCuil(Number(cuilStr));
-        if (dup) {
-          this.errorText = "CUIL ya registrado";
-          this.errorMsg = true;
-          return;
-        }
-      }
-    } catch {
-      this.errorText = "Error Verificando Duplicados";
-      this.errorMsg = true;
-      return;
-    }
+      const v = this.formRegister.value as any;
+      const email: string = String(v.email || "").trim().toLowerCase();
+      const password: string = String(v.password || "");
+      const digits = String(v.documentNumber ?? "").replace(/\D/g, "");
+      const isDni = v.documentType === "dni";
+      const dniStr = isDni ? digits : undefined;
+      const cuilStr = !isDni ? digits : undefined;
 
-    const { data, error } = await this.auth.signUp(email, password);
-    if (error) {
-      this.errorText = "Usuario Existente en Autenticación";
-      this.errorMsg = true;
-      return;
-    }
+      const emailTaken = await this.usuarios.existsByEmail(email);
+      if (emailTaken) throw new Error("Correo ya registrado");
 
-    const user = new User(
-      v.lastname,
-      v.fullname,
-      email,
-      v.profile,
-      dniStr,
-      cuilStr,
-      undefined
-    );
+      let docTaken = false;
+      if (isDni && dniStr) docTaken = await this.usuarios.existsByDni(Number(dniStr));
+      if (!isDni && cuilStr) docTaken = await this.usuarios.existsByCuil(Number(cuilStr));
+      if (docTaken) throw new Error(isDni ? "DNI ya registrado" : "CUIL ya registrado");
 
-    try {
+      const { data, error } = await this.auth.signUp(email, password);
+      if (error) throw new Error(error.message || "Error en autenticación");
+
+      const user = new User(
+        v.lastname,
+        v.fullname,
+        email,
+        v.profile,
+        dniStr,
+        cuilStr,
+        undefined
+      );
+
       const fileName = `foto_${Date.now()}.jpeg`;
       const { error: uploadError } = await supabase.storage
         .from("empleados")
@@ -201,21 +172,14 @@ export class RegisterPage implements OnInit {
       const usuarioDB = await this.usuarios.createFromUser(user, this.fotoUrl);
       const clienteNombre = `${user.apellido} ${user.nombre}`;
 
-      try {
-        await this.email.sendEmail(
+      this.email
+        .sendEmail(
           email,
           "Registro Recibido - En Revisión",
           "registro_pendiente",
           { name: clienteNombre }
-        );
-      } catch (e) {
-        console.error("Error enviando email:", e);
-      }
-
-      await supabase.from("clientes").insert({
-        tipo: "cliente_registrado",
-        usuario_id: usuarioDB.id
-      });
+        )
+        .catch(() => { });
 
       try {
         const { data: rows, error: tkErr } = await supabase
@@ -224,14 +188,10 @@ export class RegisterPage implements OnInit {
           .in("role", ["dueño", "supervisor"])
           .eq("active", true)
           .eq("revoked", false);
-
-        if (tkErr) {
-          console.warn("[register][push][tokens]", tkErr);
-        } else {
+        if (!tkErr) {
           const tokens = (rows ?? [])
             .map((r: any) => r.token as string)
             .filter(Boolean);
-
           if (tokens.length) {
             await this.push.send(
               tokens,
@@ -246,28 +206,25 @@ export class RegisterPage implements OnInit {
             );
           }
         }
-      } catch (e) {
-        console.warn("[register][push] error", e);
+      } catch { }
+
+      if (v.profile === "cliente_registrado") {
+        try {
+          await supabase.auth.signOut();
+        } catch { }
+        await this.router.navigateByUrl("/login", { replaceUrl: true });
+        return;
       }
 
+      await this.router.navigateByUrl(data.session ? "/home" : "/login", {
+        replaceUrl: true
+      });
     } catch (e: any) {
-      console.log(e);
-      this.errorText = "Error guardando usuario/cliente";
+      this.errorText = typeof e?.message === "string" ? e.message : "Error en el registro";
       this.errorMsg = true;
-      return;
+    } finally {
+      this.submitting = false;
     }
-
-    if (v.profile === "cliente_registrado") {
-      try {
-        await supabase.auth.signOut();
-      } catch { }
-      await this.router.navigateByUrl("/login", { replaceUrl: true });
-      return;
-    }
-
-    await this.router.navigateByUrl(data.session ? "/home" : "/login", {
-      replaceUrl: true
-    });
   }
 
   private dataURLtoBlob(dataUrl: string): Blob {

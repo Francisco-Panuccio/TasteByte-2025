@@ -17,7 +17,6 @@ export class ListadoMesasPage implements OnInit {
   async ngOnInit() {
     this.loading = true;
 
-    // 1. Traer todas las mesas
     const { data: mesas, error } = await supabase
       .from("mesas")
       .select("id, numero, capacidad, tipo, qr_contenido");
@@ -28,7 +27,6 @@ export class ListadoMesasPage implements OnInit {
       return;
     }
 
-    // 2. Traer las mesas actualmente ocupadas (estado != finalizado)
     const { data: ocupadas, error: errOcupadas } = await supabase
       .from("lista_espera")
       .select("mesa_id")
@@ -42,7 +40,6 @@ export class ListadoMesasPage implements OnInit {
 
     const mesasOcupadasIds = (ocupadas || []).map(o => o.mesa_id).filter((id: number) => !!id);
 
-    // 3. Filtrar mesas disponibles
     this.mesas = (mesas || []).filter(m => !mesasOcupadasIds.includes(m.id));
 
     setTimeout(() => (this.loading = false), 2000);

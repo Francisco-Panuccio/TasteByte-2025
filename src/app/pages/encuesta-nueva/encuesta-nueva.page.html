@@ -1,0 +1,59 @@
+@if (loading) {
+  <app-loading/>
+} @else {
+  <header>
+    <title>Encuesta Nueva</title>
+  </header>
+
+  <ion-content class="ion-padding">
+    <ion-list>
+      <ion-item>
+        <ion-label>Calificación General (1-10)</ion-label>
+        <ion-range min="1" max="10" step="1" snaps="true" [(ngModel)]="calificacionGeneral">
+          <ion-label slot="start">1</ion-label>
+          <ion-label slot="end">10</ion-label>
+        </ion-range>
+      </ion-item>
+
+      <ion-item>
+        <ion-label>Calidad de la Comida</ion-label>
+      </ion-item>
+      <ion-segment [(ngModel)]="calidadComida">
+        <ion-segment-button value="excelente">Excelente</ion-segment-button>
+        <ion-segment-button value="aceptable">Aceptable</ion-segment-button>
+        <ion-segment-button value="regular">Regular</ion-segment-button>
+        <ion-segment-button value="mala">Mala</ion-segment-button>
+      </ion-segment>
+
+      <ion-item class="ion-margin-top">
+        <ion-label>Tiempo de Espera</ion-label>
+      </ion-item>
+      <ion-segment [(ngModel)]="tiempoEspera">
+        <ion-segment-button value="bajo">Bajo</ion-segment-button>
+        <ion-segment-button value="razonable">Razonable</ion-segment-button>
+        <ion-segment-button value="excesivo">Excesivo</ion-segment-button>
+      </ion-segment>
+
+      <ion-item class="ion-margin-top">
+        <ion-label position="stacked">Opinión General</ion-label>
+        <ion-textarea auto-grow="true" [(ngModel)]="opinion"></ion-textarea>
+      </ion-item>
+    </ion-list>
+
+    <ion-button expand="block" class="ion-margin-top" (click)="enviar()" [disabled]="calificacionGeneral==null || !calidadComida || !tiempoEspera">
+      Enviar
+    </ion-button>
+
+    <ion-button expand="block" fill="clear" (click)="volver()">
+      Cancelar
+    </ion-button>
+  </ion-content>
+
+  <footer>
+    <ion-toolbar>
+      <ion-buttons class="ion_btns">
+        <ion-button class="btn_logged" (click)="volver()">Volver</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </footer>
+}

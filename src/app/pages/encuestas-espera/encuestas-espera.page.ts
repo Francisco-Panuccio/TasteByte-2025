@@ -17,6 +17,9 @@ interface AsignacionMesaRow {
   standalone: false
 })
 export class EncuestasEsperaPage implements OnInit, OnDestroy {
+  private qr = inject(Qr);
+  private subscription: any;
+
   nombreCliente: string | undefined;
   usuarioId: number | null = null;
   anonimoId: string | undefined;
@@ -30,15 +33,8 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   yaRegistrado = false;
 
   mesaAsignadaId: number | null = null;
-  private subscription: any;
 
-  private qr = inject(Qr);
-
-  constructor(
-    private router: Router,
-    private route: ActivatedRoute,
-    private toast: ToastController
-  ) {}
+  constructor(private router: Router, private route: ActivatedRoute, private toast: ToastController) {}
 
   async ngOnInit() {
     this.route.queryParams.subscribe(async params => {
@@ -46,7 +42,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       this.usuarioId = params['usuarioId'] ? Number(params['usuarioId']) : null;
       this.anonimoId = params['anonimoId'];
 
-      if (!this.clienteId && !this.anonimoId) {
+      if (!this.clienteId && !this.anonimoId && !this.usuarioId) {
         this.router.navigate(['/login'], { replaceUrl: true });
         return;
       }
@@ -67,9 +63,6 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
         this.nombreCliente = anonimo?.nombre || 'Cliente Anónimo';
       }
 
-      const { data: encuestas } = await supabase.from('encuestas').select('*');
-      this.encuestas = encuestas || [];
-
       await this.cargarMesaAsignada();
 
       this.subscription = supabase
@@ -82,7 +75,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
             table: 'asignaciones_mesa',
             filter: this.clienteId
               ? `cliente_id=eq.${this.clienteId}`
-              : `cliente_anonimo_id=eq.${this.anonimoId}`,
+              : `cliente_anonimo_id=eq.${this.anonimoId}`
           },
           async (payload: { new?: Partial<AsignacionMesaRow> }) => {
             const mesa = payload?.new?.mesa_id;
@@ -97,13 +90,36 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
         )
         .subscribe();
 
-      this.loading = false;
+      setTimeout(() => (this.loading = false), 2000);
     });
   }
 
   ngOnDestroy() {
     if (this.subscription) {
       supabase.removeChannel(this.subscription);
+    }
+  }
+
+  async escanearQr() {
+    const qr = await this.qr.scanQr();
+    if (!qr) return;
+
+    const res = await this.qr.procesarQrCliente(
+      qr,
+      this.clienteId ?? undefined,
+      this.anonimoId ?? undefined
+    );
+
+    if (res.error) {
+      this.mostrarToast(res.error, 'danger');
+      return;
+    }
+
+    if (res.permiso && qr.startsWith('INGRESO')) {
+      this.tienePermiso = true;
+      this.yaRegistrado = !!res.yaRegistrado;
+      this.qrValido = true;
+      this.mostrarToast('Bienvenido!', 'success');
     }
   }
 
@@ -155,13 +171,10 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   async registrarseListaEspera() {
     if (this.yaRegistrado) return;
 
-    let payload: any = { estado: 'pendiente' };
-
-    if (this.clienteId) {
-      payload.cliente_id = this.clienteId;
-    } else if (this.anonimoId) {
-      payload.cliente_anonimo_id = this.anonimoId;
-    } else {
+    const payload: any = { estado: 'pendiente' };
+    if (this.clienteId) payload.cliente_id = this.clienteId;
+    else if (this.anonimoId) payload.cliente_anonimo_id = this.anonimoId;
+    else {
       this.mostrarToast('Error: no se detectó cliente', 'danger');
       return;
     }
@@ -180,7 +193,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     await supabase.from('respuestas_encuestas').insert({
       usuario_id: this.usuarioId,
       encuesta_id: encuestaId,
-      respondido_en: new Date().toISOString(),
+      respondido_en: new Date().toISOString()
     });
     this.mostrarToast('Gracias por participar en la encuesta!', 'success');
   }
@@ -208,7 +221,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
           anonimoId: this.anonimoId,
           usuarioId: this.usuarioId,
           clienteId: this.clienteId
-        },
+        }
       });
     }
   }
@@ -226,7 +239,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       duration: 2500,
       color,
       position: 'bottom',
-      buttons: [{ text: 'OK', role: 'cancel' }],
+      buttons: [{ text: 'OK', role: 'cancel' }]
     });
     await t.present();
   }
