@@ -116,11 +116,18 @@ export class Pedidos {
     return { ped, items: items ?? [] };
   }
 
-  async getPedidoActivo(opts: { mesaId?: number; clienteUid?: string; clienteEmail?: string }): Promise<any | null> {
+  async getPedidoActivo(
+    opts: { mesaId?: number; clienteUid?: string; clienteEmail?: string },
+    includeRejected: boolean = false
+  ): Promise<any | null> {
+    const estados: Pedido["estado"][] = includeRejected
+      ? ["pendiente", "aceptado", "terminado", "rechazado"]
+      : ["pendiente", "aceptado", "terminado"];
+
     let q = supabase
       .from("pedidos")
       .select("id, mesa_id, estado, created_at")
-      .in("estado", ["pendiente", "aceptado", "terminado"])
+      .in("estado", estados)
       .order("created_at", { ascending: false })
       .limit(1);
 

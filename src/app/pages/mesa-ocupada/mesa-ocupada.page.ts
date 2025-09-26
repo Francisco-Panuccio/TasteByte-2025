@@ -78,7 +78,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   plato?: { titulo: string; total: number; cantidad: number; items: Array<{ nombre: string; cantidad: number; precioUnit: number; duracionMin: number; subtotal: number }> };
   bebidaObj?: { titulo: string; total: number; cantidad: number; items: Array<{ nombre: string; cantidad: number; precioUnit: number; duracionMin: number; subtotal: number }> };
 
-  constructor(private platform: Platform, private zone: NgZone, private navCtrl: NavController) { }
+  constructor(private platform: Platform, private zone: NgZone, private navCtrl: NavController) {}
 
   async ngOnInit() {
     const sub = this.platform.backButton.subscribeWithPriority(9999, () => {
@@ -145,9 +145,13 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
       await this.cargarItemsDePedido(this.pedidoActualId);
       return;
     }
-    const { data: pedRej } = await supabase.from("pedidos").select("id").eq("mesa_id", this.mesaId).eq("cliente_email", this.clienteEmail).eq("estado", "rechazado").order("created_at", { ascending: false }).limit(1);
+    let q = supabase.from("pedidos").select("id").eq("mesa_id", this.mesaId).eq("estado", "rechazado").order("created_at", { ascending: false }).limit(1);
+    if (this.clienteEmail) q = q.eq("cliente_email", this.clienteEmail);
+    if (this.userUid) q = q.eq("cliente_uid", this.userUid);
+    const { data: pedRej } = await q;
     if (pedRej && pedRej[0]?.id) {
-      await this.cargarItemsDePedido(pedRej[0].id as string);
+      this.pedidoActualId = pedRej[0].id as string;
+      await this.cargarItemsDePedido(this.pedidoActualId);
       this.pedidoEnCurso = false;
       this.applyEstado("rechazado");
     } else {
@@ -272,11 +276,11 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     this.seenIds.add(saved.id);
     try {
       await this.push.sendToRoles(["mozo"], "Mensaje del cliente", txt, { tipo: "chat", chatId: this.chatId, mesaId: this.mesaId, fromRole: "cliente", fromName: this.myName, preview: txt.slice(0, 80) });
-    } catch { }
+    } catch {}
   }
 
   trackMsg = (_: number, m: { id: string }) => m.id;
-  private scrollToBottom(ms: number = 200) { try { this.chatContent?.scrollToBottom(ms); } catch { } }
+  private scrollToBottom(ms: number = 200) { try { this.chatContent?.scrollToBottom(ms); } catch {} }
   private scrollToBottomAfterRender() { requestAnimationFrame(() => setTimeout(() => this.scrollToBottom(200), 0)); }
 
   incByPlato(p: Plato) {
@@ -382,17 +386,14 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
         await this.push.sendToBar("Nuevo pedido", `Nuevo Pedido de la Mesa ${mesaNumero}`, { tipo: "bar_pedido", pedidoId, mesaId: this.mesaId, mesaNumero });
       }
       this.despachados.add(pedidoId);
-    } catch { }
+    } catch {}
   }
 
   async terminarPedido() {
     try {
       if (!this.itemsSel.length) return;
       if (!this.mesaId) throw new Error("Mesa inválida.");
-      if (this.pedidoBloqueado) {
-        this.updateBanner();
-        return;
-      }
+      if (this.pedidoBloqueado) { this.updateBanner(); return; }
       this.submitting = true;
       if (!this.userUid && !this.clienteEmail) {
         const { data } = await supabase.auth.getUser();
@@ -400,31 +401,43 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
         this.clienteEmail = data.user?.email ?? null;
       }
       const existente = await this.pedidos.getPedidoActivo({ mesaId: this.mesaId, clienteUid: this.userUid || undefined, clienteEmail: this.clienteEmail || undefined });
-      let pedidoId: string;
-      if (existente && existente.estado !== "rechazado") {
-        this.pedidoEnCurso = true;
-        this.pedidoActualId = existente.id as string;
-        this.applyEstado((existente as any).estado);
-        return;
-      } else if (existente && existente.estado === "rechazado") {
-        await this.pedidos.reemplazarItems(existente.id as string, this.itemsSel, this.total, this.etaMin, "pendiente");
-        pedidoId = existente.id as string;
+      let pedidoId: string | undefined;
+      if (existente) {
+        if (existente.estado !== "rechazado") {
+          this.pedidoEnCurso = true;
+          this.pedidoActualId = existente.id as string;
+          this.applyEstado((existente as any).estado);
+          return;
+        } else {
+          await this.pedidos.reemplazarItems(existente.id as string, this.itemsSel, this.total, this.etaMin, "pendiente");
+          pedidoId = existente.id as string;
+        }
       } else {
-        pedidoId = await this.pedidos.crearPedido(this.mesaId, this.userUid, this.clienteEmail, this.itemsSel, this.total, this.etaMin);
+        let q = supabase.from("pedidos").select("id").eq("mesa_id", this.mesaId).eq("estado", "rechazado").order("created_at", { ascending: false }).limit(1);
+        if (this.clienteEmail) q = q.eq("cliente_email", this.clienteEmail);
+        if (this.userUid) q = q.eq("cliente_uid", this.userUid);
+        const { data: pedRej } = await q;
+        const rejId = pedRej?.[0]?.id as string | undefined;
+        if (rejId) {
+          await this.pedidos.reemplazarItems(rejId, this.itemsSel, this.total, this.etaMin, "pendiente");
+          pedidoId = rejId;
+        } else {
+          pedidoId = await this.pedidos.crearPedido(this.mesaId, this.userUid, this.clienteEmail, this.itemsSel, this.total, this.etaMin);
+        }
       }
       this.pedidoEnCurso = true;
       this.applyEstado("pendiente");
-      this.pedidoActualId = pedidoId;
+      this.pedidoActualId = pedidoId!;
       const mesaNumero = this.mesa?.numero ?? "NN";
-      await this.chatSvc.notifyMozosNuevoPedido(mesaNumero as any, this.formatARS(this.total), pedidoId, this.mesaId);
+      await this.chatSvc.notifyMozosNuevoPedido(mesaNumero as any, this.formatARS(this.total), pedidoId!, this.mesaId);
       this.unsubEstado?.();
-      this.unsubEstado = this.pedidos.onEstadoPedido(pedidoId, async (estado) => {
+      this.unsubEstado = this.pedidos.onEstadoPedido(pedidoId!, async (estado) => {
         this.zone.run(async () => {
           this.applyEstado(estado);
           if (this.estadoPedido === "aceptado") {
-            await this.enviarAProduccion(pedidoId);
+            await this.enviarAProduccion(pedidoId!);
             this.buildPlatoYBebida();
-            this.router.navigate(["/pedido", pedidoId]);
+            this.router.navigate(["/pedido", pedidoId!]);
           } else if (this.estadoPedido === "rechazado") {
             this.pedidoEnCurso = false;
             this.submitting = false;

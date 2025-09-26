@@ -22,9 +22,9 @@ export class HomePage implements OnInit {
   isCliente: boolean = false;
   isMozo: boolean = false;
 
-  userId: string = "";          // 🔹 UUID de Supabase (auth)
-  clienteId: number | null = null; // 🔹 ID int de la tabla clientes
-  usuarioId: number | null = null; // 🔹 ID int de la tabla usuarios
+  userId: string = "";
+  clienteId: number | null = null;
+  usuarioId: number | null = null;
   fullname: string = "";
   profile: string = "";
 
@@ -49,14 +49,13 @@ export class HomePage implements OnInit {
           return;
         }
 
-        const user = await this.auth.getUser(); // 🔹 UUID del auth
+        const user = await this.auth.getUser();
         if (!user) {
           this.router.navigateByUrl("/login", { replaceUrl: true });
           return;
         }
-        this.userId = user.id; // guardamos el UUID del auth
+        this.userId = user.id;
 
-        // 🔹 obtenemos el usuario en nuestra tabla "usuarios"
         const usuarioDB: Usuario | null = await this.usuarios.getByEmail(user.email!);
         if (!usuarioDB) {
           this.router.navigateByUrl("/login", { replaceUrl: true });
@@ -65,13 +64,12 @@ export class HomePage implements OnInit {
 
         this.fullname = `${usuarioDB.nombres} ${usuarioDB.apellidos}`.trim();
         this.profile = usuarioDB.perfil;
-        this.usuarioId = usuarioDB.id ?? null; // ✅ guardamos INT de usuarios
+        this.usuarioId = usuarioDB.id ?? null; 
 
-        // 🔹 buscamos cliente usando el id de usuarios (INT)
         const { data: cliente } = await supabase
           .from("clientes")
           .select("id")
-          .eq("usuario_id", usuarioDB.id) // usamos el int de usuarios
+          .eq("usuario_id", usuarioDB.id)
           .maybeSingle();
 
         this.clienteId = cliente?.id ?? null;
@@ -122,7 +120,7 @@ export class HomePage implements OnInit {
       }
 
       this.router.navigate(['/encuestas-espera'], {
-        queryParams: { clienteId: this.clienteId } // pasamos INT
+        queryParams: { clienteId: this.clienteId }
       });
 
     } catch (e) {

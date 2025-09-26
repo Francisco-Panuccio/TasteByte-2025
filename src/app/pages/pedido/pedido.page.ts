@@ -1,6 +1,5 @@
 import { Component, OnInit } from "@angular/core";
-import { ActivatedRoute } from "@angular/router";
-import { NavController } from "@ionic/angular";
+import { ActivatedRoute, Router } from "@angular/router";
 import { Pedidos } from "src/app/services/pedidos/pedidos";
 import { supabase } from "src/supabase.client";
 
@@ -16,17 +15,22 @@ export class PedidoPage implements OnInit {
   loading: boolean = true;
   items: any[] = [];
 
-  constructor(private ar: ActivatedRoute, private pedidos: Pedidos, private navCtrl: NavController) { }
+  anonimoId?: string;
+  usuarioId: number | null = null;
+  clienteId: number | null = null;
+
+  constructor(private ar: ActivatedRoute, private pedidos: Pedidos, private router: Router) { }
 
   async ngOnInit() {
-    this.pedidoId =
-      this.ar.snapshot.paramMap.get("id") ??
-      this.ar.snapshot.queryParamMap.get("id") ?? "";
+    this.pedidoId = this.ar.snapshot.paramMap.get("id") ?? this.ar.snapshot.queryParamMap.get("id") ?? "";
+    const p = this.ar.snapshot.queryParamMap;
+    this.anonimoId = p.get("anonimoId") ?? undefined;
+    this.usuarioId = p.get("usuarioId") ? Number(p.get("usuarioId")) : null;
+    this.clienteId = p.get("clienteId") ? Number(p.get("clienteId")) : null;
 
     if (!this.pedidoId) {
       const { data } = await supabase.auth.getUser();
       const email = data.user?.email ?? null;
-
       if (email) {
         const { ped, items } = await this.pedidos.getPedidoActualPorEmail(email);
         this.ped = ped;
@@ -34,7 +38,6 @@ export class PedidoPage implements OnInit {
         setTimeout(() => (this.loading = false), 2000);
         return;
       }
-
       this.loading = false;
       return;
     }
@@ -46,6 +49,10 @@ export class PedidoPage implements OnInit {
   }
 
   volver() {
-    this.navCtrl.back();
+    const queryParams: any = {};
+    if (this.anonimoId) queryParams.anonimoId = this.anonimoId;
+    if (this.usuarioId !== null) queryParams.usuarioId = this.usuarioId;
+    if (this.clienteId !== null) queryParams.clienteId = this.clienteId;
+    this.router.navigate(["/encuestas-espera"], { queryParams });
   }
 }

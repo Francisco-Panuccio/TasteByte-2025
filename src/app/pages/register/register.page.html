@@ -18,7 +18,7 @@
         <div class="auth-card">
           <h1 class="title">Registro</h1>
 
-          <form [formGroup]="formRegister">
+          <form [formGroup]="formRegister" (ngSubmit)="onRegister();">
             <!-- Apellido -->
             <ion-item class="input-field" lines="none">
               <ion-input placeholder="Apellido" formControlName="lastname"></ion-input>
@@ -135,10 +135,10 @@
             </div>
 
             <!-- Botones -->
-            <ion-button expand="block" 
-                        (click)="onRegister()" 
+            <ion-button expand="block"  
+                        type="submit"
                         class="btn-primary" 
-                        [disabled]="!isFormValid">
+                        [disabled]="submitting || !isFormValid">
               Registrarse
             </ion-button>
             <ion-button expand="block" routerLink="/login" style="--background: #554738; --color: white;">
