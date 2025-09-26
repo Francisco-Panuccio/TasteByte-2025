@@ -92,13 +92,13 @@
 * Panuccio
 - Objetivos: Puntos 13 (Rechazo de Pedido), 14 (Aceptación de Pedido) y 20 (Encuesta al Cliente)
 - Fecha Inicial: 22/09/2025
-- Fecha Final: 
+- Fecha Final: 24/09/2025
 - Branch: panuccio/altas
 
 * Roman
 - Objetivos: Puntos 15 (Acceso a Juegos), 19 (Entrega del Pedido), 21 (Solicitud de Cuenta)
 - Fecha Inicial: 22/09/2025
-- Fecha Final: 
+- Fecha Final: 25/09/2025
 - Branch: roman
 
 <p align="center">
