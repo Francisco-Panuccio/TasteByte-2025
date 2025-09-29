@@ -194,7 +194,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
       maxDur = Math.max(maxDur, i.duracionMin);
     }
     this.total = Number(total.toFixed(2));
-    this.etaMin = this.itemsSel.length ? Math.round(maxDur + 10) : 0;
+    this.etaMin = this.itemsSel.length ? Math.round(maxDur) : 0;
   }
 
   get pedidoBloqueado(): boolean {
@@ -330,7 +330,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
 
   private syncItems() {
     const arr: { productoId: number; tipo: "plato" | "bebida" | "postre"; nombre: string; precioUnit: number; cantidad: number; duracionMin: number }[] = [];
-    let total = 0, maxDur = 0, penalty = 0;
+    let total = 0, maxDur = 0;
     const acumPlatos = (list: Plato[], tipo: "plato" | "postre") => {
       for (const p of list) {
         if (p.id == null) continue;
@@ -339,7 +339,6 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
           arr.push({ productoId: p.id, tipo, nombre: p.nombre, precioUnit: p.precio, cantidad: q, duracionMin: p.tiempo_elaboracion_min });
           total += p.precio * q;
           maxDur = Math.max(maxDur, p.tiempo_elaboracion_min);
-          if (q > 2 && p.tiempo_elaboracion_min > 0) penalty += (q - 2) * (p.tiempo_elaboracion_min / 2);
         }
       }
     };
@@ -354,7 +353,6 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
           arr.push({ productoId: id, tipo: "bebida", nombre: (b as any).nombre as string, precioUnit: precio, cantidad: q, duracionMin: dur });
           total += precio * q;
           maxDur = Math.max(maxDur, dur);
-          if (q > 2 && dur > 0) penalty += (q - 2) * (dur / 2);
         }
       }
     };
@@ -363,7 +361,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     acumBebidas(this.bebidas);
     this.itemsSel = arr;
     this.total = Number(total.toFixed(2));
-    this.etaMin = arr.length ? Math.round(maxDur + 10 + penalty) : 0;
+    this.etaMin = arr.length ? Math.round(maxDur) : 0;
   }
 
   private formatARS(n: number): string {

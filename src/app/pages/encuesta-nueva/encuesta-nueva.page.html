@@ -6,46 +6,48 @@
   </header>
 
   <ion-content class="ion-padding">
-    <ion-list>
-      <ion-item>
-        <ion-label>Calificación General (1-10)</ion-label>
+    <ion-item class="item_calificacion">
+      <div class="calificacion">
+        <p>Calificación General (1-10)</p>
         <ion-range min="1" max="10" step="1" snaps="true" [(ngModel)]="calificacionGeneral">
-          <ion-label slot="start">1</ion-label>
-          <ion-label slot="end">10</ion-label>
+          <span slot="start">1</span>
+          <span slot="end">10</span>
         </ion-range>
-      </ion-item>
+      </div>
+    </ion-item>
 
-      <ion-item>
-        <ion-label>Calidad de la Comida</ion-label>
-      </ion-item>
-      <ion-segment [(ngModel)]="calidadComida">
-        <ion-segment-button value="excelente">Excelente</ion-segment-button>
-        <ion-segment-button value="aceptable">Aceptable</ion-segment-button>
-        <ion-segment-button value="regular">Regular</ion-segment-button>
-        <ion-segment-button value="mala">Mala</ion-segment-button>
-      </ion-segment>
+    <ion-item class="item_comida">
+      <div class="comida">
+        <p>Calidad de la Comida</p>
+        <ion-segment class="seg_comida" [(ngModel)]="calidadComida">
+          <ion-segment-button class="dark_green" value="excelente" [class.activo]="calidadComida==='excelente'">Excelente</ion-segment-button>
+          <ion-segment-button class="light_green" value="aceptable" [class.activo]="calidadComida==='aceptable'">Aceptable</ion-segment-button>
+          <ion-segment-button class="yellow" value="regular" [class.activo]="calidadComida==='regular'">Regular</ion-segment-button>
+          <ion-segment-button class="red" value="mala" [class.activo]="calidadComida==='mala'">Mala</ion-segment-button>
+        </ion-segment>
+      </div>
+    </ion-item>
 
-      <ion-item class="ion-margin-top">
-        <ion-label>Tiempo de Espera</ion-label>
-      </ion-item>
-      <ion-segment [(ngModel)]="tiempoEspera">
-        <ion-segment-button value="bajo">Bajo</ion-segment-button>
-        <ion-segment-button value="razonable">Razonable</ion-segment-button>
-        <ion-segment-button value="excesivo">Excesivo</ion-segment-button>
-      </ion-segment>
+    <ion-item class="item_espera">
+      <div class="espera">
+        <p>Tiempo de Espera</p>
+        <ion-segment [(ngModel)]="tiempoEspera">
+          <ion-segment-button class="light_green" value="bajo" [class.activo]="tiempoEspera==='bajo'">Bajo</ion-segment-button>
+          <ion-segment-button class="yellow" value="razonable" [class.activo]="tiempoEspera==='razonable'">Razonable</ion-segment-button>
+          <ion-segment-button class="red" value="excesivo" [class.activo]="tiempoEspera==='excesivo'">Excesivo</ion-segment-button>
+        </ion-segment>
+      </div>
+    </ion-item>
 
-      <ion-item class="ion-margin-top">
-        <ion-label position="stacked">Opinión General</ion-label>
+    <ion-item class="item_opinion">
+      <div class="opinion">
+        <p position="stacked">Opinión General</p>
         <ion-textarea auto-grow="true" [(ngModel)]="opinion"></ion-textarea>
-      </ion-item>
-    </ion-list>
+      </div>
+    </ion-item>
 
-    <ion-button expand="block" class="ion-margin-top" (click)="enviar()" [disabled]="calificacionGeneral==null || !calidadComida || !tiempoEspera">
+    <ion-button expand="block" (click)="enviar()" [disabled]="calificacionGeneral==null || !calidadComida || !tiempoEspera">
       Enviar
-    </ion-button>
-
-    <ion-button expand="block" fill="clear" (click)="volver()">
-      Cancelar
     </ion-button>
   </ion-content>
 

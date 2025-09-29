@@ -28,21 +28,47 @@ export class EncuestasPage implements OnInit {
   }> = [];
 
   qualityChart: any = {
-    chart: { type: 'donut' },
-    labels: ['Excelente', 'Aceptable', 'Regular', 'Mala'],
-    series: [0, 0, 0, 0]
+    chart: { type: "donut", height: 300, width: "100%" },
+    labels: ["Excelente", "Aceptable", "Regular", "Mala"],
+    series: [0, 0, 0, 0],
+    legend: { fontSize: "14px" },
+    dataLabels: { style: { fontSize: "14px", fontWeight: 600 } },
+    plotOptions: {
+      pie: {
+        donut: {
+          labels: {
+            show: true,
+            name: { show: true, fontSize: "14px", fontWeight: 600 },
+            value: { show: true, fontSize: "14px", fontWeight: 600 },
+            total: { show: true, fontSize: "14px", fontWeight: 600 }
+          }
+        }
+      }
+    }
   };
 
   waitChart: any = {
-    chart: { type: 'bar' },
+    chart: { type: 'bar', height: 250, width: "100%" },
     series: [{ name: 'Respuestas', data: [0, 0, 0] }],
-    xaxis: { categories: ['Bajo', 'Razonable', 'Excesivo'] }
+    xaxis: {
+      categories: ["Bajo", "Razonable", "Excesivo"],
+      labels: { style: { fontSize: "12px", fontWeight: 600 } }
+    },
+    yaxis: {
+      labels: { style: { fontSize: "14px", fontWeight: 600 } }
+    }
   };
 
   ratingChart: any = {
-    chart: { type: 'bar' },
-    series: [{ name: 'Calificaciones', data: new Array(10).fill(0) }],
-    xaxis: { categories: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'] }
+    chart: { type: "bar", height: 250, width: "100%" },
+    series: [{ name: "Calificaciones", data: new Array(10).fill(0) }],
+    xaxis: {
+      categories: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
+      labels: { style: { fontSize: "14px", fontWeight: 600 } }
+    },
+    yaxis: {
+      labels: { style: { fontSize: "14px", fontWeight: 600 } }
+    }
   };
 
   constructor(private router: Router, private route: ActivatedRoute) { }
@@ -64,9 +90,9 @@ export class EncuestasPage implements OnInit {
     const uid = au.user?.id ?? null;
     const email = au.user?.email ?? null;
 
-    let q = supabase
+    let qPed = supabase
       .from('pedidos')
-      .select('id, estado')
+      .select('id, estado, created_at')
       .eq('estado', 'terminado')
       .order('created_at', { ascending: false })
       .limit(1);
@@ -74,10 +100,25 @@ export class EncuestasPage implements OnInit {
     const ors: string[] = [];
     if (uid) ors.push(`cliente_uid.eq.${uid}`);
     if (email) ors.push(`cliente_email.eq.${email}`);
-    if (ors.length) q = q.or(ors.join(','));
+    if (ors.length) qPed = qPed.or(ors.join(','));
 
-    const { data } = await q.maybeSingle();
-    this.puedeRealizar = !!data;
+    const { data: ped } = await qPed.maybeSingle();
+    if (!ped) { this.puedeRealizar = false; return; }
+
+    let qResp = supabase
+      .from('encuestas_respuestas')
+      .select('creado_en')
+      .order('creado_en', { ascending: false })
+      .limit(1);
+
+    const orsR: string[] = [];
+    if (uid) orsR.push(`cliente_uid.eq.${uid}`);
+    if (email) orsR.push(`cliente_email.eq.${email}`);
+    if (orsR.length) qResp = qResp.or(orsR.join(','));
+
+    const { data: respUlt } = await qResp.maybeSingle();
+
+    this.puedeRealizar = !respUlt || new Date(respUlt.creado_en).getTime() < new Date(ped.created_at).getTime();
   }
 
   private async cargarRespuestas() {
