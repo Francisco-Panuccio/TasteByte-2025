@@ -8,3 +8,115 @@
   font-size: 20px;
   font-weight: 1000;
 }
+
+ion-segment {
+  --background: #e6d5c3;
+  border: 2px solid #554738;
+  border-radius: 10px;
+}
+
+ion-segment-button:first-child {
+  border-right: 2px solid #554738;
+}
+
+h2 {
+  text-align: center;
+  color: #554738;
+  font-size: 25px;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+ion-segment-button {
+  --color: #554738;
+  font-size: 18px;
+}
+
+.div_encuesta {
+  display: flex;
+  justify-content: start;
+  align-items: center;
+  margin: 0 0 10px 0;
+  gap: 5px;
+}
+
+h3 {
+  margin: 2px 0 15px 0;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: start;
+}
+
+.p_encuesta {
+  font-weight: 600;
+  color: #554738;
+  font-size: 16px;
+  text-decoration: underline;
+  letter-spacing: 1px;
+}
+
+.span_encuesta {
+  font-size: 15px;
+  color: black;
+  font-weight: 600;
+}
+
+.div_opinion {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 300px;
+
+  i {
+    font-weight: 600;
+    color: #554738;
+    font-size: 16px;
+    text-decoration: underline;
+    text-align: start;
+    align-self: self-start;
+    margin: 5px 0 10px 0;
+    letter-spacing: 1px;
+  }
+
+  span {
+    width: 100%;
+    text-align: start;
+    overflow: auto;
+    font-size: 15px;
+  }
+}
+
+ion-card-header {
+  --color: #554738;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-decoration: underline;
+}
+
+ion-list {
+  background: transparent;
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  --border-radius: 12px;
+  --background: #e6d5c3;
+  margin-bottom: 20px;
+}
+
+.items:last-child {
+  margin-bottom: 0;
+}
+
+apx-chart {
+  font-size: 20px;
+}
+
+:host ::ng-deep .apexcharts-legend-text {
+  font-weight: 600 !important;
+}

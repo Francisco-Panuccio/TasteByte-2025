@@ -16,15 +16,31 @@
         @if (puedeRealizar) {
           <ion-button expand="block" routerLink="/encuesta-nueva">Realizar Encuesta</ion-button>
         }
+        <h2>Últimas Encuestas</h2>
         <ion-list>
-          <ion-item-divider>Últimas Encuestas</ion-item-divider>
-          <ion-item *ngFor="let r of respuestas">
+          <ion-item class="items" *ngFor="let r of respuestas">
             <ion-label>
               <h3>{{ r.creado_en | date:'short' }}</h3>
-              <p>Calificación General: {{ r.calificacion_general || '—' }}</p>
-              <p>Calidad de la Comida: {{ r.calidad_comida || '—' }}</p>
-              <p>Tiempo de Espera: {{ r.tiempo_espera || '—' }}</p>
-              @if (r.opinion) { <p><i>Opinión General:</i> {{ r.opinion }}</p> }
+              <div class="div_encuesta">
+                <p class="p_encuesta">Calificación General: </p> 
+                <span class="span_encuesta">{{ r.calificacion_general || '—'}}</span>
+              </div>
+
+              <div class="div_encuesta">
+                <p class="p_encuesta">Calidad de la Comida: </p> 
+                <span class="span_encuesta">{{ r.calidad_comida || '—' | titlecase }}</span>
+              </div>
+
+              <div class="div_encuesta">
+                <p class="p_encuesta">Tiempo de Espera: </p> 
+                <span class="span_encuesta">{{ r.tiempo_espera || '—' | titlecase }}</span>
+              </div>
+              @if (r.opinion) { 
+                <div class="div_opinion">
+                  <i>Opinión General:</i> 
+                  <span>{{ r.opinion }}</span>
+                </div> 
+              }
             </ion-label>
           </ion-item>
         </ion-list>
@@ -34,12 +50,13 @@
     @if (segment === 'graficos') {
       <div class="ion-padding-top">
         <ion-card>
-          <ion-card-header>Calificación General (1–10)</ion-card-header>
+          <ion-card-header>Calificación General (1-10)</ion-card-header>
           <ion-card-content>
             <apx-chart
               [series]="ratingChart.series"
               [chart]="ratingChart.chart"
-              [xaxis]="ratingChart.xaxis">
+              [xaxis]="ratingChart.xaxis"
+              [yaxis]="ratingChart.yaxis">
             </apx-chart>
           </ion-card-content>
         </ion-card>
@@ -50,7 +67,8 @@
             <apx-chart
               [series]="waitChart.series"
               [chart]="waitChart.chart"
-              [xaxis]="waitChart.xaxis">
+              [xaxis]="waitChart.xaxis"
+              [yaxis]="ratingChart.yaxis">
             </apx-chart>
           </ion-card-content>
         </ion-card>
@@ -61,7 +79,10 @@
             <apx-chart
               [series]="qualityChart.series"
               [labels]="qualityChart.labels"
-              [chart]="qualityChart.chart">
+              [chart]="qualityChart.chart"
+              [legend]="qualityChart.legend"
+              [dataLabels]="qualityChart.dataLabels"
+              [plotOptions]="qualityChart.plotOptions">
             </apx-chart>
           </ion-card-content>
         </ion-card>

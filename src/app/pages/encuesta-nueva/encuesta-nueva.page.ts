@@ -52,7 +52,7 @@ export class EncuestaNuevaPage implements OnInit {
       tiempo_espera: this.tiempoEspera,
       opinion: this.opinion ?? null
     });
-    const t = await this.toast.create({ message: "¡Gracias por tu encuesta!", duration: 2000, position: "top" });
+    const t = await this.toast.create({ message: "¡Gracias por tu Encuesta!", duration: 2000, position: "top", cssClass: "toast" });
     await t.present();
     this.volver();
   }
