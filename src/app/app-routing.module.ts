@@ -87,12 +87,11 @@ const routes: Routes = [
   {
     path: 'encuestas',
     loadChildren: () => import('./pages/encuestas/encuestas.module').then( m => m.EncuestasPageModule)
-  },  {
+  },
+  {
     path: 'encuesta-nueva',
     loadChildren: () => import('./pages/encuesta-nueva/encuesta-nueva.module').then( m => m.EncuestaNuevaPageModule)
   }
-
-
 ];
 
 @NgModule({

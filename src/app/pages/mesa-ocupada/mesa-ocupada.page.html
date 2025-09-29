@@ -5,7 +5,7 @@
     <title>Mesa {{ mesa?.numero ?? "NN"}}</title>
   </header>
 
-  <ion-content [class.blocked]="submitting || pedidoBloqueado">
+  <ion-content [scrollY]="false" [class.blocked]="submitting || pedidoBloqueado">
     @if(bannerMsg){
       <div class="pedido-banner" role="status">
         {{ bannerMsg }}
@@ -43,8 +43,12 @@
                 <img *ngIf="p.fotos?.[1]" [src]="p.fotos[1]" alt="{{ p.nombre }}">
                 <img *ngIf="p.fotos?.[2]" [src]="p.fotos[2]" alt="{{ p.nombre }}">
               </div>
-              <h3>{{ p.nombre }}</h3>
-              <p class="desc">{{ p.descripcion }}</p>
+
+              <div class="info">
+                <h3>{{ p.nombre }}</h3>
+                <p class="desc">{{ p.descripcion }}</p>
+              </div>
+
               <div class="meta">
                 <span class="precio">{{ p.precio | currency:"ARS":"symbol-narrow" }}</span>
                 <span class="tiempo">{{ p.tiempo_elaboracion_min }} min</span>
@@ -67,8 +71,12 @@
                 <img *ngIf="b.fotos?.[1]" [src]="b.fotos[1]" alt="{{ b.nombre }}">
                 <img *ngIf="b.fotos?.[2]" [src]="b.fotos[2]" alt="{{ b.nombre }}">
               </div>
-              <h3>{{ b.nombre }}</h3>
-              <p class="desc">{{ b.descripcion }}</p>
+
+              <div class="info">
+                <h3>{{ b.nombre }}</h3>
+                <p class="desc">{{ b.descripcion }}</p>
+              </div>
+
               <div class="meta">
                 <span class="precio">{{ b.precio | currency:"ARS":"symbol-narrow" }}</span>
                 <span class="tiempo">{{ b.tiempo_elaboracion_min }} min</span>
@@ -91,8 +99,12 @@
                 <img *ngIf="pt.fotos?.[1]" [src]="pt.fotos[1]" alt="{{ pt.nombre }}">
                 <img *ngIf="pt.fotos?.[2]" [src]="pt.fotos[2]" alt="{{ pt.nombre }}">
               </div>
-              <h3>{{ pt.nombre }}</h3>
-              <p class="desc">{{ pt.descripcion }}</p>
+
+              <div class="info">
+                <h3>{{ pt.nombre }}</h3>
+                <p class="desc">{{ pt.descripcion }}</p>
+              </div>
+
               <div class="meta">
                 <span class="precio">{{ pt.precio | currency:"ARS":"symbol-narrow" }}</span>
                 <span class="tiempo">{{ pt.tiempo_elaboracion_min }} min</span>

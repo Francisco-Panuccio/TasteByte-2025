@@ -34,7 +34,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
 
   mesaAsignadaId: number | null = null;
 
-  constructor(private router: Router, private route: ActivatedRoute, private toast: ToastController) {}
+  constructor(private router: Router, private route: ActivatedRoute, private toast: ToastController) { }
 
   async ngOnInit() {
     this.route.queryParams.subscribe(async params => {
@@ -119,7 +119,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       this.tienePermiso = true;
       this.yaRegistrado = !!res.yaRegistrado;
       this.qrValido = true;
-      this.mostrarToast('Bienvenido!', 'success');
+      this.mostrarToast('Bienvenido!');
     }
   }
 
@@ -186,7 +186,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     }
 
     this.yaRegistrado = true;
-    this.mostrarToast('Te uniste a la lista de espera. Esperá a que el maître te asigne una mesa.', 'success');
+    this.mostrarToast('Te uniste a la lista de espera. Esperá a que el maître te asigne una mesa.');
   }
 
   async registrarEncuesta(encuestaId: string) {
@@ -195,7 +195,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       encuesta_id: encuestaId,
       respondido_en: new Date().toISOString()
     });
-    this.mostrarToast('Gracias por participar en la encuesta!', 'success');
+    this.mostrarToast('Gracias por participar en la encuesta!');
   }
 
   async escanearQrMesa() {
@@ -229,7 +229,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   async salir() {
     try {
       await supabase.auth.signOut();
-    } catch {}
+    } catch { }
     this.router.navigate(['/login'], { replaceUrl: true });
   }
 
@@ -238,6 +238,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       message: mensaje,
       duration: 2500,
       color,
+      cssClass: "toast2",
       position: 'bottom',
       buttons: [{ text: 'OK', role: 'cancel' }]
     });

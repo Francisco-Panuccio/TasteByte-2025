@@ -85,6 +85,11 @@
                   inputmode="numeric"
                   formControlName="documentNumber">
                 </ion-input>
+                @if(formRegister.get('documentType')?.value === 'dni') {
+                  <button (click)="escanearDNI()" class="btn_scan" type="button">
+                    <span>📷</span>
+                  </button>
+                }
               </ion-item>
 
               <ion-item class="input-select-dni" lines="none">
@@ -130,7 +135,7 @@
                 <img [src]="fotoPreview" alt="Foto previa"/>
               </div>
               <div class="error" *ngIf="!fotoPreview && formRegister.touched">
-                <span>Debe tomar una foto</span>
+                <span>Foto requerida</span>
               </div>
             </div>
 

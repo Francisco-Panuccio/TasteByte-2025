@@ -65,6 +65,8 @@ form {
 
 .error {
   text-align: center;
+  color: var(--fe-color, #c2454f);
+  font-weight: 600;
 }
 
 .input-field {
@@ -184,5 +186,22 @@ ion-button {
       border-radius: 10px;
       margin-bottom: 10px;
     }
+  }
+}
+
+.btn_scan {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 45px;
+  height: 35px;
+  border-radius: 10px;
+  font-size: 20px;
+  background: rgba(107, 170, 238, 0.765);
+  margin-left: 12px;
+  border: 1px solid #d3a87c;
+
+  span {
+    transform: translateY(-2.5px);
   }
 }
