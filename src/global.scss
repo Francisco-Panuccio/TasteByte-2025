@@ -104,7 +104,8 @@ ion-content {
   background-color: rgba(255, 255, 255, 0.883);
 }
 
-.toast {
+.toast,
+.toast2 {
   --background: #bb714e;
   --color: #554738;
   font-weight: 600;
@@ -116,7 +117,12 @@ ion-content {
   text-align: center;
 }
 
-ion-toast.toast::part(button) {
+.toast2 {
+  margin-top: 0;
+}
+
+ion-toast.toast::part(button),
+ion-toast.toast2::part(button) {
   color: white;
   border-radius: 12px;
   font-weight: 600;
@@ -124,7 +130,8 @@ ion-toast.toast::part(button) {
   text-align: center;
 }
 
-ion-toast.toast::part(header) {
+ion-toast.toast::part(header),
+ion-toast.toast2::part(header) {
   font-weight: 600;
   text-align: center;
   color: #554738;

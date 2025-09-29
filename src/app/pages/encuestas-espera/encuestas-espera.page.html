@@ -10,41 +10,38 @@
       Escanear QR de Ingreso
     </ion-button>
 
-    <!-- <div *ngIf="tienePermiso"> -->
-    <div>
-      <div>
-        <ion-card>
-          <ion-card-header>
-            Opciones Disponibles
-          </ion-card-header>
-          <ion-card-content>
-            <ion-button expand="block" routerLink="/lista-espera" [queryParams]="{ anonimoId: anonimoId, userId: usuarioId }" color="tertiary">
-              Ver Lista de Espera
-            </ion-button>
+    <div *ngIf="tienePermiso">
+      <ion-card>
+        <ion-card-header>
+          Opciones Disponibles
+        </ion-card-header>
+        <ion-card-content>
+          <ion-button expand="block" routerLink="/lista-espera" [queryParams]="{ anonimoId: anonimoId, userId: usuarioId }" color="tertiary">
+            Ver Lista de Espera
+          </ion-button>
 
-            <ion-button expand="block" color="medium" [disabled]="yaRegistrado" (click)="registrarseListaEspera()">
-              Unirse a la Lista de Espera
-            </ion-button>
+          <ion-button expand="block" color="medium" [disabled]="yaRegistrado" (click)="registrarseListaEspera()">
+            Unirse a la Lista de Espera
+          </ion-button>
 
-            <ion-button expand="block" class="btn_pedido"
-            [routerLink]="['/pedido']"
-            [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId }">
-              Pedido
-            </ion-button>
+          <ion-button expand="block" class="btn_pedido"
+          [routerLink]="['/pedido']"
+          [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId }">
+            Pedido
+          </ion-button>
 
-            <ion-button expand="block" 
-            class="btn_encuesta" 
-            [routerLink]="['/encuestas']"
-            [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId }">
-              Encuestas de Clientes
-            </ion-button>
+          <ion-button expand="block" 
+          class="btn_encuesta" 
+          [routerLink]="['/encuestas']"
+          [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId }">
+            Encuestas de Clientes
+          </ion-button>
 
-            <ion-button expand="block" class="btn_juegos">
-              Juegos
-            </ion-button>
-          </ion-card-content>
-        </ion-card>
-      </div>
+          <ion-button expand="block" class="btn_juegos">
+            Juegos
+          </ion-button>
+        </ion-card-content>
+      </ion-card>
     </div>
   </ion-content>
 

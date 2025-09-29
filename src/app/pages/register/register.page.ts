@@ -14,6 +14,7 @@ import { supabase } from "src/supabase.client";
 import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
 import { Email } from "src/app/services/email/email";
 import { Push } from "src/app/services/push/push";
+import { BarcodeFormat, BarcodeScanner } from "@capacitor-mlkit/barcode-scanning";
 
 @Component({
   selector: "app-register",
@@ -32,6 +33,9 @@ export class RegisterPage implements OnInit {
 
   fotoPreview: string | null = null;
   fotoUrl: string | null = null;
+  err: string | null = null;
+  escaneando = false;
+  qrPayload: string | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -114,6 +118,41 @@ export class RegisterPage implements OnInit {
       this.fotoPreview = image.dataUrl || null;
     } catch (e) {
       console.error("Error tomando foto", e);
+    }
+  }
+
+  async escanearDNI() {
+    this.err = null;
+    this.escaneando = true;
+    try {
+      const result = await BarcodeScanner.scan({
+        formats: [BarcodeFormat.Pdf417, BarcodeFormat.QrCode]
+      });
+      if (!result.barcodes?.length) throw new Error("No se detectó ningún código");
+
+      const valor = result.barcodes[0].displayValue || "";
+      this.qrPayload = valor;
+
+      const partes = valor.split("@");
+      if (partes.length >= 8) {
+        const [, apellido, nombre, , dni] = partes;
+        this.formRegister.patchValue({
+          fullname: nombre || "",
+          lastname: apellido || "",
+          documentNumber: dni || ""
+        });
+      } else {
+        const dniSolo = valor.replace(/\D/g, "");
+        if (dniSolo.match(/^\d{7,10}$/)) {
+          this.formRegister.patchValue({ documentNumber: dniSolo });
+        } else {
+          throw new Error("QR inválido o incompleto");
+        }
+      }
+    } catch (e: any) {
+      this.err = e.message || "Error al escanear el DNI";
+    } finally {
+      this.escaneando = false;
     }
   }
 

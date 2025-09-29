@@ -27,12 +27,18 @@ ion-content::part(scroll) {
 }
 
 .grid {
+  height: 548px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   display: grid;
   grid-template-columns: 1fr;
-  grid-auto-rows: calc(100svh - var(--sticky-h, 0px) - var(--seg-h, 0px) - var(--foot-h, 0px) - 2 * var(--grid-pad, 20px));
+  grid-auto-rows: calc(548px - 2 * var(--grid-pad, 20px));
   place-items: center;
   gap: 0;
   padding: var(--grid-pad, 20px) .75rem;
+  scroll-snap-type: y mandatory;
+  scroll-padding-block: var(--grid-pad, 20px);
 }
 
 .grid>* {
@@ -41,26 +47,69 @@ ion-content::part(scroll) {
 }
 
 .card {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  grid-template-areas:
+    "imgs info"
+    "imgs meta"
+    "imgs qty";
+  gap: 12px;
   border: 2px solid #000;
   border-radius: 16px;
   background: #e6dacd;
   padding: .5rem;
+  height: 460px;
+  width: 100%;
   cursor: pointer;
-  height: 300px;
 }
 
 .imgs {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  grid-area: imgs;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
 }
 
 .imgs img {
-  width: 100%;
-  aspect-ratio: 1/1;
+  width: 160px;
+  height: 140px;
   object-fit: cover;
   border: 1px solid #000;
   border-radius: 8px;
+}
+
+.info {
+  grid-area: info;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+}
+
+.meta {
+  grid-area: meta;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.qty {
+  margin-top: 8px;
+  gap: 8px;
+  grid-area: qty;
+  display: flex;
+  justify-self: center;
+  align-items: center;
+
+  span {
+    min-width: 20px;
+    text-align: center;
+    font-weight: 700;
+  }
 }
 
 h3 {
@@ -73,12 +122,7 @@ h3 {
   color: #554738;
   font-weight: 600;
   min-height: 2.5em;
-}
-
-.meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  margin: 5px 0;
 }
 
 .cliente-meta {
@@ -105,14 +149,14 @@ h3 {
   border: 1px solid #000;
   padding: .1rem .4rem;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 18px;
   color: #554738;
   background: white;
 }
 
 .tiempo {
   color: #554738;
-  font-size: 14px;
+  font-size: 18px;
 }
 
 footer {
@@ -237,7 +281,7 @@ ion-content.ion-content-chat {
 
     .importe,
     .tiempo_espera {
-      font-size: 16px;
+      font-size: 20px;
     }
   }
 
@@ -255,21 +299,6 @@ ion-content.ion-content-chat {
       color: white;
       opacity: 1;
     }
-  }
-}
-
-.qty {
-  margin-top: 8px;
-  display: grid;
-  grid-auto-flow: column;
-  gap: 8px;
-  justify-content: center;
-  align-items: center;
-
-  span {
-    min-width: 20px;
-    text-align: center;
-    font-weight: 700;
   }
 }
 

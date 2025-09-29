@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, inject, NgZone, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
-import { IonContent, IonModal, NavController, Platform, ToastController } from "@ionic/angular";
+import { IonContent, IonModal, Platform, ToastController } from "@ionic/angular";
 import { Bebida } from "src/app/interfaces/bebida";
 import { ChatMessage } from "src/app/interfaces/chat-message";
 import { Mesa } from "src/app/interfaces/mesa";
@@ -75,10 +75,14 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   bannerMsg = "";
   clienteEmail: string | null = null;
 
+  anonimoId?: string;
+  usuarioId: number | null = null;
+  clienteId: number | null = null;
+
   plato?: { titulo: string; total: number; cantidad: number; items: Array<{ nombre: string; cantidad: number; precioUnit: number; duracionMin: number; subtotal: number }> };
   bebidaObj?: { titulo: string; total: number; cantidad: number; items: Array<{ nombre: string; cantidad: number; precioUnit: number; duracionMin: number; subtotal: number }> };
 
-  constructor(private platform: Platform, private zone: NgZone, private navCtrl: NavController) {}
+  constructor(private platform: Platform, private zone: NgZone) { }
 
   async ngOnInit() {
     const sub = this.platform.backButton.subscribeWithPriority(9999, () => {
@@ -87,24 +91,39 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     });
     this.backUnsub = () => sub.unsubscribe();
     try {
-      const qp = this.route.snapshot.queryParamMap.get("mesaId");
-      const anonimoId = this.route.snapshot.queryParamMap.get("anonimoId");
-      this.mesaId = qp ? Number(qp) : undefined;
+      const qp = this.route.snapshot.queryParamMap;
+      const mesaIdQp = qp.get("mesaId");
+      this.mesaId = mesaIdQp ? Number(mesaIdQp) : undefined;
       if (!this.mesaId || Number.isNaN(this.mesaId)) throw new Error("Mesa inválida");
       this.mesa = await this.mesasSrv.getById(this.mesaId);
       if (!this.mesa) throw new Error("Mesa no encontrada");
       this.mesaAsignada = !!this.mesa;
+
+      this.anonimoId = qp.get("anonimoId") ?? undefined;
+      this.usuarioId = qp.get("usuarioId") ? Number(qp.get("usuarioId")) : null;
+      this.clienteId = qp.get("clienteId") ? Number(qp.get("clienteId")) : null;
+
       const [allPlatos, bebidas] = await Promise.all([this.platosSrv.list(), this.bebidasSrv.list()]);
       this.postres = allPlatos.filter(p => !!p.esPostre);
       this.platos = allPlatos.filter(p => !p.esPostre);
       this.bebidas = bebidas;
+
       const { data: au } = await supabase.auth.getUser();
       this.userUid = au.user?.id ?? "";
       this.clienteEmail = au.user?.email ?? null;
-      this.myUserId = anonimoId ? `anon-${anonimoId}` : await this.chatSvc.getMyUserId();
+
+      this.myUserId = this.anonimoId ? `anon-${this.anonimoId}` : await this.chatSvc.getMyUserId();
+
       await this.push.init(undefined, "cliente");
       await this.push.ready();
+
       await this.detectarYPoblarPedido();
+
+      if (this.estadoPedido === "aceptado") {
+        this.gotoEncuestasEspera();
+        return;
+      }
+
       await this.ensureChatAndSubscribe();
     } catch (e: any) {
       this.error = e?.message || "Error cargando mesa";
@@ -276,11 +295,11 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     this.seenIds.add(saved.id);
     try {
       await this.push.sendToRoles(["mozo"], "Mensaje del cliente", txt, { tipo: "chat", chatId: this.chatId, mesaId: this.mesaId, fromRole: "cliente", fromName: this.myName, preview: txt.slice(0, 80) });
-    } catch {}
+    } catch { }
   }
 
   trackMsg = (_: number, m: { id: string }) => m.id;
-  private scrollToBottom(ms: number = 200) { try { this.chatContent?.scrollToBottom(ms); } catch {} }
+  private scrollToBottom(ms: number = 200) { try { this.chatContent?.scrollToBottom(ms); } catch { } }
   private scrollToBottomAfterRender() { requestAnimationFrame(() => setTimeout(() => this.scrollToBottom(200), 0)); }
 
   incByPlato(p: Plato) {
@@ -386,7 +405,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
         await this.push.sendToBar("Nuevo pedido", `Nuevo Pedido de la Mesa ${mesaNumero}`, { tipo: "bar_pedido", pedidoId, mesaId: this.mesaId, mesaNumero });
       }
       this.despachados.add(pedidoId);
-    } catch {}
+    } catch { }
   }
 
   async terminarPedido() {
@@ -437,7 +456,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
           if (this.estadoPedido === "aceptado") {
             await this.enviarAProduccion(pedidoId!);
             this.buildPlatoYBebida();
-            this.router.navigate(["/pedido", pedidoId!]);
+            this.gotoEncuestasEspera();
           } else if (this.estadoPedido === "rechazado") {
             this.pedidoEnCurso = false;
             this.submitting = false;
@@ -452,10 +471,19 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
+  private buildEncuestaQuery(): any {
+    const q: any = {};
+    if (this.anonimoId) q.anonimoId = this.anonimoId;
+    if (this.usuarioId !== null) q.usuarioId = this.usuarioId;
+    if (this.clienteId !== null) q.clienteId = this.clienteId;
+    return q;
+  }
+
+  private gotoEncuestasEspera(): void {
+    this.router.navigate(["/encuestas-espera"], { queryParams: this.buildEncuestaQuery() });
+  }
+
   volver() {
-    const anonimoId = this.route.snapshot.queryParamMap.get("anonimoId");
-    const usuarioId = this.route.snapshot.queryParamMap.get("usuarioId");
-    const clienteId = this.route.snapshot.queryParamMap.get("clienteId");
-    this.router.navigate(["/encuestas-espera"], { queryParams: { anonimoId, usuarioId, clienteId } });
+    this.gotoEncuestasEspera();
   }
 }
