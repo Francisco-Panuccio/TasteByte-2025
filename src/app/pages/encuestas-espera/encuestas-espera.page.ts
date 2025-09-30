@@ -33,6 +33,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   yaRegistrado = false;
 
   mesaAsignadaId: number | null = null;
+  estadoPedido: boolean = false;
 
   constructor(private router: Router, private route: ActivatedRoute, private toast: ToastController) { }
 
@@ -214,15 +215,26 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     }
 
     if (res.mesaAsignada) {
-      this.router.navigate(['/mesa-ocupada'], {
-        queryParams: {
-          mesaId: res.mesaAsignada,
-          numero: res.numero,
-          anonimoId: this.anonimoId,
-          usuarioId: this.usuarioId,
-          clienteId: this.clienteId
-        }
-      });
+      const { data } = await supabase.from("pedidos").select("id, estado")
+        .eq("mesa_id", res.mesaAsignada)
+        .in("estado", ["aceptado", "terminado"])
+        .limit(1)
+        .maybeSingle();
+
+      if (data) {
+        this.estadoPedido = true;
+        return;
+      } else {
+        this.router.navigate(['/mesa-ocupada'], {
+          queryParams: {
+            mesaId: res.mesaAsignada,
+            numero: res.numero,
+            anonimoId: this.anonimoId,
+            usuarioId: this.usuarioId,
+            clienteId: this.clienteId
+          }
+        });
+      }
     }
   }
 
