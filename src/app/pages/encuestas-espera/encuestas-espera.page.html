@@ -24,28 +24,25 @@
             Unirse a la Lista de Espera
           </ion-button>
 
-          
           <ion-button expand="block" 
           class="btn_encuesta" 
           [routerLink]="['/encuestas']"
           [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId }">
-          Encuestas de Clientes
-        </ion-button>
-        
-        @if(estadoPedido)
-        {
-          <ion-button expand="block" class="btn_juegos">
-          Juegos
-          </ion-button> 
-
-          <ion-button expand="block" class="btn_pedido"
-          [routerLink]="['/pedido']"
-          [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId }">
-            Pedido
+            Encuestas de Clientes
           </ion-button>
-        }
-        
-      </ion-card-content>
+
+          @if(estadoPedido) {
+            <ion-button expand="block" class="btn_pedido"
+            [routerLink]="['/pedido']"
+            [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId }">
+              Pedido
+            </ion-button>
+
+            <ion-button expand="block" class="btn_juegos">
+              Juegos
+            </ion-button>
+          }
+        </ion-card-content>
       </ion-card>
     <!-- </div> -->
   </ion-content>
