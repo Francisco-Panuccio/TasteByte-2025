@@ -62,6 +62,7 @@
   <img src="src/assets/imagesGithub/chat_cliente.jpeg" alt="Chat Cliente" width="400" height="800">
   <img src="src/assets/imagesGithub/pedido.jpeg" alt="Pedido" width="400" height="800">
   <img src="src/assets/imagesGithub/chat_mozo.jpeg" alt="Chat Mozo" width="400" height="800">
+  <img src="src/assets/imagesGithub/notificacion.jpeg" alt="Notificación" width="400" height="800">
 </p>
 
 * Roman
@@ -83,6 +84,7 @@
 
 <p align="center">
   <img src="src/assets/imagesGithub/clientes_pendientes.jpeg" alt="Clientes Pendientes" width="400" height="800">
+  <img src="src/assets/imagesGithub/email.jpeg" alt="Email" width="400" height="200">
 </p>
 
 
@@ -90,14 +92,18 @@
 * Panuccio
 - Objetivos: Puntos 13 (Rechazo de Pedido), 14 (Aceptación de Pedido) y 20 (Encuesta al Cliente)
 - Fecha Inicial: 22/09/2025
-- Fecha Final: 
+- Fecha Final: 24/09/2025
 - Branch: panuccio/altas
 
 * Roman
 - Objetivos: Puntos 15 (Acceso a Juegos), 19 (Entrega del Pedido), 21 (Solicitud de Cuenta)
 - Fecha Inicial: 22/09/2025
-- Fecha Final: 
+- Fecha Final: 25/09/2025
 - Branch: roman
+
+<p align="center">
+  <img src="src/assets/imagesGithub/main_cliente.jpeg" alt="Main Cliente" width="400" height="800">
+</p>
 
 * Avallone
 - Objetivos: Puntos 16 (Cocina Recibe Productos), 17 (Bar Recibe Productos), 18 (Pedido Completado)
@@ -106,6 +112,24 @@
 - Branch: avallone
 
 
+## Responsabilidades (Cuarta Semana) 🛠️
+* Panuccio
+- Objetivos: Estilado de Encuestas y Corrección de Push Notifications
+- Fecha Inicial: 29/09/2025
+- Fecha Final: 
+- Branch: panuccio/altas
+
+* Roman
+- Objetivos: Puntos 15 (Juegos), Punto 22 (Confirmación de Pago y Liberación de Mesa)
+- Fecha Inicial: 29/09/2025
+- Fecha Final:
+- Branch: roman
+
+* Avallone
+- Objetivos: Puntos 16 (Cocina Recibe Productos), 17 (Bar Recibe Productos), 18 (Pedido Completado)
+- Fecha Inicial: 29/09/2025
+- Fecha Final: 
+- Branch: avallone
 
 
 
