@@ -30,18 +30,12 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   clientes: any[] = [];
   qrValido = false;
   loading = true;
-  tienePermiso = false;
+  tienePermiso :boolean = false;
   yaRegistrado = false;
   
   mesaAsignadaId: number | null = null;
-<<<<<<< HEAD
-  
-  estadoPedido = false;
-  
-=======
   estadoPedido: boolean = false;
 
->>>>>>> main
   constructor(private router: Router, private route: ActivatedRoute, private toast: ToastController) { }
 
   async ngOnInit() {
@@ -49,6 +43,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       this.clienteId = params['clienteId'] ? Number(params['clienteId']) : null;
       this.usuarioId = params['usuarioId'] ? Number(params['usuarioId']) : null;
       this.anonimoId = params['anonimoId'];
+      this.tienePermiso = params['tienePermiso'];
 
       if (!this.clienteId && !this.anonimoId && !this.usuarioId) {
         this.router.navigate(['/login'], { replaceUrl: true });
@@ -224,24 +219,14 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     if (res.mesaAsignada) {
       const { data } = await supabase.from("pedidos").select("id, estado")
         .eq("mesa_id", res.mesaAsignada)
-<<<<<<< HEAD
-        .eq("estado", "aceptado")
-=======
         .in("estado", ["aceptado", "terminado"])
->>>>>>> main
         .limit(1)
         .maybeSingle();
 
       if (data) {
-<<<<<<< HEAD
-       this.estadoPedido = true;
-      } 
-      else {
-=======
         this.estadoPedido = true;
         return;
       } else {
->>>>>>> main
         this.router.navigate(['/mesa-ocupada'], {
           queryParams: {
             mesaId: res.mesaAsignada,

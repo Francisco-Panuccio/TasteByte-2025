@@ -6,6 +6,7 @@ import { Usuario } from "src/app/interfaces/usuario";
 import { Push } from "src/app/services/push/push";
 import { supabase } from "src/supabase.client";
 import { Qr } from "src/app/services/qr/qr";
+import { ToastController } from "@ionic/angular";
 
 @Component({
   selector: "app-home",
@@ -34,7 +35,8 @@ export class HomePage implements OnInit {
     private usuarios: Usuarios,
     private push: Push,
     private route: ActivatedRoute,
-    private qr: Qr
+    private qr: Qr,
+    private toast: ToastController
   ) {}
 
   async ngOnInit() {
@@ -112,20 +114,37 @@ export class HomePage implements OnInit {
     this.router.navigateByUrl("/login", { replaceUrl: true });
   }
 
+  private async mostrarToast(mensaje: string, color: string = 'primary') {
+    const t = await this.toast.create({
+      message: mensaje,
+      duration: 2500,
+      color,
+      cssClass: "toast2",
+      position: 'bottom',
+      buttons: [{ text: 'OK', role: 'cancel' }]
+    });
+    await t.present();
+  }
+
   async escanearQrEntrada() {
-    try {
-      if (!this.clienteId) {
-        console.error("No se encontró cliente para el usuario");
-        return;
-      }
+    const qr = await this.qr.scanQr();
+    if (!qr) return;
+
+    const res = await this.qr.procesarQrCliente(
+      qr,
+      this.clienteId ?? undefined
+    );
+
+    if (res.error) {
+      this.mostrarToast(res.error, 'danger');
+      return;
+    }
+
+    if (res.permiso && qr.startsWith('INGRESO')) {
 
       this.router.navigate(['/encuestas-espera'], {
-        queryParams: { clienteId: this.clienteId }
+        queryParams: { clienteId: this.clienteId, tienePermiso : true, yaRegistrado: !!res.yaRegistrado, qrValido : true }
       });
-
-    } catch (e) {
-      console.error("Error escaneando QR de entrada", e);
-      alert("No se pudo escanear el QR");
     }
   }
 }

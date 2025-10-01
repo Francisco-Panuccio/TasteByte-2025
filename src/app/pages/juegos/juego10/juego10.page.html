@@ -1,0 +1,103 @@
+<ion-header>
+  <ion-toolbar color="dark">
+    <ion-title>Ahorcado</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding user_background">
+  @if(juego_finalizado === 0) {
+    <div class="div_body">
+      <div class="div_contenedor_ahorcado">
+        <div class="div_contenido_img">
+          <img class="img_ahorcado" [src]="url_ahorcado" alt="horca" />
+          <div class="div_contenido_estadisticas">
+            <ion-chip color="medium">⏱ {{ tiempoTranscurrido }}</ion-chip>
+            <ion-chip color="danger">❌ {{ fallos }}/{{ max_fallos }}</ion-chip>
+          </div>
+        </div>
+
+        <div class="palabra">
+          @if(!play) {
+            <ion-button expand="block" color="success" (click)="jugar()">
+              <ion-icon name="play" slot="start"></ion-icon>
+              Jugar
+            </ion-button>
+          } @else {
+            @for (letra of palabra.split(''); track letra) {
+              <span class="span_letra">
+                {{ letras_adivinadas.includes(letra) ? letra : "_" }}
+              </span>
+            }
+          }
+        </div>
+      </div>
+
+      @if(play) {
+        <div class="div_keyboard">
+          <ion-grid fixed>
+            <ion-row>
+              @for (letra of ['Q','W','E','R','T','Y','U','I','O','P']; track letra) {
+                <ion-col size="1.2">
+                  <ion-button expand="block" size="small" fill="outline"
+                    (click)="adivinarLetra(letra)"
+                    [disabled]="letras_utilizadas.includes(letra)">
+                    {{ letra }}
+                  </ion-button>
+                </ion-col>
+              }
+            </ion-row>
+
+            <ion-row>
+              @for (letra of ['A','S','D','F','G','H','J','K','L','Ñ']; track letra) {
+                <ion-col size="1.2">
+                  <ion-button expand="block" size="small" fill="outline"
+                    (click)="adivinarLetra(letra)"
+                    [disabled]="letras_utilizadas.includes(letra)">
+                    {{ letra }}
+                  </ion-button>
+                </ion-col>
+              }
+            </ion-row>
+
+            <ion-row>
+              @for (letra of ['Z','X','C','V','B','N','M']; track letra) {
+                <ion-col size="1.2">
+                  <ion-button expand="block" size="small" fill="outline"
+                    (click)="adivinarLetra(letra)"
+                    [disabled]="letras_utilizadas.includes(letra)">
+                    {{ letra }}
+                  </ion-button>
+                </ion-col>
+              }
+            </ion-row>
+          </ion-grid>
+        </div>
+      } @else {
+        <div class="div_empty"></div>
+      }
+    </div>
+  } @else {
+    <div class="div_final_juego">
+      @if(juego_finalizado === 1) {
+        <p>🎉 <span class="victoria">¡¡¡Ganaste!!!</span> 🎉</p>
+      } @else if (juego_finalizado === 2) {
+        <p>💀 <span class="derrota">¡Perdiste!</span> 💀 <br />La palabra era: {{ palabra }}</p>
+      }
+      <ion-button expand="block" color="primary" (click)="resetear()">
+        Volver a Jugar
+      </ion-button>
+    </div>
+  }
+
+  
+  <footer>
+    <ion-toolbar>
+      <ion-buttons class="ion_btns">
+        <ion-button class="btn_logged" (click)="volver()">Volver</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </footer>
+  
+</ion-content>
+
+
