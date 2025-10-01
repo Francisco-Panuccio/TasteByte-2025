@@ -1,11 +1,5 @@
 import { Component, inject, OnInit } from "@angular/core";
-import {
-  AbstractControl,
-  FormBuilder,
-  ValidationErrors,
-  ValidatorFn,
-  Validators
-} from "@angular/forms";
+import { AbstractControl, FormBuilder, ValidationErrors, ValidatorFn, Validators } from "@angular/forms";
 import { Router } from "@angular/router";
 import { User } from "src/app/classes/user";
 import { AuthService } from "src/app/services/auth/auth";
@@ -26,8 +20,8 @@ export class RegisterPage implements OnInit {
   private email = inject(Email);
   private push = inject(Push);
 
-  loading: boolean = true;
-  errorMsg: boolean = false;
+  loading = true;
+  errorMsg = false;
   submitting = false;
   errorText = "Ocurrió un error";
 
@@ -64,9 +58,7 @@ export class RegisterPage implements OnInit {
     return this.formRegister.valid && !!this.fotoPreview;
   }
 
-  passwordsMatch: ValidatorFn = (
-    group: AbstractControl
-  ): ValidationErrors | null => {
+  passwordsMatch: ValidatorFn = (group: AbstractControl): ValidationErrors | null => {
     const pass = group.get("password")?.value ?? "";
     const conf = group.get("confirm")?.value ?? "";
     const confirmCtrl = group.get("confirm");
@@ -87,9 +79,7 @@ export class RegisterPage implements OnInit {
     return v.length === 8 ? null : { dni: true };
   };
 
-  cuilValidator: ValidatorFn = (
-    c: AbstractControl
-  ): ValidationErrors | null => {
+  cuilValidator: ValidatorFn = (c: AbstractControl): ValidationErrors | null => {
     const v = String(c.value ?? "").replace(/\D/g, "");
     return v.length === 11 ? null : { cuil: true };
   };
@@ -98,10 +88,7 @@ export class RegisterPage implements OnInit {
     this.formRegister.get("documentType")!.valueChanges.subscribe((t) => {
       const ctrl = this.formRegister.get("documentNumber")!;
       ctrl.clearValidators();
-      ctrl.addValidators([
-        Validators.required,
-        t === "dni" ? this.dniValidator : this.cuilValidator
-      ]);
+      ctrl.addValidators([Validators.required, t === "dni" ? this.dniValidator : this.cuilValidator]);
       ctrl.updateValueAndValidity({ emitEvent: false });
     });
     setTimeout(() => (this.loading = false), 2000);
@@ -116,18 +103,14 @@ export class RegisterPage implements OnInit {
         source: CameraSource.Camera
       });
       this.fotoPreview = image.dataUrl || null;
-    } catch (e) {
-      console.error("Error tomando foto", e);
-    }
+    } catch (e) { }
   }
 
   async escanearDNI() {
     this.err = null;
     this.escaneando = true;
     try {
-      const result = await BarcodeScanner.scan({
-        formats: [BarcodeFormat.Pdf417, BarcodeFormat.QrCode]
-      });
+      const result = await BarcodeScanner.scan({ formats: [BarcodeFormat.Pdf417, BarcodeFormat.QrCode] });
       if (!result.barcodes?.length) throw new Error("No se detectó ningún código");
 
       const valor = result.barcodes[0].displayValue || "";
@@ -136,11 +119,7 @@ export class RegisterPage implements OnInit {
       const partes = valor.split("@");
       if (partes.length >= 8) {
         const [, apellido, nombre, , dni] = partes;
-        this.formRegister.patchValue({
-          fullname: nombre || "",
-          lastname: apellido || "",
-          documentNumber: dni || ""
-        });
+        this.formRegister.patchValue({ fullname: nombre || "", lastname: apellido || "", documentNumber: dni || "" });
       } else {
         const dniSolo = valor.replace(/\D/g, "");
         if (dniSolo.match(/^\d{7,10}$/)) {
@@ -174,6 +153,10 @@ export class RegisterPage implements OnInit {
       const dniStr = isDni ? digits : undefined;
       const cuilStr = !isDni ? digits : undefined;
 
+      const isCliente = v.profile === "cliente_registrado";
+      const bucket = isCliente ? "clientes" : "empleados";
+      const dir = isCliente ? "clientes" : "empleados";
+
       const emailTaken = await this.usuarios.existsByEmail(email);
       if (emailTaken) throw new Error("Correo ya registrado");
 
@@ -185,79 +168,51 @@ export class RegisterPage implements OnInit {
       const { data, error } = await this.auth.signUp(email, password);
       if (error) throw new Error(error.message || "Error en autenticación");
 
-      const user = new User(
-        v.lastname,
-        v.fullname,
-        email,
-        v.profile,
-        dniStr,
-        cuilStr,
-        undefined
-      );
+      const user = new User(v.lastname, v.fullname, email, v.profile, dniStr, cuilStr, undefined);
 
       const fileName = `foto_${Date.now()}.jpeg`;
+      const filePath = `${dir}/${fileName}`;
       const { error: uploadError } = await supabase.storage
-        .from("empleados")
-        .upload(fileName, this.dataURLtoBlob(this.fotoPreview!), {
-          contentType: "image/jpeg"
-        });
+        .from(bucket)
+        .upload(filePath, this.dataURLtoBlob(this.fotoPreview!), { contentType: "image/jpeg", upsert: false });
       if (uploadError) throw uploadError;
 
-      const { data: publicUrl } = supabase.storage
-        .from("empleados")
-        .getPublicUrl(fileName);
+      const { data: publicUrl } = supabase.storage.from(bucket).getPublicUrl(filePath);
       this.fotoUrl = publicUrl.publicUrl;
 
       const usuarioDB = await this.usuarios.createFromUser(user, this.fotoUrl);
-      const clienteNombre = `${user.apellido} ${user.nombre}`;
 
-      this.email
-        .sendEmail(
-          email,
-          "Registro Recibido - En Revisión",
-          "registro_pendiente",
-          { name: clienteNombre }
-        )
-        .catch(() => { });
-
-      try {
-        const { data: rows, error: tkErr } = await supabase
-          .from("push_tokens")
-          .select("token")
-          .in("role", ["dueño", "supervisor"])
-          .eq("active", true)
-          .eq("revoked", false);
-        if (!tkErr) {
-          const tokens = (rows ?? [])
-            .map((r: any) => r.token as string)
-            .filter(Boolean);
-          if (tokens.length) {
-            await this.push.send(
-              tokens,
-              "Nuevo cliente registrado en espera de aprobación",
-              `${clienteNombre} espera aprobación`,
-              {
-                screen: "clientes-pendientes",
-                tipo: "nuevo_cliente",
-                cliente_id: usuarioDB.id,
-                cliente_nombre: clienteNombre
-              }
-            );
-          }
-        }
-      } catch { }
-
-      if (v.profile === "cliente_registrado") {
+      if (isCliente) {
+        const clienteNombre = `${user.apellido} ${user.nombre}`;
+        this.email.sendEmail(email, "Registro Recibido - En Revisión", "registro_pendiente", { name: clienteNombre }).catch(() => { });
         try {
-          await supabase.auth.signOut();
+          const { data: rows, error: tkErr } = await supabase
+            .from("push_tokens")
+            .select("token")
+            .in("role", ["dueño", "supervisor"])
+            .eq("active", true)
+            .eq("revoked", false);
+          if (!tkErr) {
+            const tokens = (rows ?? []).map((r: any) => r.token as string).filter(Boolean);
+            if (tokens.length) {
+              await this.push.send(
+                tokens,
+                "",
+                "Nuevo cliente en lista de espera",
+                { screen: "clientes-pendientes", tipo: "cliente_registrado", cliente_id: usuarioDB.id, cliente_nombre: clienteNombre }
+              );
+            }
+          }
         } catch { }
+      }
+
+      if (isCliente) {
+        try { await supabase.auth.signOut(); } catch { }
         await this.router.navigateByUrl("/login", { replaceUrl: true });
         return;
       }
 
-      await this.router.navigateByUrl(data.session ? "/home" : "/login", {
-        replaceUrl: true
-      });
+      await this.router.navigateByUrl(data.session ? "/home" : "/login", { replaceUrl: true });
     } catch (e: any) {
       this.errorText = typeof e?.message === "string" ? e.message : "Error en el registro";
       this.errorMsg = true;
@@ -272,9 +227,7 @@ export class RegisterPage implements OnInit {
     const bstr = atob(arr[1]);
     let n = bstr.length;
     const u8arr = new Uint8Array(n);
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
-    }
+    while (n--) u8arr[n] = bstr.charCodeAt(n);
     return new Blob([u8arr], { type: mime });
   }
 

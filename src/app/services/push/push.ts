@@ -1,6 +1,8 @@
 import { inject, Injectable } from "@angular/core";
 import { Capacitor } from "@capacitor/core";
 import { PushNotifications, Token, ActionPerformed, PushNotificationSchema } from "@capacitor/push-notifications";
+import { LocalNotifications } from "@capacitor/local-notifications";
+import { App } from "@capacitor/app";
 import { Subject } from "rxjs";
 import { supabase } from "src/supabase.client";
 import { Pedidos } from "src/app/services/pedidos/pedidos";
@@ -12,6 +14,7 @@ export class Push {
   private token: string | null = null;
   private initialized = false;
   private mozoHandlersInit = false;
+  private appName = "App";
 
   private readyResolve!: () => void;
   private readyPromise: Promise<void> = new Promise<void>(res => (this.readyResolve = res));
@@ -23,29 +26,50 @@ export class Push {
   private pedidos = inject(Pedidos);
 
   async init(userId?: string, role?: Role): Promise<void> {
-    if (Capacitor.getPlatform() === "web") { this.resolveReadyOnce(); return; }
+    if (Capacitor.getPlatform() !== "android") { this.resolveReadyOnce(); return; }
     if (this.initialized) {
       if (this.token) await this.upsertToken(this.token, userId, role);
       this.resolveReadyOnce();
       return;
     }
+
+    try { this.appName = (await App.getInfo()).name; } catch { }
     await this.ensureChannel();
-    const permStatus = await PushNotifications.requestPermissions();
-    if (permStatus.receive !== "granted") { this.resolveReadyOnce(); return; }
-    await PushNotifications.register();
+    try { await LocalNotifications.requestPermissions(); } catch { }
+
+    const perm = await PushNotifications.requestPermissions();
+    if (perm.receive !== "granted") { this.resolveReadyOnce(); return; }
+
     PushNotifications.addListener("registration", async (t: Token) => {
       this.token = t.value;
       await this.upsertToken(t.value, userId, role);
       this.resolveReadyOnce();
     });
+
     PushNotifications.addListener("registrationError", () => { this.resolveReadyOnce(); });
-    PushNotifications.addListener("pushNotificationReceived", (n: PushNotificationSchema) => {
+
+    PushNotifications.addListener("pushNotificationReceived", async (n: PushNotificationSchema) => {
+      const body = (n.body as string) || (n.title as string) || (n?.data as any)?.body || "";
+      try {
+        await LocalNotifications.schedule({
+          notifications: [{
+            id: Date.now() % 2147483647,
+            title: this.appName,
+            body,
+            extra: n.data ?? {},
+            channelId: "orders"
+          }]
+        });
+      } catch { }
       this.pushSubject.next(n.data ?? {});
     });
+
     PushNotifications.addListener("pushNotificationActionPerformed", (a: ActionPerformed) => {
       const data = a.notification?.data ?? {};
       this.pushSubject.next({ ...data, _action: "click" });
     });
+
+    try { await PushNotifications.register(); } catch { }
     this.initialized = true;
   }
 
@@ -54,6 +78,16 @@ export class Push {
   private async ensureChannel(): Promise<void> {
     try {
       await PushNotifications.createChannel({
+        id: "orders",
+        name: "Pedidos",
+        description: "Alertas de nuevos pedidos",
+        importance: 5,
+        visibility: 1,
+        sound: "default"
+      });
+    } catch { }
+    try {
+      await LocalNotifications.createChannel({
         id: "orders",
         name: "Pedidos",
         description: "Alertas de nuevos pedidos",
@@ -80,8 +114,8 @@ export class Push {
     } catch (e) { console.error("[push][edge][exception]", e); }
   }
 
-  async sendToTopic(topic: string, title: string, body: string, data?: Record<string, any>, actions?: Array<{ id: string; title: string }>): Promise<void> {
-    const payload: any = { topic, title, body, data };
+  async sendToRoles(roles: Array<Role | string>, title: string, body: string, data?: Record<string, any>, actions?: Array<{ id: string; title: string }>): Promise<void> {
+    const payload: any = { roles, title, body, data };
     if (actions?.length) payload.actions = actions;
     try {
       const { data: resp, error } = await supabase.functions.invoke("send-push", { body: payload });
@@ -90,22 +124,12 @@ export class Push {
     } catch (e) { console.error("[push][edge][exception]", e); }
   }
 
-  async sendToRoles(roles: Array<Role | string>, title: string, body: string, data?: Record<string, any>, actions?: Array<{ id: string; title: string }>): Promise<void> {
-    const { data: rows, error } = await supabase.from("push_tokens").select("token").in("role", roles as string[]).eq("active", true).eq("revoked", false);
-    if (error) { console.error("[push][tokensByRole]", error); return; }
-    const tokens = (rows ?? []).map(r => (r as any).token).filter(Boolean);
-    if (!tokens.length) { console.warn("[push][tokensByRole] sin tokens"); return; }
-    await this.send(tokens, title, body, data, actions);
-  }
-
   async sendToMaitre(title: string, body: string, data?: Record<string, any>, actions?: Array<{ id: string; title: string }>) {
     return this.sendToRoles(["maitre"], title, body, data, actions);
   }
-
   async sendToCocina(title: string, body: string, data?: Record<string, any>) {
     return this.sendToRoles(["cocina"], title, body, data);
   }
-
   async sendToBar(title: string, body: string, data?: Record<string, any>) {
     return this.sendToRoles(["bar"], title, body, data);
   }
