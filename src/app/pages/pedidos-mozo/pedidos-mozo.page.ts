@@ -7,7 +7,7 @@ import { supabase } from "src/supabase.client";
 import { Push } from "src/app/services/push/push";
 import { Subscription } from "rxjs";
 
-type Filtro = "todos" | "pendiente" | "aceptado" | "rechazado";
+type Filtro = "todos" | "pendiente" | "aceptado" | "rechazado" | "terminado";
 
 @Component({
   selector: "app-pedidos-mozo",

@@ -1,7 +1,6 @@
 import { Component, OnInit, OnDestroy, inject } from "@angular/core";
-import { Router } from "@angular/router";
-import { ToastController } from "@ionic/angular";
 import { Clientes } from "src/app/services/clientes/clientes";
+import { Usuarios } from "src/app/services/usuarios/usuarios";
 import { Usuario } from "src/app/interfaces/usuario";
 import { ClienteRegistrado } from "src/app/interfaces/cliente";
 import { Email } from "src/app/services/email/email";
@@ -17,12 +16,11 @@ import { Subscription } from "rxjs";
 })
 export class ListadoClientesPage implements OnInit, OnDestroy {
   private clientesSvc = inject(Clientes);
+  private usuariosSvc = inject(Usuarios);
   private emailSvc = inject(Email);
   private push = inject(Push);
-  private toastCtrl = inject(ToastController);
-  private router = inject(Router);
 
-  loading: boolean = true;
+  loading = true;
   err: string | null = null;
   ok: string | null = null;
 
@@ -30,22 +28,32 @@ export class ListadoClientesPage implements OnInit, OnDestroy {
 
   private pushSub?: Subscription;
   private rtChannel?: ReturnType<typeof supabase.channel>;
+  private isPrivileged = false;
 
   async ngOnInit() {
-    await this.cargarPendientes();
-    await this.push.init(undefined, "supervisor");
+    const { data: auth } = await supabase.auth.getUser();
+    const supaUid = auth?.user?.id ?? undefined;
+    const email = auth?.user?.email ?? null;
+
+    let role: "dueño" | "supervisor" | undefined;
+    if (email) {
+      const u = await this.usuariosSvc.getByEmail(email);
+      const p = (u?.perfil ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+      role = p === "dueno" ? "dueño" : p === "supervisor" ? "supervisor" : undefined;
+    }
+    this.isPrivileged = !!role;
+
+    await this.push.init(supaUid, role);
     await this.push.ready();
 
+    if (this.isPrivileged) {
+      await this.push.sendToRoles(["dueño", "supervisor"], "", "TEST push", { tipo: "cliente_registrado" });
+    }
+
+    await this.cargarPendientes();
+
     this.pushSub = this.push.onPush$.subscribe(async (data: any) => {
-      const tipo = data?.tipo ?? data?._type ?? "";
-      if (tipo === "nuevo_cliente") {
-        const nombre = (data?.cliente_nombre as string) || "";
-        await this.presentPushToast(
-          "Nuevo cliente registrado en espera de aprobación",
-          nombre,
-          () => this.cargarPendientes()
-        );
-      }
+      if ((data?.tipo ?? data?._type) === "cliente_registrado") await this.cargarPendientes();
     });
 
     this.rtChannel = supabase
@@ -55,11 +63,12 @@ export class ListadoClientesPage implements OnInit, OnDestroy {
         { event: "INSERT", schema: "public", table: "clientes" },
         async (payload) => {
           const row: any = payload.new;
-          if (row?.tipo === "cliente_registrado") {
-            await this.presentPushToast(
-              "Nuevo cliente registrado en espera de aprobación",
+          if (this.isPrivileged && row?.tipo === "cliente_registrado") {
+            await this.push.sendToRoles(
+              ["dueño", "supervisor"],
               "",
-              () => this.cargarPendientes()
+              "Nuevo cliente en lista de espera",
+              { tipo: "cliente_registrado" }
             );
           }
         }
@@ -85,49 +94,20 @@ export class ListadoClientesPage implements OnInit, OnDestroy {
     }
   }
 
-  private async presentPushToast(header: string, message: string, onView?: () => void): Promise<void> {
-    const t = await this.toastCtrl.create({
-      header,
-      message,
-      position: "top",
-      cssClass: "toasty",
-      duration: undefined,
-      buttons: [
-        {
-          text: "Ver",
-          role: "confirm",
-          handler: async () => {
-            try { onView?.(); } catch { }
-            try { await this.router.navigate(["/listado-clientes"]); } catch { }
-          }
-        },
-        { text: "Cerrar", role: "cancel" }
-      ]
-    });
-    await t.present();
-  }
-
   async aprobar(usuarioId: string) {
     try {
       const cliente = this.clientes.find(c => c.usuario_id === usuarioId);
       if (!cliente) throw new Error("Cliente no encontrado");
-
       await this.clientesSvc.aprobar(usuarioId);
-
       await this.emailSvc.sendEmail(
         cliente.usuario.correo_electronico,
         "🎉 ¡Registro Aprobado! - Tu Cuenta Ya Está Activa",
         "registro_aprobado",
-        {
-          nombres: cliente.usuario.nombres,
-          apellidos: cliente.usuario.apellidos
-        }
+        { nombres: cliente.usuario.nombres, apellidos: cliente.usuario.apellidos }
       );
-
       this.ok = "Cliente aprobado y notificado por email";
       await this.cargarPendientes();
     } catch (e: any) {
-      console.error("Error al aprobar cliente:", e);
       this.err = e.message || "No se pudo aprobar el cliente";
     }
   }
@@ -136,23 +116,16 @@ export class ListadoClientesPage implements OnInit, OnDestroy {
     try {
       const cliente = this.clientes.find(c => c.usuario_id === usuarioId);
       if (!cliente) throw new Error("Cliente no encontrado");
-
       await this.clientesSvc.rechazar(usuarioId);
-
       await this.emailSvc.sendEmail(
         cliente.usuario.correo_electronico,
         "❌ Estado de tu Registro - Comunicación Importante",
         "registro_rechazado",
-        {
-          nombres: cliente.usuario.nombres,
-          apellidos: cliente.usuario.apellidos
-        }
+        { nombres: cliente.usuario.nombres, apellidos: cliente.usuario.apellidos }
       );
-
       this.ok = "Cliente rechazado y notificado por email";
       await this.cargarPendientes();
     } catch (e: any) {
-      console.error("Error al aprobar/rechazar cliente:", e);
       this.err = e.message || "No se pudo rechazar el cliente";
     }
   }
