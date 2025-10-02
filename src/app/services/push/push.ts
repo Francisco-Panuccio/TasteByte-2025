@@ -1,4 +1,3 @@
-// push.service.ts
 import { inject, Injectable } from "@angular/core";
 import { Capacitor } from "@capacitor/core";
 import { PushNotifications, Token, ActionPerformed, PushNotificationSchema } from "@capacitor/push-notifications";
@@ -128,16 +127,6 @@ export class Push {
     const tokens = (rows ?? []).map((r: any) => r.token as string).filter(Boolean);
     if (!tokens.length) { console.warn("[push][tokensByRole] sin tokens"); return; }
     await this.send(tokens, title, body, data, actions);
-  }
-
-  async sendToUserIds(userIds: number[], title: string, body: string, data?: Record<string, any>, actions?: Array<{ id: string; title: string }>) {
-    const payload: any = { user_ids: userIds, title: title || "Notificación", body, data };
-    if (actions?.length) payload.actions = actions;
-    try {
-      const { data: resp, error } = await supabase.functions.invoke("send-push", { body: payload });
-      if (error) { console.error("[push][edge][invoke-error]", error); return; }
-      if (!resp?.ok) console.warn("[push][edge][not-ok]", resp);
-    } catch (e) { console.error("[push][edge][exception]", e); }
   }
 
   async sendToMaitre(title: string, body: string, data?: Record<string, any>, actions?: Array<{ id: string; title: string }>) {

@@ -1,4 +1,3 @@
-// lista-espera.page.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ModalController, NavController } from '@ionic/angular';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -53,11 +52,7 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
     try {
       const { data: authData } = await supabase.auth.getUser();
       if (authData?.user?.email) {
-        const { data: usuario } = await supabase
-          .from('usuarios')
-          .select('id, perfil')
-          .eq('correo_electronico', authData.user.email)
-          .maybeSingle();
+        const { data: usuario } = await supabase.from('usuarios').select('id, perfil').eq('correo_electronico', authData.user.email).maybeSingle();
         perfil = usuario?.perfil;
         usuarioIdNum = usuario?.id ?? undefined;
         const norm = this.normalizarPerfil(perfil);
@@ -82,12 +77,9 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
           const id = String(row.id);
           if (this.seenWaitIds.has(id)) return;
           this.seenWaitIds.add(id);
-          await this.push.sendToRoles(
-            ['maitre'],
-            'Nuevo cliente en lista de espera',
-            '',
-            { tipo: 'lista_espera', screen: 'lista-espera', lista_espera_id: row.id }
-          );
+          if (this.esMaitre) {
+            await this.push.sendToRoles(['maitre'], 'Nuevo cliente en lista de espera', '', { tipo: 'lista_espera', screen: 'lista-espera', lista_espera_id: row.id });
+          }
           await this.cargarLista();
         }
       )
@@ -100,19 +92,12 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
 
   async cargarLista() {
     this.loading = true;
-    const { data, error } = await supabase
-      .from('lista_espera_v')
-      .select('*')
-      .eq('estado', 'pendiente')
-      .order('creado_en', { ascending: true });
-
+    const { data, error } = await supabase.from('lista_espera_v').select('*').eq('estado', 'pendiente').order('creado_en', { ascending: true });
     if (error) {
       this.clientes = [];
     } else {
       this.clientes = (data || []).map((c) => {
-        const nombre =
-          c.cliente_anonimo_nombre ||
-          (c.usuario_nombre && c.usuario_apellido ? `${c.usuario_nombre} ${c.usuario_apellido}` : null);
+        const nombre = c.cliente_anonimo_nombre || (c.usuario_nombre && c.usuario_apellido ? `${c.usuario_nombre} ${c.usuario_apellido}` : null);
         const foto = c.cliente_anonimo_foto || c.usuario_foto || null;
         return { ...c, nombre: nombre ?? 'Cliente anónimo', foto_url: foto };
       });
@@ -126,33 +111,20 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
     const { data: mesaSeleccionada } = await modal.onDidDismiss();
     if (!mesaSeleccionada) return;
 
-    const { error: errorLista } = await supabase
-      .from('lista_espera')
-      .update({ estado: 'aprobado', mesa_id: mesaSeleccionada.id })
-      .eq('id', cliente.id);
+    const { error: errorLista } = await supabase.from('lista_espera').update({ estado: 'aprobado', mesa_id: mesaSeleccionada.id }).eq('id', cliente.id);
     if (errorLista) return;
 
+    const { data: le } = await supabase.from('lista_espera').select('cliente_id, cliente_anonimo_id, push_token').eq('id', cliente.id).maybeSingle();
+
     const payload: any = { mesa_id: mesaSeleccionada.id, estado: 'asignada' };
-    if (cliente.cliente_id) payload.cliente_id = cliente.cliente_id;
-    if (cliente.cliente_anonimo_id) payload.cliente_anonimo_id = cliente.cliente_anonimo_id;
+    if (le?.cliente_id) payload.cliente_id = le.cliente_id;
+    if (le?.cliente_anonimo_id) payload.cliente_anonimo_id = le.cliente_anonimo_id;
 
     await supabase.from('asignaciones_mesa').insert(payload);
 
-    if (cliente.cliente_id) {
-      const { data: cli } = await supabase
-        .from('clientes')
-        .select('usuario_id')
-        .eq('id', cliente.cliente_id)
-        .single();
-      const usuarioId = cli?.usuario_id as number | undefined;
-      if (usuarioId) {
-        await this.push.sendToUserIds(
-          [usuarioId],
-          `Mesa ${mesaSeleccionada.numero} Asignada`,
-          '',
-          { tipo: 'mesa_asignada', mesa_id: mesaSeleccionada.id, mesa_numero: mesaSeleccionada.numero }
-        );
-      }
+    const tok = le?.push_token as string | undefined;
+    if (tok) {
+      await this.push.send(tok, `Mesa ${mesaSeleccionada.numero} Asignada`, '', { tipo: 'mesa_asignada', mesa_id: mesaSeleccionada.id, mesa_numero: mesaSeleccionada.numero });
     }
 
     this.clientes = this.clientes.filter((c) => c.id !== cliente.id);
