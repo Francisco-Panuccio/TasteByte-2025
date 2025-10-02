@@ -18,7 +18,7 @@ export class BarPage implements OnInit, OnDestroy {
   loading: boolean = true;
 
   async ngOnInit() {
-    await this.push.init(undefined, "bar");
+    await this.push.init(undefined, "bartender");
     await this.push.ready();
     this.push.onPush$.subscribe(async (d: Record<string, any>) => {
       if ((d?.["tipo"] ?? "") === "bar_pedido") {
