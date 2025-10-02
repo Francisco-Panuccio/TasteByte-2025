@@ -1,0 +1,28 @@
+.user_background {
+  background: var(--ion-color-light);
+  min-height: 100%;
+}
+
+.div_main {
+  text-align: center;
+}
+
+h2, h3 {
+  margin: 12px 0;
+  font-weight: bold;
+  color: var(--ion-color-dark);
+}
+
+.propinas {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.total_final {
+  margin: 20px 0;
+  font-size: 22px;
+  font-weight: 900;
+  color: #2e7d32;
+}

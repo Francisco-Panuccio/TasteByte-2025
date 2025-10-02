@@ -1,0 +1,46 @@
+<header>
+  <ion-toolbar color="dark">
+    <ion-title>Cuenta</ion-title>
+  </ion-toolbar>
+</header>
+
+<ion-content class="ion-padding user_background">
+  <div class="div_main">
+    <h2>Detalle de tu cuenta</h2>
+
+    <!-- Ítems -->
+    <ion-list>
+      <ion-item *ngFor="let it of items">
+        <ion-label>
+          <div>{{ it.nombre }}</div>
+          <small>{{ it.cantidad }} × {{ it.precio_unit | currency:"ARS" }}</small>
+        </ion-label>
+        <ion-note slot="end">{{ it.cantidad * it.precio_unit | currency:"ARS" }}</ion-note>
+      </ion-item>
+    </ion-list>
+
+    <!-- Descuento -->
+    <p *ngIf="descuento > 0" style="color: green; font-weight: bold;">
+      Descuento aplicado: -{{ descuento }}%
+    </p>
+
+    <!-- Propina -->
+    <h3>Propina</h3>
+    <div class="propinas">
+      <ion-button size="small" (click)="aplicarPropina(0)">0%</ion-button>
+      <ion-button size="small" (click)="aplicarPropina(10)">10%</ion-button>
+      <ion-button size="small" (click)="aplicarPropina(15)">15%</ion-button>
+      <ion-button size="small" (click)="aplicarPropina(20)">20%</ion-button>
+    </div>
+
+    <!-- Total -->
+    <h2 class="total_final">
+      TOTAL: {{ totalFinal | currency:"ARS" }}
+    </h2>
+
+    <!-- Botón de pago -->
+    <ion-button expand="block" color="primary" (click)="pagar()">
+      Pagar cuenta
+    </ion-button>
+  </div>
+</ion-content>
