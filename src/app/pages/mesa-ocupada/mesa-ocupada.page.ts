@@ -68,7 +68,6 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   total = 0;
   etaMin = 0;
   userUid = "";
-
   pedidoEnCurso = false;
   pedidoActualId?: string;
   estadoPedido: Estado | null = null;
@@ -231,6 +230,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     if (!this.mesaId) return;
     const chat = await this.chatSvc.getOrCreateForMesa(this.mesaId, "cliente");
     this.chatId = chat.id;
+    await this.chatSvc.bindMyPushToken(this.chatId, this.anonimoId);
     const msgs = await this.chatSvc.loadMessages(chat.id, 200);
     this.seenIds.clear();
     this.messages = msgs.map(m => {
@@ -260,6 +260,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     if (!this.chatId && this.mesaId) {
       const chat = await this.chatSvc.getOrCreateForMesa(this.mesaId, "cliente");
       this.chatId = chat.id;
+      await this.chatSvc.bindMyPushToken(this.chatId, this.anonimoId);
     }
     this.chatOpen = true;
     this.chatReady = true;
@@ -281,7 +282,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     this.messages.push({ id: tempId, from: "yo", role: "cliente", text: txt, time: this.hhmm(now) });
     this.scrollToBottomAfterRender();
     this.newMsg = "";
-    const saved = await this.chatSvc.sendMessage(this.chatId, txt);
+    const saved = await this.chatSvc.sendMessage(this.chatId, txt, this.anonimoId);
     const vm = this.chatSvc.toViewMessage(saved, this.myUserId!);
     const role: "mozo" | "cliente" = "cliente";
     const idx = this.messages.findIndex(m => m.id === tempId);
@@ -293,9 +294,6 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
       }
     }
     this.seenIds.add(saved.id);
-    try {
-      await this.push.sendToRoles(["mozo"], "Mensaje del cliente", txt, { tipo: "chat", chatId: this.chatId, mesaId: this.mesaId, fromRole: "cliente", fromName: this.myName, preview: txt.slice(0, 80) });
-    } catch { }
   }
 
   trackMsg = (_: number, m: { id: string }) => m.id;
