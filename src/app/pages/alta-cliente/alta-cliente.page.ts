@@ -48,9 +48,7 @@ export class AltaClientePage implements OnInit {
     foto: ["", [Validators.required]]
   });
 
-  get f() {
-    return this.formAltaCliente.controls;
-  }
+  get f() { return this.formAltaCliente.controls; }
 
   tipoCliente: "registrado" | "anonimo" = "registrado";
 
@@ -59,38 +57,19 @@ export class AltaClientePage implements OnInit {
     foto: ["", [Validators.required]]
   });
 
-  get fAnonimo() {
-    return this.formAltaAnonimo.controls;
-  }
+  get fAnonimo() { return this.formAltaAnonimo.controls; }
 
   ngOnInit() {
     setTimeout(() => { this.loading = false; }, 2000);
-    this.formAnonimo = this.fb.group({
-      nombre: ["", [Validators.required, Validators.minLength(2)]]
-    });
+    this.formAnonimo = this.fb.group({ nombre: ["", [Validators.required, Validators.minLength(2)]] });
   }
 
   private async presentPushToast(header: string, message: string, screen?: string, params?: any) {
     const t = await this.toast.create({
-      header,
-      message,
-      position: "top",
-      cssClass: "toast",
-      duration: undefined,
+      header, message, position: "top", cssClass: "toast", duration: undefined,
       buttons: [
-        {
-          text: "Ver",
-          role: "confirm",
-          handler: () => {
-            if (screen) {
-              this.router.navigate([`/${screen}`], { queryParams: params ?? {} });
-            }
-          }
-        },
-        {
-          text: "Cerrar",
-          role: "cancel"
-        }
+        { text: "Ver", role: "confirm", handler: () => { if (screen) this.router.navigate([`/${screen}`], { queryParams: params ?? {} }); } },
+        { text: "Cerrar", role: "cancel" }
       ]
     });
     await t.present();
@@ -100,29 +79,18 @@ export class AltaClientePage implements OnInit {
     this.err = null;
     this.escaneando = true;
     try {
-      const result = await BarcodeScanner.scan({
-        formats: [BarcodeFormat.Pdf417, BarcodeFormat.QrCode]
-      });
+      const result = await BarcodeScanner.scan({ formats: [BarcodeFormat.Pdf417, BarcodeFormat.QrCode] });
       if (!result.barcodes?.length) throw new Error("No se detectó ningún código");
-
       const valor = result.barcodes[0].displayValue || "";
       this.qrPayload = valor;
-
       const partes = valor.split("@");
       if (partes.length >= 8) {
         const [, apellido, nombre, , dni] = partes;
-        this.formAltaCliente.patchValue({
-          nombres: nombre || "",
-          apellidos: apellido || "",
-          dni: dni || ""
-        });
+        this.formAltaCliente.patchValue({ nombres: nombre || "", apellidos: apellido || "", dni: dni || "" });
       } else {
         const dniSolo = valor.replace(/\D/g, "");
-        if (dniSolo.match(/^\d{7,10}$/)) {
-          this.formAltaCliente.patchValue({ dni: dniSolo });
-        } else {
-          throw new Error("QR inválido o incompleto");
-        }
+        if (/^\d{7,10}$/.test(dniSolo)) this.formAltaCliente.patchValue({ dni: dniSolo });
+        else throw new Error("QR inválido o incompleto");
       }
     } catch (e: any) {
       this.err = e.message || "Error al escanear el DNI";
@@ -136,38 +104,18 @@ export class AltaClientePage implements OnInit {
     try {
       if (this.platform !== "web") {
         const status = await Camera.requestPermissions({ permissions: ["camera"] });
-        if (status.camera !== "granted") {
-          this.err = "Permiso de cámara denegado";
-          return;
-        }
+        if (status.camera !== "granted") { this.err = "Permiso de cámara denegado"; return; }
       }
-
-      const photo = await Camera.getPhoto({
-        resultType: CameraResultType.Uri,
-        quality: 85,
-        source: CameraSource.Camera,
-        allowEditing: false
-      });
-
-      let blob: Blob;
-      let ext = "jpg";
-
-      if (photo.webPath) {
-        const response = await fetch(photo.webPath);
-        blob = await response.blob();
-        ext = blob.type.includes("png") ? "png" : "jpg";
-      } else if (photo.base64String) {
-        blob = this.base64ToBlob(photo.base64String, "image/jpeg");
-      } else {
-        throw new Error("No se pudo obtener la imagen");
-      }
+      const photo = await Camera.getPhoto({ resultType: CameraResultType.Uri, quality: 85, source: CameraSource.Camera, allowEditing: false });
+      let blob: Blob; let ext = "jpg";
+      if (photo.webPath) { const resp = await fetch(photo.webPath); blob = await resp.blob(); ext = blob.type.includes("png") ? "png" : "jpg"; }
+      else if (photo.base64String) { blob = this.base64ToBlob(photo.base64String, "image/jpeg"); }
+      else { throw new Error("No se pudo obtener la imagen"); }
 
       const fileName = `cliente_${Date.now()}.${ext}`;
-      const filePath = `clientes/${fileName}`;
-
+      const filePath = `cliente/${fileName}`;                // clientes/cliente
       const up = await supabase.storage.from("clientes").upload(filePath, blob, { contentType: blob.type, upsert: true });
       if (up.error) throw up.error;
-
       const { data } = supabase.storage.from("clientes").getPublicUrl(filePath);
       this.formAltaCliente.patchValue({ foto: data.publicUrl });
     } catch (e: any) {
@@ -183,15 +131,9 @@ export class AltaClientePage implements OnInit {
   }
 
   async enviar(tipo: string) {
-    this.err = null;
-    this.ok = false;
-
+    this.err = null; this.ok = false;
     const form = tipo === "registrado" ? this.formAltaCliente : this.formAltaAnonimo;
-
-    if (form.invalid) {
-      form.markAllAsTouched();
-      return;
-    }
+    if (form.invalid) { form.markAllAsTouched(); return; }
 
     this.loading = true;
     try {
@@ -202,11 +144,9 @@ export class AltaClientePage implements OnInit {
         const apellidos = String(this.f["apellidos"].value).trim();
 
         const sign = await supabase.auth.signUp({ email, password });
-        if (sign.error) {
-          throw sign.error;
-        }
+        if (sign.error) throw sign.error;
 
-        const usuario: any = {
+        const usuarioLike: any = {
           apellido: apellidos,
           nombre: nombres,
           dni: Number(String(this.f["dni"].value).trim()),
@@ -214,74 +154,36 @@ export class AltaClientePage implements OnInit {
           perfil: "cliente_registrado",
           cuil: null
         };
-        const usuarioDB: Usuario = await this.usuarios.createFromUser(usuario);
 
-        const { error: insClienteErr } = await supabase.from("clientes").insert({
-          tipo: "cliente_registrado",
-          usuario_id: (usuarioDB as any).id,
-          estado: "pendiente"
-        });
-        if (insClienteErr) {
-          throw insClienteErr;
-        }
+        const usuarioDB: Usuario = await this.usuarios.createFromUser(usuarioLike, String(this.f["foto"].value));
 
         await this.usuarios.update((usuarioDB as any).id, {
-          foto_url: String(this.f["foto"].value),
           dni_qr_payload: this.qrPayload,
           dni_qr_leido_en: this.qrPayload ? new Date().toISOString() : null
         });
 
         try {
-          await this.email.sendEmail(
-            email,
-            "Registro Recibido - En Revisión",
-            "registro_pendiente",
-            { nombres }
-          );
-        } catch (e) {
-          console.error("Error enviando email:", e);
-        }
+          await this.email.sendEmail(email, "Registro Recibido - En Revisión", "registro_pendiente", { nombres });
+        } catch { }
 
         try {
           const { data: rows, error: tkErr } = await supabase
-            .from("push_tokens")
-            .select("token")
+            .from("push_tokens").select("token")
             .in("role", ["dueño", "supervisor"])
-            .eq("active", true)
-            .eq("revoked", false);
-
-          if (tkErr) {
-            console.warn("[alta-cliente][push][tokens]", tkErr);
-          } else {
+            .eq("active", true).eq("revoked", false);
+          if (!tkErr) {
             const tokens = (rows ?? []).map((r: any) => r.token as string).filter(Boolean);
             if (tokens.length) {
               await this.push.send(
                 tokens,
-                "📋 Nuevo Cliente Pendiente",
-                `${nombres} ${apellidos} espera aprobación`,
-                {
-                  screen: "clientes-pendientes",
-                  tipo: "nuevo_cliente",
-                  cliente_id: (usuarioDB as any).id,
-                  cliente_nombre: `${nombres} ${apellidos}`
-                }
+                "",
+                "Nuevo cliente en lista de espera",
+                { screen: "clientes-pendientes", tipo: "cliente_registrado", cliente_id: (usuarioDB as any).id, cliente_nombre: `${nombres} ${apellidos}` }
               );
             }
           }
-
-          await this.presentPushToast(
-            "📋 Nuevo Cliente Pendiente",
-            `${nombres} ${apellidos} espera aprobación`,
-            "clientes-pendientes",
-            { highlight: (usuarioDB as any).id }
-          );
-        } catch (pushError) {
-          console.warn("[alta-cliente][push] error", pushError);
-          await this.presentPushToast(
-            "Notificación no enviada",
-            "No se pudo notificar a dueños/supervisores."
-          );
-        }
+          await this.presentPushToast("📋 Nuevo Cliente Pendiente", `${nombres} ${apellidos} espera aprobación`, "clientes-pendientes", { highlight: (usuarioDB as any).id });
+        } catch { }
 
         this.ok = true;
         this.formAltaCliente.reset();
@@ -290,13 +192,8 @@ export class AltaClientePage implements OnInit {
         const nombre = String(this.fAnonimo["nombre"].value).trim();
         const foto_url = String(this.fAnonimo["foto"].value).trim();
 
-        const { error: insAnonErr } = await supabase.from("clientes_anonimos").insert({
-          nombre,
-          foto_url
-        });
-        if (insAnonErr) {
-          throw insAnonErr;
-        }
+        const { error: insAnonErr } = await supabase.from("clientes_anonimos").insert({ nombre, foto_url });
+        if (insAnonErr) throw insAnonErr;
 
         this.ok = true;
         this.formAltaAnonimo.reset();
@@ -304,13 +201,9 @@ export class AltaClientePage implements OnInit {
       }
     } catch (e: any) {
       const msg = String(e?.message || e);
-      if (/already registered|User already registered/i.test(msg)) {
-        this.err = "Correo registrado";
-      } else if (/duplicate key.*numero_documento|numero_documento/i.test(msg)) {
-        this.err = "DNI registrado";
-      } else {
-        this.err = msg || "No se pudo completar el registro";
-      }
+      if (/already registered|User already registered/i.test(msg)) this.err = "Correo registrado";
+      else if (/duplicate key.*numero_documento|numero_documento/i.test(msg)) this.err = "DNI registrado";
+      else this.err = msg || "No se pudo completar el registro";
     } finally {
       this.loading = false;
     }
@@ -321,38 +214,18 @@ export class AltaClientePage implements OnInit {
     try {
       if (this.platform !== "web") {
         const status = await Camera.requestPermissions({ permissions: ["camera"] });
-        if (status.camera !== "granted") {
-          this.err = "Permiso de cámara denegado";
-          return;
-        }
+        if (status.camera !== "granted") { this.err = "Permiso de cámara denegado"; return; }
       }
-
-      const photo = await Camera.getPhoto({
-        resultType: CameraResultType.Uri,
-        quality: 85,
-        source: CameraSource.Camera,
-        allowEditing: false
-      });
-
-      let blob: Blob;
-      let ext = "jpg";
-
-      if (photo.webPath) {
-        const response = await fetch(photo.webPath);
-        blob = await response.blob();
-        ext = blob.type.includes("png") ? "png" : "jpg";
-      } else if (photo.base64String) {
-        blob = this.base64ToBlob(photo.base64String, "image/jpeg");
-      } else {
-        throw new Error("No se pudo obtener la imagen");
-      }
+      const photo = await Camera.getPhoto({ resultType: CameraResultType.Uri, quality: 85, source: CameraSource.Camera, allowEditing: false });
+      let blob: Blob; let ext = "jpg";
+      if (photo.webPath) { const response = await fetch(photo.webPath); blob = await response.blob(); ext = blob.type.includes("png") ? "png" : "jpg"; }
+      else if (photo.base64String) { blob = this.base64ToBlob(photo.base64String, "image/jpeg"); }
+      else { throw new Error("No se pudo obtener la imagen"); }
 
       const fileName = `anonimo_${Date.now()}.${ext}`;
       const filePath = `clientes_anonimos/${fileName}`;
-
       const up = await supabase.storage.from("clientes").upload(filePath, blob, { contentType: blob.type, upsert: true });
       if (up.error) throw up.error;
-
       const { data } = supabase.storage.from("clientes").getPublicUrl(filePath);
       this.formAltaAnonimo.patchValue({ foto: data.publicUrl });
     } catch (e: any) {

@@ -3,9 +3,32 @@ import { supabase } from '../../../supabase.client';
 import { Usuario } from '../../interfaces/usuario';
 import { User } from 'src/app/classes/user';
 
-@Injectable({
-  providedIn: 'root'
-})
+type Perfil =
+  | "cliente_registrado"
+  | "cliente_anonimo"
+  | "dueño"
+  | "supervisor"
+  | "maitre"
+  | "mozo"
+  | "bartender"
+  | "cocinero";
+
+function canonPerfil(p: string): Perfil | undefined {
+  const s = (p || "")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .trim().toLowerCase();
+  if (s === "cliente_registrado") return "cliente_registrado";
+  if (s === "cliente_anonimo") return "cliente_anonimo";
+  if (s === "dueno") return "dueño";
+  if (s === "supervisor") return "supervisor";
+  if (s === "maitre" || s === "maitre") return "maitre";
+  if (s === "mozo") return "mozo";
+  if (s === "bartender" || s === "bar") return "bartender";
+  if (s === "cocinero" || s === "cocina") return "cocinero";
+  return undefined;
+}
+
+@Injectable({ providedIn: 'root' })
 export class Usuarios {
   private table = "usuarios";
 
@@ -21,10 +44,8 @@ export class Usuarios {
   async getByAuthUser(): Promise<Usuario | null> {
     const { data, error } = await supabase.auth.getUser();
     if (error) throw error;
-
     const email = data.user?.email;
     if (!email) return null;
-
     return this.getByEmail(email);
   }
 
@@ -75,39 +96,47 @@ export class Usuarios {
     return (count ?? 0) > 0;
   }
 
- async createFromUser(user: User, fotoUrl: string | null = null): Promise<Usuario> {
-  const row: Usuario = {
-    apellidos: user.apellido,
-    nombres: user.nombre,
-    numero_documento: user.dni ?? null,
-    correo_electronico: user.email,
-    perfil: user.perfil,
-    numero_cuil: user.cuil ?? null,
-    foto_url: fotoUrl,          
-    dni_qr_payload: null,
-    dni_qr_leido_en: null
-  } as Usuario;
+  async createFromUser(user: User, fotoUrl: string | null = null): Promise<Usuario> {
+    const perfilCanon = canonPerfil(user.perfil as string);
+    if (!perfilCanon) throw new Error("Perfil inválido");
 
-  const { data, error } = await supabase
-    .from(this.table)
-    .insert(row)
-    .select("*")
-    .single();
+    const row: Usuario = {
+      apellidos: user.apellido,
+      nombres: user.nombre,
+      numero_documento: user.dni ?? null,
+      correo_electronico: user.email,
+      perfil: perfilCanon,
+      numero_cuil: user.cuil ?? null,
+      foto_url: fotoUrl,
+      dni_qr_payload: null,
+      dni_qr_leido_en: null
+    } as Usuario;
 
-  if (error) throw error;
+    const { data, error } = await supabase
+      .from(this.table)
+      .insert(row)
+      .select("*")
+      .single();
+    if (error) throw error;
 
-  const { error: errCliente } = await supabase.from("clientes").insert({
-    usuario_id: data.id,
-    tipo: "cliente_registrado",   
-    estado: "pendiente"
-  });
+    if (perfilCanon === "cliente_registrado") {
+      const { error: errCliente } = await supabase.from("clientes").insert({
+        usuario_id: data.id,
+        tipo: "cliente_registrado",
+        estado: "pendiente"
+      });
+      if (errCliente) throw errCliente;
+    } else if (perfilCanon !== "cliente_anonimo") {
+      const { error: errEmp } = await supabase.from("empleados").insert({
+        usuario_id: data.id,
+        perfil: perfilCanon,
+        estado: "activo"
+      });
+      if (errEmp) throw errEmp;
+    }
 
-
-  if (errCliente) throw errCliente;
-
-  return data as Usuario;
-}
-
+    return data as Usuario;
+  }
 
   async update(id: number, patch: Partial<Usuario>): Promise<Usuario> {
     const { data, error } = await supabase

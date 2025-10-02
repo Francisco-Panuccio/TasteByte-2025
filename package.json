@@ -33,6 +33,7 @@
     "@capacitor/filesystem": "^7.1.4",
     "@capacitor/haptics": "^7.0.2",
     "@capacitor/keyboard": "7.0.3",
+    "@capacitor/local-notifications": "^7.0.3",
     "@capacitor/push-notifications": "^7.0.3",
     "@ionic/angular": "^8.0.0",
     "@ionic/pwa-elements": "^3.3.0",

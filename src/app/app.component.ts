@@ -19,8 +19,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private splashAudio?: MediaObject;
   private closeAudio?: MediaObject;
   private backListener?: Promise<PluginListenerHandle>;
-
-  showSplash: boolean = true;
+  showSplash = true;
 
   constructor(
     private router: Router,
@@ -29,15 +28,20 @@ export class AppComponent implements OnInit, OnDestroy {
     private push: Push
   ) { }
 
+  private perfilToRole(perfil?: string): string | undefined {
+    const p = (perfil ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+    if (p === "dueno") return "dueño";
+    if (["supervisor", "maitre", "mozo", "bartender", "cocinero"].includes(p)) return p;
+    if (p === "cliente_registrado" || p === "cliente_anonimo") return "cliente";
+    return undefined;
+  }
+
   async ngOnInit() {
     const firstLaunch = sessionStorage.getItem("splashShown") !== "1";
-
     if (firstLaunch) {
       sessionStorage.setItem("splashShown", "1");
       const plat = Capacitor.getPlatform();
-      const startSrc = plat === "android"
-        ? "file:///android_asset/public/assets/sounds/start.mp3"
-        : "assets/sounds/start.mp3";
+      const startSrc = plat === "android" ? "file:///android_asset/public/assets/sounds/start.mp3" : "assets/sounds/start.mp3";
       this.splashAudio = this.media.create(startSrc);
       try { this.splashAudio.play(); } catch { }
       setTimeout(() => this.iniciarAnimacionesElementos(), 100);
@@ -47,12 +51,14 @@ export class AppComponent implements OnInit, OnDestroy {
 
     try {
       const { data } = await supabase.auth.getUser();
-      const userId = data.user?.id as string | undefined;
-      if (userId) {
-        const { data: u } = await supabase.from("usuarios").select("perfil").eq("id", userId).single();
-        const role = u?.perfil === "mozo" ? "mozo" : "cliente";
-        await this.push.init(userId, role);
+      const email = data.user?.email as string | undefined;
+      if (email) {
+        const { data: u } = await supabase.from("usuarios").select("id, perfil").eq("correo_electronico", email).maybeSingle();
+        const dbUserId = (u?.id ?? undefined) as number | undefined;
+        const role = this.perfilToRole(u?.perfil);
+        await this.push.init(dbUserId as any, role as any);
         if (role === "mozo") this.push.initMozoHandlers();
+        await this.push.ready();
       }
     } catch { }
 
@@ -75,9 +81,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private playCloseSound() {
     const plat = Capacitor.getPlatform();
-    const closeSrc = plat === "android"
-      ? "file:///android_asset/public/assets/sounds/close.mp3"
-      : "assets/sounds/close.mp3";
+    const closeSrc = plat === "android" ? "file:///android_asset/public/assets/sounds/close.mp3" : "assets/sounds/close.mp3";
     try {
       try { this.closeAudio?.stop(); } catch { }
       try { this.closeAudio?.release(); } catch { }
@@ -102,36 +106,19 @@ export class AppComponent implements OnInit, OnDestroy {
     const logoElement = document.querySelector(".logo");
     const tituloElement = document.querySelector(".titulo");
     const integrantesElement = document.querySelector(".integrantes");
-
     const animations: Promise<void>[] = [];
-
     if (logoElement) {
-      const logoAnimation = this.animationCtrl.create()
-        .addElement(logoElement)
-        .duration(1500)
-        .fromTo("transform", "scale(0)", "scale(1)")
-        .fromTo("opacity", "0", "1");
+      const logoAnimation = this.animationCtrl.create().addElement(logoElement).duration(1500).fromTo("transform", "scale(0)", "scale(1)").fromTo("opacity", "0", "1");
       animations.push(logoAnimation.play());
     }
-
     if (tituloElement) {
-      const tituloAnimation = this.animationCtrl.create()
-        .addElement(tituloElement)
-        .duration(1000)
-        .delay(500)
-        .fromTo("opacity", "0", "1");
+      const tituloAnimation = this.animationCtrl.create().addElement(tituloElement).duration(1000).delay(500).fromTo("opacity", "0", "1");
       animations.push(tituloAnimation.play());
     }
-
     if (integrantesElement) {
-      const integrantesAnimation = this.animationCtrl.create()
-        .addElement(integrantesElement)
-        .duration(1200)
-        .delay(1500)
-        .fromTo("opacity", "0", "1");
+      const integrantesAnimation = this.animationCtrl.create().addElement(integrantesElement).duration(1200).delay(1500).fromTo("opacity", "0", "1");
       animations.push(integrantesAnimation.play());
     }
-
     setTimeout(async () => {
       if (this.lottieAnimation) { this.lottieAnimation.destroy(); }
       try { this.splashAudio?.stop(); } catch { }

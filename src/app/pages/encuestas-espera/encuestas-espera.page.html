@@ -1,9 +1,9 @@
 @if(loading) {
-<app-loading />
+  <app-loading />
 } @else {
-<header>
-  <title>Bienvenido {{ nombreCliente }}</title>
-</header>
+  <header>
+    <title>Bienvenido {{ nombreCliente }}</title>
+  </header>
 
 @if(tienePermiso)
 { 
@@ -68,42 +68,95 @@
 @else
 {
     <ion-content class="ion-padding">
-  <ion-button expand="block" color="primary" (click)="escanearQr()">
-    Escanear QR de Ingreso
-  </ion-button>
+      <ion-card>
+        <ion-card-header> Opciones Disponibles </ion-card-header>
+        <ion-card-content>
+          <ion-button
+            expand="block"
+            routerLink="/lista-espera"
+            [queryParams]="{ anonimoId: anonimoId, userId: usuarioId }"
+            color="tertiary"
+          >
+            Ver Lista de Espera
+          </ion-button>
+
+          <ion-button
+            expand="block"
+            color="medium"
+            [disabled]="yaRegistrado"
+            (click)="registrarseListaEspera()"
+          >
+            Unirse a la Lista de Espera
+          </ion-button>
+
+          <ion-button
+            expand="block"
+            class="btn_encuesta"
+            [routerLink]="['/encuestas']"
+            [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId }"
+          >
+            Encuestas de Clientes
+          </ion-button>
+
+          @if(estadoPedido) {
+            <ion-button
+              expand="block"
+              class="btn_pedido"
+              [routerLink]="['/pedido']"
+              [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId }"
+            >
+              Pedido
+            </ion-button>
+
+            <ion-button
+              expand="block"
+              class="btn_juegos"
+              [routerLink]="['/juegos']"
+              [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId }"
+            >
+              Juegos
+            </ion-button>
+          }
+        </ion-card-content>
+      </ion-card>
+  </ion-content>
+  } @else{
+    <ion-content class="ion-padding">
+      <ion-button expand="block" color="primary" (click)="escanearQr()">
+        Escanear QR de Ingreso
+      </ion-button>
     </ion-content>
-}
+  }
 
+  <div *ngIf="mesaAsignadaId; else esperando" class="estado-mesa">
+    <ion-card class="card-success">
+      <ion-card-header>Mesa Asignada</ion-card-header>
+      <ion-card-content>
+        Ya puede tomar asiento en la mesa <b>#{{ mesaAsignadaId }}</b>.
+      </ion-card-content>
+    </ion-card>
 
-<div *ngIf="mesaAsignadaId; else esperando" class="estado-mesa">
-  <ion-card class="card-success">
-    <ion-card-header>Mesa Asignada</ion-card-header>
-    <ion-card-content>
-      Ya puede tomar asiento en la mesa <b>#{{ mesaAsignadaId }}</b>.
-    </ion-card-content>
-  </ion-card>
+    <ion-button expand="block" class="btns_main" (click)="escanearQrMesa()">
+      Escanear QR de mi mesa
+    </ion-button>
+  </div>
 
-  <ion-button expand="block" class="btns_main" (click)="escanearQrMesa()">
-    Escanear QR de mi mesa
-  </ion-button>
-</div>
+  <ng-template #esperando>
+    <ion-card class="card-pending">
+      <ion-card-content>
+        Aún no se le ha asignado una mesa. <br />
+        <span class="resalta">Por favor, espere al maître.</span>
+      </ion-card-content>
+    </ion-card>
+  </ng-template>
 
-<ng-template #esperando>
-  <ion-card class="card-pending">
-    <ion-card-content>
-      Aún no se le ha asignado una mesa. <br />
-      <span class="resalta">Por favor, espere al maître.</span>
-    </ion-card-content>
-  </ion-card>
-</ng-template>
-
-<footer>
-  <ion-toolbar>
-    <ion-buttons class="ion_btns">
-      <ion-button class="btn_logged" (click)="salir()"
-        >Cerrar Sesión</ion-button
-      >
-    </ion-buttons>
-  </ion-toolbar>
-</footer>
+  <footer>
+    <ion-toolbar>
+      <ion-buttons class="ion_btns">
+        <ion-button class="btn_logged" (click)="salir()"
+          >Cerrar Sesión</ion-button
+        >
+      </ion-buttons>
+    </ion-toolbar>
+  </footer>
 }
