@@ -32,28 +32,32 @@ export class ListadoClientesPage implements OnInit, OnDestroy {
 
   async ngOnInit() {
     const { data: auth } = await supabase.auth.getUser();
-    const supaUid = auth?.user?.id ?? undefined;
     const email = auth?.user?.email ?? null;
 
     let role: "dueño" | "supervisor" | undefined;
+    let usuarioRowId: number | undefined;
     if (email) {
       const u = await this.usuariosSvc.getByEmail(email);
+      usuarioRowId = u?.id ?? undefined;
       const p = (u?.perfil ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
       role = p === "dueno" ? "dueño" : p === "supervisor" ? "supervisor" : undefined;
     }
     this.isPrivileged = !!role;
 
-    await this.push.init(supaUid, role);
+    await this.push.init(usuarioRowId ?? null, role);
     await this.push.ready();
 
-    if (this.isPrivileged) {
-      await this.push.sendToRoles(["dueño", "supervisor"], "", "TEST push", { tipo: "cliente_registrado" });
+    const tk = this.push.getToken();
+    if (!tk) {
+      this.err = "Sin token FCM. Revisá configuración Firebase/FCM del proyecto Android.";
+      return;
     }
 
     await this.cargarPendientes();
 
     this.pushSub = this.push.onPush$.subscribe(async (data: any) => {
-      if ((data?.tipo ?? data?._type) === "cliente_registrado") await this.cargarPendientes();
+      const tipo = (data?.tipo ?? data?._type) as string;
+      if (tipo === "cliente_registrado") await this.cargarPendientes();
     });
 
     this.rtChannel = supabase
@@ -66,8 +70,8 @@ export class ListadoClientesPage implements OnInit, OnDestroy {
           if (this.isPrivileged && row?.tipo === "cliente_registrado") {
             await this.push.sendToRoles(
               ["dueño", "supervisor"],
-              "",
-              "Nuevo cliente en lista de espera",
+              "Nuevo cliente pendiente",
+              "Hay un registro esperando aprobación",
               { tipo: "cliente_registrado" }
             );
           }

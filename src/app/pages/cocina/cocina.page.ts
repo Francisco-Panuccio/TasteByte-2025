@@ -18,7 +18,7 @@ export class CocinaPage implements OnInit, OnDestroy {
   loading: boolean = true;
 
   async ngOnInit() {
-    await this.push.init(undefined, "cocina");
+    await this.push.init(undefined, "cocinero");
     await this.push.ready();
     this.push.onPush$.subscribe(async (d: Record<string, any>) => {
       if ((d?.["tipo"] ?? "") === "cocina_pedido") {

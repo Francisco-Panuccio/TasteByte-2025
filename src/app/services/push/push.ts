@@ -2,19 +2,17 @@ import { inject, Injectable } from "@angular/core";
 import { Capacitor } from "@capacitor/core";
 import { PushNotifications, Token, ActionPerformed, PushNotificationSchema } from "@capacitor/push-notifications";
 import { LocalNotifications } from "@capacitor/local-notifications";
-import { App } from "@capacitor/app";
 import { Subject } from "rxjs";
 import { supabase } from "src/supabase.client";
 import { Pedidos } from "src/app/services/pedidos/pedidos";
 
-type Role = "mozo" | "cliente" | "dueño" | "supervisor" | "maitre" | "cocina" | "bar";
+type Role = "mozo" | "cliente" | "dueño" | "supervisor" | "maitre" | "cocinero" | "bartender";
 
 @Injectable({ providedIn: "root" })
 export class Push {
   private token: string | null = null;
   private initialized = false;
   private mozoHandlersInit = false;
-  private appName = "App";
 
   private readyResolve!: () => void;
   private readyPromise: Promise<void> = new Promise<void>(res => (this.readyResolve = res));
@@ -25,43 +23,40 @@ export class Push {
   readonly onPush$ = this.pushSubject.asObservable();
   private pedidos = inject(Pedidos);
 
-  async init(userId?: string, role?: Role): Promise<void> {
-    if (Capacitor.getPlatform() !== "android") { this.resolveReadyOnce(); return; }
+  private normRole(r?: Role | string | null): string | null {
+    if (!r) return null;
+    return String(r).normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+  }
+
+  async init(usuarioRowId?: number | null, role?: Role): Promise<void> {
+    if (Capacitor.getPlatform() === "web") { this.resolveReadyOnce(); return; }
     if (this.initialized) {
-      if (this.token) await this.upsertToken(this.token, userId, role);
+      if (this.token) await this.upsertToken(this.token, usuarioRowId ?? null, role);
       this.resolveReadyOnce();
       return;
     }
-
-    try { this.appName = (await App.getInfo()).name; } catch { }
-    await this.ensureChannel();
-    try { await LocalNotifications.requestPermissions(); } catch { }
-
-    const perm = await PushNotifications.requestPermissions();
-    if (perm.receive !== "granted") { this.resolveReadyOnce(); return; }
+    await this.ensureChannels();
+    await LocalNotifications.requestPermissions();
+    const permStatus = await PushNotifications.requestPermissions();
+    if (permStatus.receive !== "granted") { this.resolveReadyOnce(); return; }
+    await PushNotifications.register();
 
     PushNotifications.addListener("registration", async (t: Token) => {
       this.token = t.value;
-      await this.upsertToken(t.value, userId, role);
+      await this.upsertToken(t.value, usuarioRowId ?? null, role);
       this.resolveReadyOnce();
     });
-
     PushNotifications.addListener("registrationError", () => { this.resolveReadyOnce(); });
 
     PushNotifications.addListener("pushNotificationReceived", async (n: PushNotificationSchema) => {
-      const body = (n.body as string) || (n.title as string) || (n?.data as any)?.body || "";
-      try {
-        await LocalNotifications.schedule({
-          notifications: [{
-            id: Date.now() % 2147483647,
-            title: this.appName,
-            body,
-            extra: n.data ?? {},
-            channelId: "orders"
-          }]
-        });
-      } catch { }
-      this.pushSubject.next(n.data ?? {});
+      const data = n.data ?? {};
+      this.pushSubject.next(data);
+      const title = n.title || (data.title as string) || "Notificación";
+      const body = n.body || (data.body as string) || "";
+      const id = Math.floor(Date.now() % 2147483647);
+      await LocalNotifications.schedule({
+        notifications: [{ id, title, body, channelId: "orders", sound: "default", extra: data }]
+      });
     });
 
     PushNotifications.addListener("pushNotificationActionPerformed", (a: ActionPerformed) => {
@@ -69,18 +64,17 @@ export class Push {
       this.pushSubject.next({ ...data, _action: "click" });
     });
 
-    try { await PushNotifications.register(); } catch { }
     this.initialized = true;
   }
 
   getToken(): string | null { return this.token; }
 
-  private async ensureChannel(): Promise<void> {
+  private async ensureChannels(): Promise<void> {
     try {
       await PushNotifications.createChannel({
         id: "orders",
         name: "Pedidos",
-        description: "Alertas de nuevos pedidos",
+        description: "Alertas",
         importance: 5,
         visibility: 1,
         sound: "default"
@@ -90,22 +84,29 @@ export class Push {
       await LocalNotifications.createChannel({
         id: "orders",
         name: "Pedidos",
-        description: "Alertas de nuevos pedidos",
+        description: "Alertas",
         importance: 5,
-        visibility: 1,
-        sound: "default"
+        sound: "default",
+        visibility: 1
       });
     } catch { }
   }
 
-  private async upsertToken(token: string, userId?: string, role?: Role): Promise<void> {
-    const payload: any = { token, usuario_id: userId ?? null, plataforma: Capacitor.getPlatform(), role: role ?? null, active: true, revoked: false };
+  private async upsertToken(token: string, usuarioRowId: number | null, role?: Role): Promise<void> {
+    const payload: any = {
+      token,
+      usuario_id: typeof usuarioRowId === "number" ? usuarioRowId : null,
+      plataforma: Capacitor.getPlatform(),
+      role: this.normRole(role),
+      active: true,
+      revoked: false
+    };
     const { error } = await supabase.from("push_tokens").upsert(payload, { onConflict: "token" });
-    if (error) console.error("[push][upsertToken]", error);
+    if (error) console.error("[push][upsertToken]", error, payload);
   }
 
   async send(to: string | string[], title: string, body: string, data?: Record<string, any>, actions?: Array<{ id: string; title: string }>): Promise<void> {
-    const payload: any = { to, title, body, data };
+    const payload: any = { to, title: title || "Notificación", body, data };
     if (actions?.length) payload.actions = actions;
     try {
       const { data: resp, error } = await supabase.functions.invoke("send-push", { body: payload });
@@ -115,23 +116,27 @@ export class Push {
   }
 
   async sendToRoles(roles: Array<Role | string>, title: string, body: string, data?: Record<string, any>, actions?: Array<{ id: string; title: string }>): Promise<void> {
-    const payload: any = { roles, title, body, data };
-    if (actions?.length) payload.actions = actions;
-    try {
-      const { data: resp, error } = await supabase.functions.invoke("send-push", { body: payload });
-      if (error) { console.error("[push][edge][invoke-error]", error); return; }
-      if (!resp?.ok) console.warn("[push][edge][not-ok]", resp);
-    } catch (e) { console.error("[push][edge][exception]", e); }
+    const normRoles = roles.map(r => this.normRole(r)!).filter(Boolean);
+    const { data: rows, error } = await supabase
+      .from("push_tokens")
+      .select("token")
+      .in("role", normRoles as string[])
+      .eq("active", true)
+      .eq("revoked", false);
+    if (error) { console.error("[push][tokensByRole]", error); return; }
+    const tokens = (rows ?? []).map((r: any) => r.token as string).filter(Boolean);
+    if (!tokens.length) { console.warn("[push][tokensByRole] sin tokens"); return; }
+    await this.send(tokens, title, body, data, actions);
   }
 
   async sendToMaitre(title: string, body: string, data?: Record<string, any>, actions?: Array<{ id: string; title: string }>) {
     return this.sendToRoles(["maitre"], title, body, data, actions);
   }
   async sendToCocina(title: string, body: string, data?: Record<string, any>) {
-    return this.sendToRoles(["cocina"], title, body, data);
+    return this.sendToRoles(["cocinero"], title, body, data);
   }
   async sendToBar(title: string, body: string, data?: Record<string, any>) {
-    return this.sendToRoles(["bar"], title, body, data);
+    return this.sendToRoles(["bartender"], title, body, data);
   }
 
   initMozoHandlers(): void {
