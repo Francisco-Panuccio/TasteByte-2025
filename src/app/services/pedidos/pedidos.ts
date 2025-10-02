@@ -141,19 +141,22 @@ export class Pedidos {
   }
 
   async getPedidoActualPorEmail(email: string): Promise<{ ped: any; items: any[] }> {
-    const { data, error } = await supabase
-      .from("pedidos")
-      .select("id")
-      .eq("cliente_email", email)
-      .in("estado", ["pendiente", "aceptado", "terminado"])
-      .order("created_at", { ascending: false })
-      .limit(1);
-    if (error) throw error;
+  const { data, error } = await supabase
+    .from("pedidos")
+    .select("id, total, estado, mesa_id, cliente_uid, cliente_email")
+    .eq("cliente_email", email)
+    .in("estado", ["pendiente", "aceptado", "terminado"])
+    .order("created_at", { ascending: false })
+    .limit(1);
 
-    const id = data?.[0]?.id as string | undefined;
-    if (!id) return { ped: null, items: [] };
-    return this.getPedido(id);
-  }
+  if (error) throw error;
+
+  const id = data?.[0]?.id as string | undefined;
+  if (!id) return { ped: null, items: [] };
+
+  return this.getPedido(id);
+}
+
 
   async listar(estado?: Pedido["estado"]) {
     const base = supabase

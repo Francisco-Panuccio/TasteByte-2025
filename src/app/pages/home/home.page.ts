@@ -126,11 +126,21 @@ export class HomePage implements OnInit {
   async escanearQrEntrada() {
     const qr = await this.qr.scanQr();
     if (!qr) return;
-    const res = await this.qr.procesarQrCliente(qr, this.clienteId ?? undefined);
-    if (res.error) { this.mostrarToast(res.error, "danger"); return; }
-    if (res.permiso && qr.startsWith("INGRESO")) {
-      this.router.navigate(["/encuestas-espera"], {
-        queryParams: { clienteId: this.clienteId, tienePermiso: true, yaRegistrado: !!res.yaRegistrado, qrValido: true }
+
+    const res = await this.qr.procesarQrCliente(
+      qr,
+      this.clienteId ?? undefined
+    );
+
+    if (res.error) {
+      this.mostrarToast(res.error, 'danger');
+      return;
+    }
+
+    if (res.permiso && qr.startsWith('INGRESO')) {
+
+      this.router.navigate(['/encuestas-espera'], {
+        queryParams: { clienteId: this.clienteId, tienePermiso : true, yaRegistrado: !!res.yaRegistrado, qrValido : true, userId : this.userId}
       });
     }
   }
