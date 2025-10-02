@@ -1,10 +1,10 @@
+// lista-espera.page.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ModalController, NavController } from '@ionic/angular';
 import { Router, ActivatedRoute } from '@angular/router';
 import { supabase } from 'src/supabase.client';
 import { ListadoMesasPage } from '../listado-mesas/listado-mesas.page';
 import { Push } from 'src/app/services/push/push';
-import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-lista-espera',
@@ -34,7 +34,6 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
   private normalizarPerfil(p?: string): string {
     return (p ?? '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   }
-
   private perfilToRole(perfil?: string): string | undefined {
     const p = this.normalizarPerfil(perfil);
     if (p === 'dueno') return 'dueño';
@@ -138,6 +137,24 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
     if (cliente.cliente_anonimo_id) payload.cliente_anonimo_id = cliente.cliente_anonimo_id;
 
     await supabase.from('asignaciones_mesa').insert(payload);
+
+    if (cliente.cliente_id) {
+      const { data: cli } = await supabase
+        .from('clientes')
+        .select('usuario_id')
+        .eq('id', cliente.cliente_id)
+        .single();
+      const usuarioId = cli?.usuario_id as number | undefined;
+      if (usuarioId) {
+        await this.push.sendToUserIds(
+          [usuarioId],
+          `Mesa ${mesaSeleccionada.numero} Asignada`,
+          '',
+          { tipo: 'mesa_asignada', mesa_id: mesaSeleccionada.id, mesa_numero: mesaSeleccionada.numero }
+        );
+      }
+    }
+
     this.clientes = this.clientes.filter((c) => c.id !== cliente.id);
   }
 
