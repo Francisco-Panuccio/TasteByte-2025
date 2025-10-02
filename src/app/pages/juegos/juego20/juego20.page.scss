@@ -1,0 +1,100 @@
+.user_background {
+  background: var(--ion-color-light);
+  min-height: 100%;
+}
+
+.div_main {
+  text-align: center;
+}
+
+h2 {
+  margin: 12px 0;
+  font-size: 18px;
+  font-weight: bold;
+  color: var(--ion-color-dark);
+}
+
+/* Vidas */
+.vidas {
+  font-size: 16px;
+  font-weight: bold;
+  color: #e63946; // rojo
+  margin: 8px 0;
+  span {
+    margin: 0 2px;
+    font-size: 20px;
+  }
+}
+
+/* Tablero */
+.tablero {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  justify-items: center;
+  margin: 12px 0;
+}
+
+.carta {
+  width: 70px;
+  height: 90px;
+  border: 2px solid black;
+  border-radius: 6px;
+  background: #e6dacd;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.carta img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.carta_oculta {
+  width: 100%;
+  height: 100%;
+  background: var(--ion-color-dark);
+  border-radius: 6px;
+}
+
+.info {
+  font-size: 14px;
+  font-weight: bold;
+  color: #554738;
+  margin: 10px 0;
+}
+
+.resultado {
+  margin-top: 15px;
+
+  .perdio-texto {
+    color: #e63946;
+    font-weight: bold;
+    margin-top: 10px;
+  }
+
+  .gano-texto {
+    color: green;
+    font-weight: bold;
+    margin-top: 10px;
+  }
+}
+
+.ion_btns {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.btn_logged {
+  font-size: 20px;
+  font-weight: 1000;
+  color: #554738;
+  --background: #e6dacd;
+  border: 2px solid black;
+  border-radius: 0;
+  width: 90%;
+  margin: 10px auto;
+}
