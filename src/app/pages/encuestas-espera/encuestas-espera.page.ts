@@ -23,9 +23,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   usuarioId: number | null = null;
   anonimoId: string | undefined;
   clienteId: number | null = null;
-
-  userUid : string | undefined;
-  
+  userUid: string | undefined;
   encuestas: any[] = [];
   clientes: any[] = [];
   qrValido = false;

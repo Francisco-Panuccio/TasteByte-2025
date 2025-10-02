@@ -88,7 +88,17 @@ export class PedidosMozoPage implements OnInit {
         const { data: ped } = await supabase.from("pedidos").select("mesa_id").eq("id", pedidoId).single();
         const mesaId = ped?.mesa_id as number | undefined;
         if (mesaId != null) {
-          const tokens = await this.chatSvc.getClienteTokenByMesa(mesaId);
+          let tokens: string[] = [];
+          const { data: chatRow } = await supabase.from("chats").select("id").eq("mesa_id", mesaId).maybeSingle();
+          if (chatRow?.id) {
+            const { data: part } = await supabase.from("chat_participants").select("user_id,push_token").eq("chat_id", chatRow.id).eq("role", "cliente").maybeSingle();
+            if (part?.push_token) {
+              tokens = [part.push_token as string];
+            } else if (part?.user_id) {
+              const { data: toks } = await supabase.from("push_tokens").select("token").eq("usuario_id", part.user_id as string).eq("active", true).eq("revoked", false);
+              tokens = (toks ?? []).map((t: any) => t.token as string);
+            }
+          }
           if (tokens.length) {
             const mesaNumero = this.mesasNum.get(mesaId) ?? mesaId;
             const title = estado === "aceptado" ? "Pedido aceptado" : "Pedido rechazado";

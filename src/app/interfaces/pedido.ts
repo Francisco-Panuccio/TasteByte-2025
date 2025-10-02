@@ -6,6 +6,6 @@ export interface Pedido {
     clienteUid: string;
     total: number;
     etaMinutos: number;
-    estado: "pendiente" | "aceptado" | "rechazado" | "terminado" | "pagado";
+    estado: "pendiente" | "aceptado" | "rechazado" | "terminado" | "impagado" | "pagado";
     items: PedidoItem[];
 }

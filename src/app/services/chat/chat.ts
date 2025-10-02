@@ -28,11 +28,27 @@ export class Chat {
       const { data } = await supabase.from("clientes_anonimos").select("nombre").eq("id", anonimoId).single();
       return data?.nombre || "Cliente Anónimo";
     }
-    const id = await this.getMyUserId();
-    const { data } = await supabase.from("usuarios").select("nombres, apellidos").eq("id", id).single();
+    const { data: au } = await supabase.auth.getUser();
+    const email = au.user?.email ?? null;
+    if (!email) return "Usuario";
+    const { data } = await supabase.from("usuarios").select("nombres, apellidos").eq("correo_electronico", email).maybeSingle();
     const n = (data?.nombres ?? "").trim();
     const a = (data?.apellidos ?? "").trim();
     return (n || a) ? `${n} ${a}`.trim() : "Usuario";
+  }
+
+  private async getMyRoleInChat(chatId: string, anonimoId?: string): Promise<Role> {
+    if (anonimoId) return "cliente";
+    const uid = await this.getMyUserId();
+    const { data } = await supabase.from("chat_participants").select("role").eq("chat_id", chatId).eq("user_id", uid).maybeSingle();
+    return (data?.role as Role) || "cliente";
+  }
+
+  async bindMyPushToken(chatId: string, anonimoId?: string): Promise<void> {
+    const tk = this.push.getToken?.();
+    if (!tk) return;
+    const uid = await this.getMyUserId(anonimoId);
+    await supabase.from("chat_participants").update({ push_token: tk }).eq("chat_id", chatId).eq("user_id", uid);
   }
 
   async getOrCreateForMesa(mesaId: number, role: Role = "cliente"): Promise<Chat> {
@@ -44,29 +60,22 @@ export class Chat {
       chat = ins.data as Chat;
     }
     const userId = await this.getMyUserId();
-    const part = await supabase.from("chat_participants").select("*").eq("chat_id", chat.id).eq("user_id", userId).limit(1);
-    if (part.error) throw part.error;
-    if (!part.data?.length) {
-      const insPart = await supabase.from("chat_participants").insert({ chat_id: chat.id, user_id: userId, role });
-      if (insPart.error) throw insPart.error;
-    }
+    const part = await supabase.from("chat_participants").select("chat_id").eq("chat_id", chat.id).eq("user_id", userId).limit(1);
+    if (!part.data?.length) await supabase.from("chat_participants").insert({ chat_id: chat.id, user_id: userId, role });
     return chat;
   }
 
   async listByClient(userId?: string): Promise<Chat[]> {
     const uid = userId || (await this.getMyUserId());
-    const { data: cps, error } = await supabase.from("chat_participants").select("chat_id").eq("user_id", uid);
-    if (error) throw error;
+    const { data: cps } = await supabase.from("chat_participants").select("chat_id").eq("user_id", uid);
     const ids = (cps ?? []).map((r: any) => r.chat_id);
     if (!ids.length) return [];
-    const { data: chats, error: e2 } = await supabase.from("chats").select("*").in("id", ids).order("created_at", { ascending: false });
-    if (e2) throw e2;
+    const { data: chats } = await supabase.from("chats").select("*").in("id", ids).order("created_at", { ascending: false });
     return (chats ?? []) as Chat[];
   }
 
   async loadMessages(chatId: string, limit = 200): Promise<ChatMessage[]> {
-    const { data, error } = await supabase.from("chat_messages").select("*").eq("chat_id", chatId).order("created_at", { ascending: true }).limit(limit);
-    if (error) throw error;
+    const { data } = await supabase.from("chat_messages").select("*").eq("chat_id", chatId).order("created_at", { ascending: true }).limit(limit);
     return (data ?? []) as ChatMessage[];
   }
 
@@ -85,43 +94,36 @@ export class Chat {
     }
   }
 
+  private async getClienteTokensPreferChat(chatId: string, mesaId: number): Promise<string[]> {
+    const { data: parts } = await supabase.from("chat_participants").select("user_id,push_token").eq("chat_id", chatId).eq("role", "cliente").limit(1);
+    const tk = (parts?.[0]?.push_token as string | null) || null;
+    if (tk) return [tk];
+    const clienteUserId = parts?.[0]?.user_id as string | undefined;
+    if (!clienteUserId) return [];
+    const { data: toks } = await supabase.from("push_tokens").select("token").eq("usuario_id", clienteUserId).eq("active", true).eq("revoked", false);
+    return (toks ?? []).map((t: any) => t.token as string);
+  }
+
   async sendMessage(chatId: string, text: string, anonimoId?: string): Promise<ChatMessage> {
-    const myUserId = await this.getMyUserId(anonimoId);
+    const userId = await this.getMyUserId(anonimoId);
+    const role = await this.getMyRoleInChat(chatId, anonimoId);
     const fromName = await this.getMyDisplayName(anonimoId);
-    const { data: pr } = await supabase.from("chat_participants").select("role").eq("chat_id", chatId).eq("user_id", myUserId).maybeSingle();
-    const role: Role = pr?.role === "mozo" ? "mozo" : "cliente";
-
-    const { data, error } = await supabase.from("chat_messages").insert({ chat_id: chatId, user_id: myUserId, body: text }).select("*").single();
-    if (error) throw error;
-
-    const { data: c } = await supabase.from("chats").select("mesa_id").eq("id", chatId).single();
-    const mesaId = c?.mesa_id as number;
+    const ins = await supabase.from("chat_messages").insert({ chat_id: chatId, user_id: userId, body: text }).select("*").single();
+    if (ins.error) throw ins.error;
+    const { data: chat } = await supabase.from("chats").select("mesa_id").eq("id", chatId).single();
+    const mesaId = chat?.mesa_id as number;
     const preview = text.slice(0, 80);
 
-    try {
-      if (role === "cliente") {
-        const mozoTokens = await this.getMozosTokens();
-        const uniq = Array.from(new Set(mozoTokens));
-        if (uniq.length) {
-          await this.push.send(uniq, `Nuevo mensaje del cliente de la mesa ${mesaId}`, text, { tipo: "chat", mesaId, chatId, fromRole: "cliente", fromName, preview });
-        }
-      } else {
-        let to = await this.getClienteTokenByMesa(mesaId);
-        if (!to.length) {
-          const { data: ped } = await supabase.from("pedidos").select("cliente_uid").eq("mesa_id", mesaId).order("created_at", { ascending: false }).limit(1).maybeSingle();
-          if (ped?.cliente_uid) {
-            const { data: toks } = await supabase.from("push_tokens").select("token").eq("usuario_id", ped.cliente_uid).eq("active", true).eq("revoked", false);
-            to = (toks ?? []).map((t: any) => t.token as string);
-          }
-        }
-        const uniq = Array.from(new Set(to));
-        if (uniq.length) {
-          await this.push.send(uniq, "Nuevo mensaje del mozo", text, { tipo: "chat", mesaId, chatId, fromRole: "mozo", fromName, preview });
-        }
-      }
-    } catch { }
+    if (role === "cliente") {
+      const { data } = await supabase.from("push_tokens").select("token").eq("role", "mozo").eq("active", true).eq("revoked", false);
+      const to = Array.from(new Set((data ?? []).map((r: any) => r.token as string).filter(Boolean)));
+      if (to.length) await this.push.send(to, `Nuevo mensaje del cliente de la mesa ${mesaId}`, text, { tipo: "chat", mesaId, chatId, fromRole: "cliente", fromName, preview });
+    } else {
+      const to = Array.from(new Set((await this.getClienteTokensPreferChat(chatId, mesaId)).filter(Boolean)));
+      if (to.length) await this.push.send(to, "Nuevo mensaje del mozo", text, { tipo: "chat", mesaId, chatId, fromRole: "mozo", fromName, preview });
+    }
 
-    return data as ChatMessage;
+    return ins.data as ChatMessage;
   }
 
   toViewMessage(m: ChatMessage, myUserId: string): { id: string; from: "yo" | "mozo"; text: string; time: string } {
@@ -134,27 +136,9 @@ export class Chat {
     return `${hh}:${mm}`;
   }
 
-  async getMozosTokens(): Promise<string[]> {
-    const { data } = await supabase.from("push_tokens").select("token").eq("role", "mozo").eq("active", true).eq("revoked", false);
-    return (data ?? []).map((r: any) => r.token as string);
-  }
-
-  async getClienteTokenByMesa(mesaId: number): Promise<string[]> {
-    const { data: chats } = await supabase.from("chats").select("id").eq("mesa_id", mesaId).limit(1);
-    if (!chats?.length) return [];
-    const chatId = chats[0].id as string;
-    const { data: parts } = await supabase.from("chat_participants").select("user_id").eq("chat_id", chatId).eq("role", "cliente").limit(1);
-    if (!parts?.length) return [];
-    const clienteId = parts[0].user_id as string;
-    const { data: toks } = await supabase.from("push_tokens").select("token").eq("usuario_id", clienteId).eq("active", true).eq("revoked", false);
-    return (toks ?? []).map((t: any) => t.token as string);
-  }
-
   async notifyMozosNuevoPedido(mesaNumero: number, totalARS: string, pedidoId: string, mesaId: number): Promise<void> {
-    const tokens = await this.getMozosTokens();
-    const uniq = Array.from(new Set(tokens));
-    if (uniq.length) {
-      await this.push.send(uniq, "Nuevo pedido", `Mesa ${mesaNumero} • ${totalARS}`, { tipo: "pedido", pedidoId, mesaId });
-    }
+    const { data } = await supabase.from("push_tokens").select("token").eq("role", "mozo").eq("active", true).eq("revoked", false);
+    const to = Array.from(new Set((data ?? []).map((r: any) => r.token as string).filter(Boolean)));
+    if (to.length) await this.push.send(to, "Nuevo pedido", `Mesa ${mesaNumero} • ${totalARS}`, { tipo: "pedido", pedidoId, mesaId });
   }
 }

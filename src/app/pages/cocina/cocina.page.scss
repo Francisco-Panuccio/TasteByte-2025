@@ -185,30 +185,15 @@
   }
 }
 
-.footer {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #d7b899;
-}
-
 .ion_btns {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%;
 }
 
 .btn_logged {
-  font-size: 16px;
-  font-weight: 600;
-  color: #554738;
-  --background: #e6dacd;
-  --border-radius: 8px;
-  --padding-start: 20px;
-  --padding-end: 20px;
-  margin: 8px;
-  border: 2px solid #554738;
+  font-size: 20px;
+  font-weight: 1000;
 }
 
 ion-refresher {
