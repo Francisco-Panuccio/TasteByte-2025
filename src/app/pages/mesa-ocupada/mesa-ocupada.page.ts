@@ -116,6 +116,12 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
 
       await this.push.init(undefined, "cliente");
       await this.push.ready();
+      const tk = this.push.getToken?.();
+      const { data: au2 } = await supabase.auth.getUser();
+      const clienteUserId = au2.user?.id ?? null;
+      if (tk && clienteUserId) {
+        await supabase.from("push_tokens").update({ usuario_id: clienteUserId, role: "cliente", active: true, revoked: false }).eq("token", tk);
+      }
 
       await this.detectarYPoblarPedido();
 
@@ -293,9 +299,6 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
       }
     }
     this.seenIds.add(saved.id);
-    try {
-      await this.push.sendToRoles(["mozo"], "Mensaje del cliente", txt, { tipo: "chat", chatId: this.chatId, mesaId: this.mesaId, fromRole: "cliente", fromName: this.myName, preview: txt.slice(0, 80) });
-    } catch { }
   }
 
   trackMsg = (_: number, m: { id: string }) => m.id;

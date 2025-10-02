@@ -5,7 +5,6 @@ import { Mesas } from "src/app/services/mesas/mesas";
 import { Pedidos } from "src/app/services/pedidos/pedidos";
 import { supabase } from "src/supabase.client";
 import { Push } from "src/app/services/push/push";
-import { Subscription } from "rxjs";
 
 type Filtro = "todos" | "pendiente" | "aceptado" | "rechazado" | "terminado";
 
@@ -44,61 +43,23 @@ export class PedidosMozoPage implements OnInit {
   @ViewChild("inboxModal", { read: IonModal }) inboxModal?: IonModal;
   inbox: Array<{ chatId: string; mesaId: number; mesaNumero?: number; lastText: string; time: string }> = [];
 
-  private pushSub?: Subscription;
-  private rtChannel?: ReturnType<typeof supabase.channel>;
-
   async ngOnInit() {
     await this.ensureMozo();
     this.myUserId = await this.chatSvc.getMyUserId();
     await this.cargar();
     this.sub = this.pedidosSrv.subscribeCambios(() => this.cargar());
-
     await this.push.init(undefined, "mozo");
     await this.push.ready();
-    this.pushSub = this.push.onPush$.subscribe(async (data: any) => {
-      const isChat = (data?.tipo ?? "") === "chat" || data?.chatId;
-      if (isChat) {
-        const txt = (data?.preview as string) || (data?.body as string) || "Nuevo mensaje";
-        const fromName = (data?.fromName as string) || (data?.fromRole === "cliente" ? "Cliente" : "Mensaje");
-        const mesaId = Number(data?.mesaId);
-        (await this.toast.create({
-          message: `${fromName}: ${txt}`,
-          duration: 3000,
-          position: "top",
-          cssClass: "toast",
-          buttons: [{ text: "Abrir", handler: () => (mesaId ? this.abrirChat(mesaId) : this.abrirInbox()) }]
-        })).present();
-      }
-    });
-
-    this.rtChannel = supabase
-      .channel("rt-chat-mozo")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages" }, async (payload) => {
-        const row: any = payload.new;
-        const chatId = row?.chat_id as string | undefined;
-        if (!chatId) return;
-        const fromId = row?.from_id ?? row?.sender_id ?? row?.user_id ?? null;
-        if (!this.myUserId) this.myUserId = await this.chatSvc.getMyUserId();
-        if (fromId && this.myUserId && String(fromId) === String(this.myUserId)) return;
-        const txt = (row?.body as string) || "Nuevo mensaje";
-        const { data: chat } = await supabase.from("chats").select("mesa_id").eq("id", chatId).maybeSingle();
-        const mesaId = chat?.mesa_id as number | undefined;
-        (await this.toast.create({
-          message: `Cliente: ${txt}`,
-          duration: 3000,
-          position: "top",
-          cssClass: "toast",
-          buttons: [{ text: "Abrir", handler: () => (mesaId ? this.abrirChat(mesaId) : this.abrirInbox()) }]
-        })).present();
-      })
-      .subscribe();
+    const tk = this.push.getToken?.();
+    const { data: au } = await supabase.auth.getUser();
+    if (tk && au?.user?.id) {
+      await supabase.from("push_tokens").update({ usuario_id: au.user.id, role: "mozo", active: true, revoked: false }).eq("token", tk);
+    }
   }
 
   ngOnDestroy() {
     this.sub?.unsubscribe?.();
     this.chatSvc.unsubscribe();
-    try { this.pushSub?.unsubscribe(); } catch { }
-    try { if (this.rtChannel) supabase.removeChannel(this.rtChannel); } catch { }
   }
 
   private async ensureMozo() {
@@ -156,7 +117,7 @@ export class PedidosMozoPage implements OnInit {
       this.pedidos = this.pedidos.filter(x => x.id !== p.id);
       (await this.toast.create({ message: "Pedido eliminado", duration: 1200, position: "top", cssClass: "toast" })).present();
       await this.cargar();
-    } catch (e) {
+    } catch {
       (await this.toast.create({ message: "No se pudo eliminar", duration: 1500, position: "top", cssClass: "toast" })).present();
     } finally {
       this.busy = false;
@@ -201,19 +162,6 @@ export class PedidosMozoPage implements OnInit {
     if (!t || !this.chatId || !this.mesaChatId || this.busy) return;
     await this.chatSvc.sendMessage(this.chatId, t);
     this.newMsg = "";
-    try {
-      const to = await this.chatSvc.getClienteTokenByMesa(this.mesaChatId);
-      if (to.length) {
-        await this.push.send(to, "Mensaje del mozo", t, {
-          tipo: "chat",
-          chatId: this.chatId,
-          mesaId: this.mesaChatId,
-          fromRole: "mozo",
-          fromName: this.myName,
-          preview: t.slice(0, 80)
-        });
-      }
-    } catch { }
   }
 
   async abrirInbox() {
@@ -234,12 +182,7 @@ export class PedidosMozoPage implements OnInit {
   }
 
   private async cargarInbox() {
-    const { data: msgs } = await supabase
-      .from("chat_messages")
-      .select("chat_id, body, created_at")
-      .order("created_at", { ascending: false })
-      .limit(200);
-
+    const { data: msgs } = await supabase.from("chat_messages").select("chat_id, body, created_at").order("created_at", { ascending: false }).limit(200);
     const dedup = new Map<string, { chatId: string; lastText: string; time: string }>();
     for (const m of (msgs ?? [])) {
       const id = (m as any).chat_id as string;
@@ -248,27 +191,17 @@ export class PedidosMozoPage implements OnInit {
         dedup.set(id, { chatId: id, lastText: (m as any).body as string, time: this.hhmm(dt) });
       }
     }
-
     const chatIds = Array.from(dedup.keys());
     if (!chatIds.length) { this.inbox = []; return; }
-
     const { data: chats } = await supabase.from("chats").select("id, mesa_id").in("id", chatIds);
     const byId = new Map<string, number>();
     (chats ?? []).forEach((c: any) => byId.set(c.id as string, c.mesa_id as number));
-
     const mesaIds = Array.from(new Set((chats ?? []).map((c: any) => c.mesa_id as number)));
     const mesas = await Promise.all(mesaIds.map(id => this.mesasSrv.getById(id)));
     mesas.forEach(m => { if (m) this.mesasNum.set(m.id!, m.numero!); });
-
     this.inbox = Array.from(dedup.values()).map(v => {
       const mesaId = byId.get(v.chatId)!;
-      return {
-        chatId: v.chatId,
-        mesaId,
-        mesaNumero: this.mesasNum.get(mesaId),
-        lastText: v.lastText,
-        time: v.time
-      };
+      return { chatId: v.chatId, mesaId, mesaNumero: this.mesasNum.get(mesaId), lastText: v.lastText, time: v.time };
     });
   }
 
