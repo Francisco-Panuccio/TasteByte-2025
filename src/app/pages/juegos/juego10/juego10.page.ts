@@ -97,20 +97,15 @@ export class Juego10Page implements OnInit {
     clearInterval(this.intervalo);
     this.juego_finalizado = resultado ? 1 : 2;
 
-    if (resultado) {
-      if (this.intentos === 1 && !this.descuentoAplicado && this.userId) {
-        await this.descuentos.aplicarDescuento(
-          this.clienteId,
-          this.userId,
-          this.mesaId,
-          10
-        );
-        this.descuentoAplicado = true;
-      }
-      this.mostrarToast('¡Ganaste!', 'success');
-    } else {
-      this.mostrarToast('Perdiste, intenta de nuevo', 'danger');
-    }
+    if (resultado && this.intentos === 1 && !this.descuentoAplicado && this.userId) {
+    // gano al primer intento => aplicar descuento y registrar
+    await this.descuentos.aplicarDescuento(this.clienteId, this.userId, this.mesaId, 10, 'juego10');
+    this.descuentoAplicado = true;
+  } else if (!this.descuentoAplicado && this.userId) {
+    // perdio => igual registrar intento sin descuento
+    await this.descuentos.registrarIntento(this.userId, 'juego10', false);
+  }
+
   }
 
   async resetear() {

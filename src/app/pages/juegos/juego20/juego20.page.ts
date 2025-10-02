@@ -24,6 +24,8 @@ export class Juego20Page implements OnInit {
   descuentoAplicado = false;
   juegoFinalizado = false;
 
+  vidasRestantes = 3; // 🔴 Máximo de errores permitidos
+
   mesaId!: number;
   clienteId!: number | null;
   usuarioId!: number | null;
@@ -61,6 +63,7 @@ export class Juego20Page implements OnInit {
   iniciarJuego() {
     this.intentos = 0;
     this.aciertos = 0;
+    this.vidasRestantes = 3; 
     this.descuentoAplicado = false;
     this.juegoFinalizado = false;
 
@@ -76,7 +79,7 @@ export class Juego20Page implements OnInit {
   }
 
   seleccionarCarta(carta: Carta) {
-    if (carta.volteada || carta.encontrada || this.seleccionadas.length === 2) return;
+    if (carta.volteada || carta.encontrada || this.seleccionadas.length === 2 || this.juegoFinalizado) return;
 
     carta.volteada = true;
     this.seleccionadas.push(carta);
@@ -87,7 +90,7 @@ export class Juego20Page implements OnInit {
     }
   }
 
-  compararCartas() {
+  async compararCartas() {
     const [c1, c2] = this.seleccionadas;
     if (c1.imagen === c2.imagen) {
       c1.encontrada = true;
@@ -95,26 +98,37 @@ export class Juego20Page implements OnInit {
       this.aciertos++;
 
       if (this.aciertos === this.imagenesBase.length) {
-        this.finalizarJuego();
+        this.finalizarJuego(true);
       }
     } else {
       c1.volteada = false;
       c2.volteada = false;
+      this.vidasRestantes--; 
+
+      if (this.vidasRestantes <= 0) {
+        this.finalizarJuego(false);
+        return;
+      } 
     }
     this.seleccionadas = [];
   }
 
-  async finalizarJuego() {
+  async finalizarJuego(ganador: boolean) {
     this.juegoFinalizado = true;
 
-    if (this.intentos === 1 && !this.descuentoAplicado && this.clienteId && this.usuarioId) {
-   await this.descuentos.aplicarDescuento(this.clienteId,this.userId,this.mesaId,20);
- 
-    this.descuentoAplicado = true;
-
-      this.mostrarToast('🎉 ¡Ganaste el 20% de descuento!', 'success');
+    if (ganador) {
+      if (this.intentos === 1 && !this.descuentoAplicado && this.clienteId && this.userId) {
+        await this.descuentos.aplicarDescuento(this.clienteId, this.userId, this.mesaId, 20, "juego20");
+        this.descuentoAplicado = true;
+      } else {
+        if (this.userId) {
+          await this.descuentos.registrarIntento(this.userId, "juego20", false);
+        }
+      }
     } else {
-      this.mostrarToast('Juego finalizado', 'medium');
+      if (this.userId) {
+        await this.descuentos.registrarIntento(this.userId, "juego20", false);
+      }
     }
   }
 

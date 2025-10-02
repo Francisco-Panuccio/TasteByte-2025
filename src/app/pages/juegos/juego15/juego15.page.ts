@@ -19,6 +19,7 @@ export class Juego15Page implements OnInit {
   imagenes: string[] = [];
 
   intentos = 0;
+  racha = 0; // 👈 aciertos consecutivos
   descuentoAplicado = false;
   juegoFinalizado = false;
   gano = false;
@@ -29,16 +30,20 @@ export class Juego15Page implements OnInit {
   anonimoId!: string | null;
   userId!: string | null;
 
-
-  constructor(private toast: ToastController,private router: Router,private route: ActivatedRoute,private descuentos: Descuentos) {
-  this.route.queryParams.subscribe(params => {
-    this.mesaId = params['mesaId'] ? Number(params['mesaId']) : 0;
-    this.clienteId = params['clienteId'] ? Number(params['clienteId']) : null;
-    this.usuarioId = params['usuarioId'] ? Number(params['usuarioId']) : null;
-    this.anonimoId = params['anonimoId'] ?? null;
-    this.userId = params['userId'] ?? null;
-  });
-}
+  constructor(
+    private toast: ToastController,
+    private router: Router,
+    private route: ActivatedRoute,
+    private descuentos: Descuentos
+  ) {
+    this.route.queryParams.subscribe(params => {
+      this.mesaId = params['mesaId'] ? Number(params['mesaId']) : 0;
+      this.clienteId = params['clienteId'] ? Number(params['clienteId']) : null;
+      this.usuarioId = params['usuarioId'] ? Number(params['usuarioId']) : null;
+      this.anonimoId = params['anonimoId'] ?? null;
+      this.userId = params['userId'] ?? null;
+    });
+  }
 
   async ngOnInit() {
     await this.precargaDeImagenes();
@@ -67,8 +72,10 @@ export class Juego15Page implements OnInit {
   iniciarJuego() {
     this.play = true;
     this.intentos = 0;
+    this.racha = 0;
     this.descuentoAplicado = false;
     this.juegoFinalizado = false;
+    this.gano = false;
     this.cartaActual = this.generarCarta();
     this.urlCarta = this.imagenes[this.cartaActual];
   }
@@ -91,23 +98,40 @@ export class Juego15Page implements OnInit {
     this.urlCarta = this.imagenes[this.cartaSiguiente];
 
     const esMayor = this.cartaSiguiente > this.cartaActual;
-    const acierto = (opcion === 'mayor' && esMayor) || (opcion === 'menor' && !esMayor);
+    const acierto =
+      (opcion === 'mayor' && esMayor) ||
+      (opcion === 'menor' && !esMayor);
 
     if (acierto) {
-      this.gano = true;
-      if (this.intentos === 1 && !this.descuentoAplicado && this.clienteId && this.usuarioId) {
-      await this.descuentos.aplicarDescuento(this.clienteId,this.userId,  this.mesaId,15);
-      this.descuentoAplicado = true;
+      this.racha++;
+      if (this.racha >= 4) {
+        // 👑 Ganó el desafío
+        this.gano = true;
+        this.juegoFinalizado = true;
+
+        if (!this.descuentoAplicado && this.clienteId && this.userId) {
+          await this.descuentos.aplicarDescuento(
+            this.clienteId,
+            this.userId,
+            this.mesaId,
+            15,
+            'juego15'
+          );
+          this.descuentoAplicado = true;
+        }
       }
-      
-      this.mostrarToast('🎉 ¡Correcto!', 'success');
     } else {
+
       this.gano = false;
-      this.mostrarToast('❌ Fallaste', 'danger');
+      this.juegoFinalizado = true;
+      this.racha = 0;
+
+      if (this.userId) {
+        await this.descuentos.registrarIntento(this.userId, 'juego15', false);
+      }
     }
 
     this.cartaActual = this.cartaSiguiente;
-    this.juegoFinalizado = true;
   }
 
   resetear() {

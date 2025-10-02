@@ -8,6 +8,11 @@
   <div class="div_main">
     <h2>Encuentra todas las parejas</h2>
 
+    <div class="vidas">
+      Vidas restantes: 
+      <span *ngFor="let v of [].constructor(vidasRestantes)">❤️</span>
+    </div>
+
     <div class="tablero">
       <div class="carta" *ngFor="let carta of cartas" (click)="seleccionarCarta(carta)">
         <img
@@ -20,7 +25,6 @@
     </div>
 
     <div class="info">
-      <p>Intentos: {{ intentos }}</p>
       <p>Pares encontrados: {{ aciertos }}/{{ imagenesBase.length }}</p>
     </div>
 
@@ -28,9 +32,14 @@
       <ion-button expand="block" color="primary" (click)="resetear()">
         Volver a Jugar
       </ion-button>
+      <p *ngIf="vidasRestantes <= 0" class="perdio-texto">
+        😢 Te quedaste sin vidas. Inténtalo de nuevo.
+      </p>
+      <p *ngIf="aciertos === imagenesBase.length" class="gano-texto">
+        🎉 ¡Ganaste el juego!
+      </p>
     </div>
   </div>
-
 
   <footer>
     <ion-toolbar>
@@ -39,6 +48,4 @@
       </ion-buttons>
     </ion-toolbar>
   </footer>
-
 </ion-content>
-

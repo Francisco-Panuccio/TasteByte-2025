@@ -12,6 +12,10 @@
       <img [src]="urlCarta" alt="Carta" class="img_carta" />
     </div>
 
+    <div *ngIf="play && !juegoFinalizado" class="progreso">
+      <p>Aciertos seguidos: <strong>{{ racha }}/4</strong></p>
+    </div>
+
     <div *ngIf="!play">
       <ion-button expand="block" color="success" (click)="iniciarJuego()">
         Empezar
@@ -28,7 +32,7 @@
     </div>
 
     <div *ngIf="juegoFinalizado" class="resultado">
-      <p *ngIf="gano">🎉 ¡Ganaste!</p>
+      <p *ngIf="gano">🎉 ¡Ganaste! Lograste los 4 aciertos seguidos.</p>
       <p *ngIf="!gano">❌ Perdiste. Intenta de nuevo.</p>
       <ion-button expand="block" color="primary" (click)="resetear()">
         Volver a Jugar
@@ -43,5 +47,4 @@
       </ion-buttons>
     </ion-toolbar>
   </footer>
-  
 </ion-content>
