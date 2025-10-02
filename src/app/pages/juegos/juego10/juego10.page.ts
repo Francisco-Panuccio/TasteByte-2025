@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastController } from '@ionic/angular';
+import { Descuentos } from 'src/app/services/descuentos/descuentos';
 
 @Component({
   selector: 'app-juego10',
@@ -9,39 +10,44 @@ import { ToastController } from '@ionic/angular';
   standalone: false
 })
 export class Juego10Page implements OnInit {
-  palabra: string = '';
+  palabra = '';
   letras_adivinadas: string[] = [];
   letras_utilizadas: string[] = [];
 
-  play: boolean = false;
-  fallos: number = 0;
-  max_fallos: number = 6; // porque tenemos 7 imágenes (0 a 6)
+  play = false;
+  fallos = 0;
+  max_fallos = 6;
   url_ahorcado!: string;
   imagenes: string[] = [];
 
-  letras_seleccionadas: number = 0;
-  intentos: number = 0;
-  descuentoAplicado: boolean = false;
-  cargando_palabra: boolean = false;
+  letras_seleccionadas = 0;
+  intentos = 0;
+  descuentoAplicado = false;
+  cargando_palabra = false;
 
-
-  /* Tiempo */
   inicio!: number;
   tiempoTranscurrido = '00:00:00';
   intervalo!: ReturnType<typeof setInterval>;
-  juego_finalizado: number = 0; // 0=jugando, 1=ganó, 2=perdió
+  juego_finalizado = 0; // 0=jugando, 1=ganó, 2=perdió
 
   mesaId!: number;
   clienteId!: number | null;
   usuarioId!: number | null;
   anonimoId!: string | null;
+  userId!: string | null; // 👉 este es el uuid real del usuario
 
-  constructor(private toast: ToastController,private router: Router,private route: ActivatedRoute) {
+  constructor(
+    private toast: ToastController,
+    private router: Router,
+    private route: ActivatedRoute,
+    private descuentos: Descuentos
+  ) {
     this.route.queryParams.subscribe(params => {
       this.mesaId = params['mesaId'] ? Number(params['mesaId']) : 0;
       this.clienteId = params['clienteId'] ? Number(params['clienteId']) : null;
       this.usuarioId = params['usuarioId'] ? Number(params['usuarioId']) : null;
       this.anonimoId = params['anonimoId'] ?? null;
+      this.userId = params['userId'] ?? null; // uuid que viene desde JuegosPage
     });
   }
 
@@ -51,12 +57,11 @@ export class Juego10Page implements OnInit {
   }
 
   async fetchPalabraRandom() {
-  this.cargando_palabra = true;
-  const palabras = ['IONIC', 'SUPABASE', 'ANGULAR', 'JUEGO', 'CLIENTE'];
-  this.palabra = palabras[Math.floor(Math.random() * palabras.length)];
-  this.cargando_palabra = false;
-}
-
+    this.cargando_palabra = true;
+    const palabras = ['IONIC', 'SUPABASE', 'ANGULAR', 'JUEGO', 'CLIENTE'];
+    this.palabra = palabras[Math.floor(Math.random() * palabras.length)];
+    this.cargando_palabra = false;
+  }
 
   jugar() {
     this.play = true;
@@ -77,7 +82,9 @@ export class Juego10Page implements OnInit {
 
     if (this.palabra.includes(letra)) {
       this.letras_adivinadas.push(letra);
-      const todas = this.palabra.split('').every(l => this.letras_adivinadas.includes(l));
+      const todas = this.palabra.split('').every(l =>
+        this.letras_adivinadas.includes(l)
+      );
       if (todas) this.finalizarJuego(true);
     } else {
       this.fallos++;
@@ -86,14 +93,18 @@ export class Juego10Page implements OnInit {
     }
   }
 
-  finalizarJuego(resultado: boolean) {
+  async finalizarJuego(resultado: boolean) {
     clearInterval(this.intervalo);
     this.juego_finalizado = resultado ? 1 : 2;
 
     if (resultado) {
-      // Si ganó en el primer intento, aplica el descuento
-      if (this.intentos === 1 && !this.descuentoAplicado) {
-        this.aplicarDescuento(10);
+      if (this.intentos === 1 && !this.descuentoAplicado && this.userId) {
+        await this.descuentos.aplicarDescuento(
+          this.clienteId,
+          this.userId,
+          this.mesaId,
+          10
+        );
         this.descuentoAplicado = true;
       }
       this.mostrarToast('¡Ganaste!', 'success');
@@ -116,18 +127,17 @@ export class Juego10Page implements OnInit {
   }
 
   async precargaDeImagenes() {
-  this.imagenes = [
-    'assets/images/ahorcado/0_ahorcado.png',
-    'assets/images/ahorcado/1_ahorcado.png',
-    'assets/images/ahorcado/2_ahorcado.png',
-    'assets/images/ahorcado/3_ahorcado.png',
-    'assets/images/ahorcado/4_ahorcado.png',
-    'assets/images/ahorcado/5_ahorcado.png',
-    'assets/images/ahorcado/6_ahorcado.png',
-  ];
-  this.url_ahorcado = this.imagenes[0];
-}
-
+    this.imagenes = [
+      'assets/images/ahorcado/0_ahorcado.png',
+      'assets/images/ahorcado/1_ahorcado.png',
+      'assets/images/ahorcado/2_ahorcado.png',
+      'assets/images/ahorcado/3_ahorcado.png',
+      'assets/images/ahorcado/4_ahorcado.png',
+      'assets/images/ahorcado/5_ahorcado.png',
+      'assets/images/ahorcado/6_ahorcado.png'
+    ];
+    this.url_ahorcado = this.imagenes[0];
+  }
 
   private async mostrarToast(mensaje: string, color: string = 'primary') {
     const t = await this.toast.create({
@@ -139,18 +149,16 @@ export class Juego10Page implements OnInit {
     await t.present();
   }
 
-  private aplicarDescuento(porc: number) {
-
-    console.log(`🎉 Se aplicó un ${porc}% de descuento`);
+  volver() {
+    this.router.navigate(['/juegos'], {
+      queryParams: {
+        clienteId: this.clienteId,
+        usuarioId: this.usuarioId,
+        anonimoId: this.anonimoId,
+        userId: this.userId,
+        tienePermiso: true,
+        qrValido: true
+      }
+    });
   }
-
-  volver() 
-  {
-  this.router.navigate(['/juegos'], {
-        queryParams: { clienteId: this.clienteId,  anonimoId : this.anonimoId, tienePermiso : true, qrValido : true }
-      });
-  }
-
-
-
 }

@@ -143,7 +143,7 @@ export class HomePage implements OnInit {
     if (res.permiso && qr.startsWith('INGRESO')) {
 
       this.router.navigate(['/encuestas-espera'], {
-        queryParams: { clienteId: this.clienteId, tienePermiso : true, yaRegistrado: !!res.yaRegistrado, qrValido : true }
+        queryParams: { clienteId: this.clienteId, tienePermiso : true, yaRegistrado: !!res.yaRegistrado, qrValido : true, userId : this.userId}
       });
     }
   }

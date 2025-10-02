@@ -25,6 +25,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   anonimoId: string | undefined;
   clienteId: number | null = null;
 
+  userUid : string | undefined;
   
   encuestas: any[] = [];
   clientes: any[] = [];
@@ -44,6 +45,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       this.usuarioId = params['usuarioId'] ? Number(params['usuarioId']) : null;
       this.anonimoId = params['anonimoId'];
       this.tienePermiso = params['tienePermiso'];
+      this.userUid = params['userId'];
 
       if (!this.clienteId && !this.anonimoId && !this.usuarioId) {
         this.router.navigate(['/login'], { replaceUrl: true });

@@ -1,13 +1,44 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>juego20</ion-title>
+<header>
+  <ion-toolbar color="dark">
+    <ion-title>Memotest</ion-title>
   </ion-toolbar>
-</ion-header>
+</header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
+<ion-content class="ion-padding user_background">
+  <div class="div_main">
+    <h2>Encuentra todas las parejas</h2>
+
+    <div class="tablero">
+      <div class="carta" *ngFor="let carta of cartas" (click)="seleccionarCarta(carta)">
+        <img
+          *ngIf="carta.volteada || carta.encontrada"
+          [src]="carta.imagen"
+          alt="Carta"
+        />
+        <div *ngIf="!carta.volteada && !carta.encontrada" class="carta_oculta"></div>
+      </div>
+    </div>
+
+    <div class="info">
+      <p>Intentos: {{ intentos }}</p>
+      <p>Pares encontrados: {{ aciertos }}/{{ imagenesBase.length }}</p>
+    </div>
+
+    <div *ngIf="juegoFinalizado" class="resultado">
+      <ion-button expand="block" color="primary" (click)="resetear()">
+        Volver a Jugar
+      </ion-button>
+    </div>
+  </div>
+
+
+  <footer>
     <ion-toolbar>
-      <ion-title size="large">juego20</ion-title>
+      <ion-buttons class="ion_btns">
+        <ion-button class="btn_logged" (click)="volver()">Volver</ion-button>
+      </ion-buttons>
     </ion-toolbar>
-  </ion-header>
+  </footer>
+
 </ion-content>
+

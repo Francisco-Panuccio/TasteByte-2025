@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
+import { supabase } from 'src/supabase.client';
 
 @Component({
   selector: 'app-juegos',
@@ -13,6 +14,9 @@ export class JuegosPage {
   usuarioId!: number | null;
   anonimoId!: string | null;
 
+  userId!: string | null;
+
+
   // Control del descuento
   descuentoAplicado: boolean = false;
   porcentajeDescuento: number | null = null;
@@ -23,7 +27,16 @@ export class JuegosPage {
       this.clienteId = params['clienteId'] ? Number(params['clienteId']) : null;
       this.usuarioId = params['usuarioId'] ? Number(params['usuarioId']) : null;
       this.anonimoId = params['anonimoId'] ?? null;
+      this.userId = params['userId'] ?? null;
     });
+  }
+
+  async ngOnInit() {
+
+    if (!this.userId) {
+      const { data } = await supabase.auth.getUser();
+      this.userId = data.user?.id ?? null;
+    }
   }
 
   aplicarDescuento(porcentaje: number) {
@@ -37,7 +50,7 @@ export class JuegosPage {
 
   volver() {
     this.router.navigate(['/encuestas-espera'], {
-        queryParams: { clienteId: this.clienteId, anonimoId : this.anonimoId, tienePermiso : true, qrValido : true }
+        queryParams: { clienteId: this.clienteId, anonimoId : this.anonimoId, tienePermiso : true, qrValido : true, userId : this.userId }
       });
   }
 
