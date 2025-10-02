@@ -25,16 +25,15 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   anonimoId: string | undefined;
   clienteId: number | null = null;
 
-  
   encuestas: any[] = [];
   clientes: any[] = [];
   qrValido = false;
   loading = true;
-  tienePermiso :boolean = false;
+  tienePermiso = false;
   yaRegistrado = false;
-  
+
   mesaAsignadaId: number | null = null;
-  estadoPedido: boolean = false;
+  estadoPedido = false;
 
   constructor(private router: Router, private route: ActivatedRoute, private toast: ToastController) { }
 
@@ -85,22 +84,18 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
             const estado = payload?.new?.estado as EstadoAsignacion | undefined;
             if (typeof mesa === 'number') {
               this.mesaAsignadaId = mesa;
-              if (estado === 'asignada') {
-                await this.presentAsignadaPush();
-              }
+              if (estado === 'asignada') await this.presentAsignadaPush();
             }
           }
         )
         .subscribe();
 
-      setTimeout(() => (this.loading = false), 2000);
+      setTimeout(() => (this.loading = false), 1000);
     });
   }
 
   ngOnDestroy() {
-    if (this.subscription) {
-      supabase.removeChannel(this.subscription);
-    }
+    if (this.subscription) supabase.removeChannel(this.subscription);
   }
 
   async escanearQr() {
@@ -165,10 +160,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     if (this.anonimoId) qLista = qLista.eq('cliente_anonimo_id', this.anonimoId);
 
     const { data: espera, error: errLista } = await qLista.maybeSingle();
-
-    if (!errLista && espera) {
-      this.yaRegistrado = true;
-    }
+    if (!errLista && espera) this.yaRegistrado = true;
   }
 
   async registrarseListaEspera() {
@@ -177,16 +169,10 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     const payload: any = { estado: 'pendiente' };
     if (this.clienteId) payload.cliente_id = this.clienteId;
     else if (this.anonimoId) payload.cliente_anonimo_id = this.anonimoId;
-    else {
-      this.mostrarToast('Error: no se detectó cliente', 'danger');
-      return;
-    }
+    else { this.mostrarToast('Error: no se detectó cliente', 'danger'); return; }
 
     const { error } = await supabase.from('lista_espera').insert(payload);
-    if (error) {
-      this.mostrarToast('Error al registrarse en la lista de espera', 'danger');
-      return;
-    }
+    if (error) { this.mostrarToast('Error al registrarse en la lista de espera', 'danger'); return; }
 
     this.yaRegistrado = true;
     this.mostrarToast('Te uniste a la lista de espera. Esperá a que el maître te asigne una mesa.');
@@ -217,9 +203,9 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     }
 
     if (res.mesaAsignada) {
-      const { data } = await supabase.from("pedidos").select("id, estado")
-        .eq("mesa_id", res.mesaAsignada)
-        .in("estado", ["aceptado", "terminado"])
+      const { data } = await supabase.from('pedidos').select('id, estado')
+        .eq('mesa_id', res.mesaAsignada)
+        .in('estado', ['aceptado', 'terminado'])
         .limit(1)
         .maybeSingle();
 
@@ -238,13 +224,10 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
         });
       }
     }
-    
   }
 
   async salir() {
-    try {
-      await supabase.auth.signOut();
-    } catch { }
+    try { await supabase.auth.signOut(); } catch { }
     this.router.navigate(['/login'], { replaceUrl: true });
   }
 
@@ -253,7 +236,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       message: mensaje,
       duration: 2500,
       color,
-      cssClass: "toast2",
+      cssClass: 'toast2',
       position: 'bottom',
       buttons: [{ text: 'OK', role: 'cancel' }]
     });

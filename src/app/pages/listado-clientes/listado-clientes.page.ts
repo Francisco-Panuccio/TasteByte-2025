@@ -29,6 +29,7 @@ export class ListadoClientesPage implements OnInit, OnDestroy {
   private pushSub?: Subscription;
   private rtChannel?: ReturnType<typeof supabase.channel>;
   private isPrivileged = false;
+  private notifiedIds = new Set<number>();
 
   async ngOnInit() {
     const { data: auth } = await supabase.auth.getUser();
@@ -48,10 +49,7 @@ export class ListadoClientesPage implements OnInit, OnDestroy {
     await this.push.ready();
 
     const tk = this.push.getToken();
-    if (!tk) {
-      this.err = "Sin token FCM. Revisá configuración Firebase/FCM del proyecto Android.";
-      return;
-    }
+    if (!tk) { this.err = "Sin token FCM. Revisá configuración Firebase/FCM del proyecto Android."; return; }
 
     await this.cargarPendientes();
 
@@ -67,14 +65,17 @@ export class ListadoClientesPage implements OnInit, OnDestroy {
         { event: "INSERT", schema: "public", table: "clientes" },
         async (payload) => {
           const row: any = payload.new;
-          if (this.isPrivileged && row?.tipo === "cliente_registrado") {
-            await this.push.sendToRoles(
-              ["dueño", "supervisor"],
-              "Nuevo cliente pendiente",
-              "Hay un registro esperando aprobación",
-              { tipo: "cliente_registrado" }
-            );
-          }
+          if (!this.isPrivileged || row?.tipo !== "cliente_registrado") return;
+          const id = Number(row.id);
+          if (this.notifiedIds.has(id)) return;
+          this.notifiedIds.add(id);
+          await this.push.sendToRoles(
+            ["dueño", "supervisor"],
+            "Nuevo cliente pendiente",
+            "Hay un registro esperando aprobación",
+            { tipo: "cliente_registrado", cliente_id: row.usuario_id }
+          );
+          await this.cargarPendientes();
         }
       )
       .subscribe();

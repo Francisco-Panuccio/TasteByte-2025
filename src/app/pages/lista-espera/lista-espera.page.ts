@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { ToastController, ModalController, NavController } from '@ionic/angular';
+import { ModalController, NavController } from '@ionic/angular';
 import { Router, ActivatedRoute } from '@angular/router';
 import { supabase } from 'src/supabase.client';
 import { ListadoMesasPage } from '../listado-mesas/listado-mesas.page';
@@ -20,21 +20,27 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
   anonimoId: string | null = null;
   usuarioId: string | null = null;
 
-  private pushSub?: Subscription;
   private rtChannel?: ReturnType<typeof supabase.channel>;
   private seenWaitIds = new Set<string>();
 
   constructor(
     private router: Router,
-    private toastCtrl: ToastController,
     private route: ActivatedRoute,
     private modalCtrl: ModalController,
     private navCtrl: NavController,
     private push: Push
-  ) {}
+  ) { }
 
   private normalizarPerfil(p?: string): string {
     return (p ?? '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  }
+
+  private perfilToRole(perfil?: string): string | undefined {
+    const p = this.normalizarPerfil(perfil);
+    if (p === 'dueno') return 'dueño';
+    if (['supervisor', 'maitre', 'mozo', 'bartender', 'cocinero'].includes(p)) return p;
+    if (p === 'cliente_registrado' || p === 'cliente_anonimo') return 'cliente';
+    return undefined;
   }
 
   async ngOnInit() {
@@ -42,31 +48,29 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
     this.usuarioId = this.route.snapshot.queryParamMap.get('userId');
     if (this.anonimoId) this.esCliente = true;
 
+    let perfil: string | undefined;
+    let usuarioIdNum: number | undefined;
+
     try {
       const { data: authData } = await supabase.auth.getUser();
       if (authData?.user?.email) {
         const { data: usuario } = await supabase
           .from('usuarios')
-          .select('perfil')
+          .select('id, perfil')
           .eq('correo_electronico', authData.user.email)
           .maybeSingle();
-        const perfil = this.normalizarPerfil(usuario?.perfil);
-        this.esMaitre = perfil === 'maitre';
-        if (perfil === 'cliente_registrado') this.esCliente = true;
+        perfil = usuario?.perfil;
+        usuarioIdNum = usuario?.id ?? undefined;
+        const norm = this.normalizarPerfil(perfil);
+        this.esMaitre = norm === 'maitre';
+        if (norm === 'cliente_registrado') this.esCliente = true;
       }
-    } catch {}
+      const role = this.perfilToRole(perfil);
+      await this.push.init(usuarioIdNum, role as any);
+      await this.push.ready();
+    } catch { }
 
     await this.cargarLista();
-
-    await this.push.init(undefined, 'maitre');
-    await this.push.ready();
-
-    this.pushSub = this.push.onPush$.subscribe(async (data: any) => {
-      if ((data?.tipo ?? '') === 'lista_espera') {
-        await this.presentPushToast('Nuevo cliente en lista de espera');
-        await this.cargarLista();
-      }
-    });
 
     this.rtChannel = supabase
       .channel('rt-lista-espera')
@@ -79,22 +83,20 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
           const id = String(row.id);
           if (this.seenWaitIds.has(id)) return;
           this.seenWaitIds.add(id);
-          await this.presentPushToast('Nuevo cliente en lista de espera');
-          await this.cargarLista();
           await this.push.sendToRoles(
             ['maitre'],
             'Nuevo cliente en lista de espera',
             '',
             { tipo: 'lista_espera', screen: 'lista-espera', lista_espera_id: row.id }
           );
+          await this.cargarLista();
         }
       )
       .subscribe();
   }
 
   ngOnDestroy(): void {
-    try { this.pushSub?.unsubscribe(); } catch {}
-    try { if (this.rtChannel) supabase.removeChannel(this.rtChannel); } catch {}
+    try { if (this.rtChannel) supabase.removeChannel(this.rtChannel); } catch { }
   }
 
   async cargarLista() {
@@ -116,7 +118,7 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
         return { ...c, nombre: nombre ?? 'Cliente anónimo', foto_url: foto };
       });
     }
-    setTimeout(() => (this.loading = false), 1000);
+    setTimeout(() => (this.loading = false), 500);
   }
 
   async aprobar(cliente: any) {
@@ -136,41 +138,7 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
     if (cliente.cliente_anonimo_id) payload.cliente_anonimo_id = cliente.cliente_anonimo_id;
 
     await supabase.from('asignaciones_mesa').insert(payload);
-
     this.clientes = this.clientes.filter((c) => c.id !== cliente.id);
-    this.mostrarToast(`${cliente.nombre || 'Cliente'} fue aprobado y se le asignó la mesa ${mesaSeleccionada.numero}`);
-  }
-
-  private async presentPushToast(header: string) {
-    const t = await this.toastCtrl.create({
-      header,
-      message: '',
-      position: 'top',
-      cssClass: 'toasty',
-      duration: undefined,
-      buttons: [
-        {
-          text: 'Ver',
-          role: 'confirm',
-          handler: async () => {
-            try { await this.cargarLista(); } catch {}
-            try { await this.router.navigate(['/lista-espera']); } catch {}
-          }
-        },
-        { text: 'Cerrar', role: 'cancel' }
-      ]
-    });
-    await t.present();
-  }
-
-  private async mostrarToast(mensaje: string) {
-    const toast = await this.toastCtrl.create({
-      message: mensaje,
-      duration: 2000,
-      position: 'bottom',
-      color: 'success'
-    });
-    await toast.present();
   }
 
   getPosicionCliente(): number | null {
