@@ -1,0 +1,39 @@
+<ion-header>
+  <ion-toolbar color="dark">
+    <ion-title>Juegos</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content >
+  <div class="div_main">
+    <h2>Elige un juego para obtener descuentos</h2>
+
+    <ion-button 
+    expand="block" 
+    class="btn_juego juego10" 
+    [routerLink]="['/juegos/juego10']"
+    [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId }"
+    >
+      Juego 10% Descuento
+    </ion-button>
+
+    <ion-button expand="block" class="btn_juego juego15" [routerLink]="['/juegos/juego15']">
+      Juego 15% Descuento
+    </ion-button>
+
+    <ion-button expand="block" class="btn_juego juego20" [routerLink]="['/juegos/juego20']">
+      Juego 20% Descuento
+    </ion-button>
+  </div>
+
+  <footer>
+    <ion-toolbar>
+      <ion-buttons class="ion_btns">
+        <ion-button class="btn_logged" (click)="volver()">Volver</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </footer>
+
+  
+</ion-content>
+

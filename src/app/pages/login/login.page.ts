@@ -7,8 +7,6 @@ import { supabase } from "src/supabase.client";
 import { Capacitor } from "@capacitor/core";
 import { Haptics, NotificationType, ImpactStyle } from "@capacitor/haptics";
 
-type Role = "mozo" | "cliente";
-
 @Component({
   selector: "app-login",
   standalone: false,
@@ -16,12 +14,11 @@ type Role = "mozo" | "cliente";
   styleUrls: ["./login.page.scss"],
 })
 export class LoginPage implements OnInit {
-  loading: boolean = true;
-  errorMsg: boolean = false;
-  errorText: string = "Ocurrió un error";
+  loading = true;
+  errorMsg = false;
+  errorText = "Ocurrió un error";
 
   formLogin: ReturnType<FormBuilder["group"]>;
-
   private errorAudio = new Audio("assets/sounds/error.mp3");
 
   constructor(
@@ -43,8 +40,16 @@ export class LoginPage implements OnInit {
     return perfil !== "cliente_registrado";
   }
 
-  private async initPush(userId: string, role: Role) {
-    await this.push.init(userId, role);
+  private perfilToRole(perfil?: string): string | undefined {
+    const p = (perfil ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+    if (p === "dueno") return "dueño";
+    if (["supervisor", "maitre", "mozo", "bartender", "cocinero"].includes(p)) return p;
+    if (p === "cliente_registrado" || p === "cliente_anonimo") return "cliente";
+    return undefined;
+  }
+
+  private async initPush(userId: number | string, role?: string) {
+    await this.push.init(userId as any, role as any);
     if (role === "mozo") this.push.initMozoHandlers();
     await this.push.ready();
   }
@@ -69,10 +74,7 @@ export class LoginPage implements OnInit {
         try { (navigator as any).vibrate?.(1500); } catch { }
       }
     } catch { }
-    try {
-      this.errorAudio.currentTime = 0;
-      await this.errorAudio.play();
-    } catch { }
+    try { this.errorAudio.currentTime = 0; await this.errorAudio.play(); } catch { }
   }
 
   async ngOnInit() {
@@ -82,27 +84,23 @@ export class LoginPage implements OnInit {
       const email = authData.user?.email as string | undefined;
 
       if (email) {
-        const { data: u, error } = await supabase
+        const { data: u } = await supabase
           .from("usuarios")
           .select("id, perfil")
           .eq("correo_electronico", email)
           .maybeSingle();
 
-        if (error) { console.error("Error Cargando Perfil del Usuario", error); }
-
         const perfil = u?.perfil;
-        const userId = u?.id;
+        const usuarioRowId = u?.id;
 
         let estado: string | undefined;
-        if (perfil === "cliente_registrado" && userId) {
-          const { data: cData, error: cErr } = await supabase
+        if (perfil === "cliente_registrado" && usuarioRowId) {
+          const { data: cData } = await supabase
             .from("clientes")
             .select("estado")
-            .eq("usuario_id", userId)
+            .eq("usuario_id", usuarioRowId)
             .maybeSingle();
-          if (cErr) { console.error("Error Cargando Estado del Cliente", cErr); }
           estado = cData?.estado;
-
           if (!this.isApproved(perfil, estado)) {
             await supabase.auth.signOut();
             this.errorText = "Cuenta Rechazada o Pendiente de Aprobación.";
@@ -111,10 +109,9 @@ export class LoginPage implements OnInit {
           }
         }
 
-        const role: Role = u?.perfil === "mozo" ? "mozo" : "cliente";
-        if (authData.user?.id) {
-          await this.initPush(authData.user.id, role);
-        }
+        const role = this.perfilToRole(perfil);
+        if (usuarioRowId) await this.initPush(usuarioRowId, role);
+        else if (authData.user?.id) await this.initPush(authData.user.id, role);
       }
 
       await this.router.navigateByUrl("/home", { replaceUrl: true });
@@ -132,7 +129,7 @@ export class LoginPage implements OnInit {
     this.formLogin.updateValueAndValidity({ emitEvent: true });
     if (this.formLogin.invalid) return;
 
-    const { email, password } = this.formLogin.value as { email: string; password: string; };
+    const { email, password } = this.formLogin.value as { email: string; password: string };
 
     const { error: signErr } = await this.auth.signIn(email, password);
     if (signErr) {
@@ -158,13 +155,13 @@ export class LoginPage implements OnInit {
       return;
     }
 
-    const { data: u, error: uErr } = await supabase
+    const { data: u } = await supabase
       .from("usuarios")
       .select("id, perfil")
       .eq("correo_electronico", emailAut)
       .maybeSingle();
 
-    if (uErr || !u) {
+    if (!u) {
       this.errorText = "No se encontró el perfil del usuario";
       this.errorMsg = true;
       await this.errorFeedback();
@@ -172,18 +169,16 @@ export class LoginPage implements OnInit {
     }
 
     const perfil = u.perfil;
-    const userId = u.id;
+    const usuarioRowId = u.id;
 
     let estado: string | undefined;
     if (perfil === "cliente_registrado") {
-      const { data: cData, error: cErr } = await supabase
+      const { data: cData } = await supabase
         .from("clientes")
         .select("estado")
-        .eq("usuario_id", userId)
+        .eq("usuario_id", usuarioRowId)
         .maybeSingle();
-      if (cErr) { console.error("Error Cargando Estado del Cliente", cErr); }
       estado = cData?.estado;
-
       if (!this.isApproved(perfil, estado)) {
         await supabase.auth.signOut();
         this.errorText = "Cuenta Rechazada o Pendiente de Aprobación.";
@@ -193,8 +188,8 @@ export class LoginPage implements OnInit {
       }
     }
 
-    const role: Role = perfil === "mozo" ? "mozo" : "cliente";
-    await this.initPush(authData.user.id, role);
+    const role = this.perfilToRole(perfil);
+    await this.initPush(usuarioRowId ?? authData.user.id, role);
 
     await this.router.navigateByUrl("/home", { replaceUrl: true });
   }
