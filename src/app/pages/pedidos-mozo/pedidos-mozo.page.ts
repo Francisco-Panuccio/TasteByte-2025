@@ -95,15 +95,31 @@ export class PedidosMozoPage implements OnInit {
             if (part?.push_token) {
               tokens = [part.push_token as string];
             } else if (part?.user_id) {
-              const { data: toks } = await supabase.from("push_tokens").select("token").eq("usuario_id", part.user_id as string).eq("active", true).eq("revoked", false);
+              const { data: toks } = await supabase
+                .from("push_tokens")
+                .select("token")
+                .eq("usuario_id", part.user_id as string)
+                .eq("role", "cliente")
+                .eq("active", true)
+                .eq("revoked", false);
               tokens = (toks ?? []).map((t: any) => t.token as string);
             }
           }
           if (tokens.length) {
-            const mesaNumero = this.mesasNum.get(mesaId) ?? mesaId;
-            const title = estado === "aceptado" ? "Pedido aceptado" : "Pedido rechazado";
-            const body = estado === "aceptado" ? `Mesa ${mesaNumero}: tu pedido fue aceptado` : `Mesa ${mesaNumero}: tu pedido fue rechazado. Podés modificarlo y reenviarlo`;
-            await this.push.send(tokens, title, body, { tipo: "pedido", pedidoId, mesaId, estado });
+            const { data: valids } = await supabase
+              .from("push_tokens")
+              .select("token")
+              .in("token", tokens)
+              .eq("role", "cliente")
+              .eq("active", true)
+              .eq("revoked", false);
+            const safe = Array.from(new Set((valids ?? []).map((t: any) => t.token as string)));
+            if (safe.length) {
+              const mesaNumero = this.mesasNum.get(mesaId) ?? mesaId;
+              const title = estado === "aceptado" ? "Pedido aceptado" : "Pedido rechazado";
+              const body = estado === "aceptado" ? `Mesa ${mesaNumero}: tu pedido fue aceptado` : `Mesa ${mesaNumero}: tu pedido fue rechazado. Podés modificarlo y reenviarlo`;
+              await this.push.send(safe, title, body, { tipo: "pedido", pedidoId, mesaId, estado });
+            }
           }
           if (estado === "aceptado") {
             const mesaNumero = this.mesasNum.get(mesaId);
@@ -228,12 +244,7 @@ export class PedidosMozoPage implements OnInit {
     const mesaNumero = p?.mesa?.numero ?? p?.mesa_numero ?? p?.mesa_id ?? "NN";
     const title = "Nuevo pedido";
     const body = `Nuevo pedido mesa ${mesaNumero}`;
-    const data = {
-      tipo: "nuevo_pedido",
-      pedidoId: p?.id ?? null,
-      mesaId: p?.mesa_id ?? p?.mesa?.id ?? null
-    };
-
+    const data = { tipo: "nuevo_pedido", pedidoId: p?.id ?? null, mesaId: p?.mesa_id ?? p?.mesa?.id ?? null };
     if (typeof (this as any).push.toTopic === "function") {
       await Promise.all([
         (this as any).push.toTopic("bar", title, body, data),
@@ -241,7 +252,6 @@ export class PedidosMozoPage implements OnInit {
       ]);
       return;
     }
-
     if (typeof (this as any).push.toRol === "function") {
       await Promise.all([
         (this as any).push.toRol("bartender", title, body, data),
@@ -249,17 +259,17 @@ export class PedidosMozoPage implements OnInit {
       ]);
       return;
     }
-
-    const { data: tokens, error } = await supabase
-      .from("push_subscriptions")
+    const { data: toks } = await supabase
+      .from("push_tokens")
       .select("token")
-      .in("rol", ["bartender", "cocinero"]);
-
-    if (!error && tokens?.length) {
-      const list = tokens.map(t => t.token);
-      if (typeof (this as any).push.sendToTokens === "function") {
-        await (this as any).push.sendToTokens(list, { title, body, data });
-      }
+      .in("role", ["bartender", "cocinero"])
+      .eq("active", true)
+      .eq("revoked", false);
+    const list = Array.from(new Set((toks ?? []).map((t: any) => t.token as string)));
+    if (list.length && typeof (this as any).push.sendToTokens === "function") {
+      await (this as any).push.sendToTokens(list, { title, body, data });
+    } else if (list.length && typeof (this as any).push.send === "function") {
+      await (this as any).push.send(list, title, body, data);
     }
   }
 }
