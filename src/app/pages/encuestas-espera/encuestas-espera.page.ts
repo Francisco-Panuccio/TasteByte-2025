@@ -102,7 +102,6 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
 
       await this.cargarMesaAsignada();
 
-      // 🔔 Suscripción a cambios en asignaciones_mesa
       this.subscription = supabase
         .channel('asignaciones_mesa_sub')
         .on(
@@ -136,6 +135,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
                 );
               }
             } else if (payload.eventType === 'DELETE') {
+              await this.limpiarIntentosJuegos(); // 👈 limpieza extra
               this.resetVista();
               console.log('🧹 Mesa liberada → cliente vuelve a estado inicial');
             }
@@ -184,7 +184,6 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
           this.estadoPedido = pedido.estado;
           this.pedidoId = pedido.id;
 
-          // 👉 Solo aquí actualizamos flags
           this.actualizarFlags();
           this.suscribirPedido(this.pedidoId);
         }
@@ -251,7 +250,6 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
         this.estadoPedido = data.estado;
         this.pedidoId = data.id;
 
-        // 👉 en QR de mesa también actualizamos flags
         this.actualizarFlags();
         this.suscribirPedido(this.pedidoId);
         return;
@@ -288,7 +286,6 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
           const nuevoEstado = (payload.new as any)['estado'];
           if (nuevoEstado) {
             this.estadoPedido = nuevoEstado;
-            // ❌ no mostramos botones aquí, solo en escaneo QR
           }
         }
       )
@@ -300,8 +297,9 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
           table: 'pedidos',
           filter: `id=eq.${pedidoId}`,
         },
-        () => {
+        async () => {
           console.log('🗑️ Pedido eliminado → reset vista cliente');
+          await this.limpiarIntentosJuegos(); 
           this.resetVista();
         }
       )
@@ -349,10 +347,11 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       this.mostrarCuenta = true;
       this.mostrarJuegosPedido = false;
     } else if (this.estadoPedido === 'impagado') {
-      this.mostrarCuenta = false; // 👉 oculta pedir cuenta
+      this.mostrarCuenta = false;
       this.mostrarJuegosPedido = false;
     } else if (this.estadoPedido === 'pagado') {
-      this.resetVista(); // 👉 reseteo total al pagarse
+      this.limpiarIntentosJuegos(); 
+      this.resetVista(); 
     } else {
       this.mostrarJuegosPedido = false;
       this.mostrarCuenta = false;
@@ -369,6 +368,31 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     this.mostrarJuegosPedido = false;
     this.qrValido = true;
     this.tienePermiso = true;
+  }
+
+  private async limpiarIntentosJuegos() {
+    if (!this.userUid) {
+      const { data: au } = await supabase.auth.getUser();
+      this.userUid = au?.user?.id || undefined;
+    }
+
+    try {
+      if (this.userUid) {
+        await supabase
+          .from('intentos_juegos')
+          .delete()
+          .eq('cliente_uid', this.userUid);
+        console.log('🧹 Intentos de juegos eliminados (cliente_Uid).');
+      } else if (this.clienteId) {
+        await supabase
+          .from('intentos_juegos')
+          .delete()
+          .eq('cliente_id', this.clienteId);
+        console.log('🧹 Intentos de juegos eliminados (cliente_id).');
+      }
+    } catch (err) {
+      console.error('❌ Error al limpiar intentos_juegos:', err);
+    }
   }
 
   async salir() {

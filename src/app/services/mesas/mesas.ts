@@ -101,7 +101,7 @@ export class Mesas {
     return !!data;
   }
 
- async liberarMesa(mesaId: number): Promise<void> {
+async liberarMesa(mesaId: number): Promise<void> {
   console.log("🔓 Liberando mesa:", mesaId);
 
   const { error: errAsig } = await supabase
@@ -122,8 +122,10 @@ export class Mesas {
     .eq("mesa_id", mesaId);
   if (errPedidos) throw errPedidos;
 
+
   console.log("✅ Mesa liberada correctamente:", mesaId);
 }
+
 
 
 
