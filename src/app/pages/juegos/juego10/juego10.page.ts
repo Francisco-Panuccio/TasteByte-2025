@@ -47,7 +47,7 @@ export class Juego10Page implements OnInit {
       this.clienteId = params['clienteId'] ? Number(params['clienteId']) : null;
       this.usuarioId = params['usuarioId'] ? Number(params['usuarioId']) : null;
       this.anonimoId = params['anonimoId'] ?? null;
-      this.userId = params['userId'] ?? null; // uuid que viene desde JuegosPage
+      this.userId = params['userId'] ?? null; 
     });
   }
 

@@ -134,7 +134,7 @@ export class BarPage implements OnInit, OnDestroy {
     const toast = await this.toast.create({
       message: mensaje,
       duration: 2000,
-      color: 'success',
+      cssClass: 'toast',
       position: 'top'
     });
     toast.present();

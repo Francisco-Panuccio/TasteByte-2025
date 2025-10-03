@@ -23,7 +23,7 @@
     </div>
 
     <div *ngIf="juegoFinalizado" class="resultado">
-      <ion-button expand="block" color="primary" (click)="resetear()">
+      <ion-button style="border: 2px solid black; border-radius: 8px;" (click)="resetear()">
         Volver a Jugar
       </ion-button>
       <p *ngIf="vidasRestantes <= 0" class="perdio-texto">

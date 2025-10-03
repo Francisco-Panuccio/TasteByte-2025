@@ -84,9 +84,6 @@ export class PedidoPage implements OnInit {
 
     if (desc && this.ped?.total) {
       this.ped.totalConDescuento = this.ped.total * (1 - desc.porcentaje / 100);
-      await this.mostrarToast(`🎉 Descuento detectado: ${desc.porcentaje}% aplicado`);
-    } else {
-      await this.mostrarToast("ℹ Pedido sin descuento aplicado");
     }
   }
 
@@ -143,7 +140,31 @@ export class PedidoPage implements OnInit {
         this.checkTerminado("cocina_pedidos", pedidoId)
       ]);
 
-      if (barOk && cocinaOk) {
+      const { data: barTiene } = await supabase
+        .from("bar_pedidos")
+        .select("id")
+        .eq("pedido_id", pedidoId)
+        .limit(1);
+
+      const { data: cocinaTiene } = await supabase
+        .from("cocina_pedidos")
+        .select("id")
+        .eq("pedido_id", pedidoId)
+        .limit(1);
+
+      const hayBar = (barTiene?.length ?? 0) > 0;
+      const hayCocina = (cocinaTiene?.length ?? 0) > 0;
+
+      let puedeTerminar = false;
+      if (hayBar && hayCocina) {
+        puedeTerminar = barOk && cocinaOk;
+      } else if (hayBar) {
+        puedeTerminar = barOk;
+      } else if (hayCocina) {
+        puedeTerminar = cocinaOk;
+      }
+
+      if (puedeTerminar) {
         const { error } = await supabase
           .from("pedidos")
           .update({ estado: "terminado" })
@@ -155,9 +176,17 @@ export class PedidoPage implements OnInit {
         }
 
         this.ped.estado = "terminado";
-        await this.mostrarToast("✅ Pedido marcado como TERMINADO", "success");
+        await this.toast.create({
+          message: "✅ Pedido marcado como Terminado",
+          duration: 2000,
+          cssClass: 'toast',
+          position: 'top'
+        });
       } else {
-        const faltan = [barOk ? null : "bar", cocinaOk ? null : "cocina"].filter(Boolean).join(" y ");
+        const faltan = [
+          hayBar && !barOk ? "bar" : null,
+          hayCocina && !cocinaOk ? "cocina" : null
+        ].filter(Boolean).join(" y ");
         await this.mostrarToast(`⏳ Aún en preparación (${faltan})`, "warning");
       }
     } catch (e: any) {

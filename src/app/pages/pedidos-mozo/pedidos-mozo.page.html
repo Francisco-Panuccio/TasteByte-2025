@@ -7,11 +7,11 @@
 
   <ion-content [class.blocked]="busy">
     <ion-segment [(ngModel)]="filtro" (ionChange)="cargar()" [disabled]="busy">
-      <ion-segment-button value="todos">Todos</ion-segment-button>
       <ion-segment-button value="pendiente">Pendientes</ion-segment-button>
       <ion-segment-button value="aceptado">Aceptados</ion-segment-button>
       <ion-segment-button value="rechazado">Rechazados</ion-segment-button>
       <ion-segment-button value="terminado">Terminados</ion-segment-button>
+      <ion-segment-button value="impagado">Impagados</ion-segment-button>
     </ion-segment>
 
     <div class="div_container" *ngIf="pedidos.length">
@@ -21,12 +21,22 @@
           <p>Espera: {{ p.eta_minutos }} min</p>
           <p>Estado: {{ p.estado | titlecase }}</p>
           <p>Fecha: {{ p.created_at | date:'short' }}</p>
+          
+          @if(filtro === 'aceptado') {
+            <p>Bar: {{ p.estadoBar ?? ' —' }}</p>
+            <p>Cocina: {{ p.estadoCocina ?? ' —' }}</p>
+          }
         </div>
 
         <div class="div_btns">
           <button (click)="abrirChat(p.mesa_id)" class="btn_chat" [disabled]="busy">Chat</button>
+          
           <button class="btn_aceptar" *ngIf="p.estado==='pendiente'" (click)="setEstado(p.id,'aceptado')" [disabled]="busy">Aceptar</button>
           <button class="btn_rechazar" *ngIf="p.estado==='pendiente'" (click)="setEstado(p.id,'rechazado')" [disabled]="busy">Rechazar</button>
+
+          <button class="btn_aceptar" *ngIf="p.estado==='impagado'" (click)="validarPago(p.id)" [disabled]="busy">Validar Pago</button>
+          <button class="btn_rechazar" *ngIf="p.estado==='impagado'" (click)="rechazarPago(p.id)" [disabled]="busy">Rechazar Pago</button>
+
           <button class="btn_rechazar" *ngIf="canEliminar(p)" (click)="eliminar(p)" [disabled]="busy">Eliminar</button>
         </div>
       </div>
