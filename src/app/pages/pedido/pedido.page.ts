@@ -25,7 +25,7 @@ export class PedidoPage implements OnInit {
     private pedidos: Pedidos,
     private router: Router,
     private toast: ToastController
-  ) {}
+  ) { }
 
   async ngOnInit() {
     this.pedidoId =
@@ -176,7 +176,12 @@ export class PedidoPage implements OnInit {
         }
 
         this.ped.estado = "terminado";
-        await this.mostrarToast("✅ Pedido marcado como TERMINADO", "success");
+        await this.toast.create({
+          message: "✅ Pedido marcado como Terminado",
+          duration: 2000,
+          cssClass: 'toast',
+          position: 'top'
+        });
       } else {
         const faltan = [
           hayBar && !barOk ? "bar" : null,

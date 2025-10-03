@@ -52,7 +52,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     private router: Router,
     private route: ActivatedRoute,
     private toast: ToastController
-  ) {}
+  ) { }
 
   async ngOnInit() {
     this.route.queryParams.subscribe(async (params) => {
@@ -130,8 +130,6 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
             old?: Partial<AsignacionMesaRow>;
             eventType?: string;
           }) => {
-            console.log('📡 Cambio en asignaciones_mesa:', payload);
-
             if (
               payload.eventType === 'INSERT' ||
               payload.eventType === 'UPDATE'
@@ -140,15 +138,10 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
                 this.mesaAsignadaId = payload.new.mesa_id;
                 this.yaRegistrado = true;
                 this.tieneMesa = true;
-                console.log(
-                  '✅ Mesa asignada en tiempo real:',
-                  this.mesaAsignadaId
-                );
               }
             } else if (payload.eventType === 'DELETE') {
-              await this.limpiarIntentosJuegos(); // 👈 limpieza extra
+              await this.limpiarIntentosJuegos();
               this.resetVista();
-              console.log('🧹 Mesa liberada → cliente vuelve a estado inicial');
             }
           }
         )
@@ -181,7 +174,6 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       this.qrValido = true;
       this.mostrarToast('Bienvenido!');
 
-      // 🔎 Si tiene mesa asignada, chequeamos el último pedido
       if (this.mesaAsignadaId) {
         const { data: pedido } = await supabase
           .from('pedidos')
@@ -219,6 +211,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     ) {
       this.mesaAsignadaId = asignacion.mesa_id;
       this.yaRegistrado = true;
+      this.tieneMesa = true;
       return;
     }
 
@@ -250,31 +243,34 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
 
     if (res.mesaAsignada) {
       const { data } = await supabase
-        .from('pedidos')
-        .select('id, estado')
-        .eq('mesa_id', res.mesaAsignada)
-        .order('created_at', { ascending: false })
+        .from("pedidos")
+        .select("id, estado")
+        .eq("mesa_id", res.mesaAsignada)
+        .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
+
+      const qp: any = { mesaId: res.mesaAsignada, numero: res.numero };
+      if (this.anonimoId) qp.anonimoId = this.anonimoId;
+      if (this.usuarioId) qp.usuarioId = this.usuarioId;
+      if (this.clienteId) qp.clienteId = this.clienteId;
 
       if (data) {
         this.estadoPedido = data.estado;
         this.pedidoId = data.id;
+
+        if (this.estadoPedido === "rechazado") {
+          await this.router.navigate(["/mesa-ocupada"], { queryParams: qp });
+          return;
+        }
 
         this.actualizarFlags();
         this.suscribirPedido(this.pedidoId);
         return;
       }
 
-      this.router.navigate(['/mesa-ocupada'], {
-        queryParams: {
-          mesaId: res.mesaAsignada,
-          numero: res.numero,
-          anonimoId: this.anonimoId,
-          usuarioId: this.usuarioId,
-          clienteId: this.clienteId,
-        },
-      });
+      await this.router.navigate(["/mesa-ocupada"], { queryParams: qp });
+      return;
     }
   }
 
@@ -310,7 +306,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
         },
         async () => {
           console.log('🗑️ Pedido eliminado → reset vista cliente');
-          await this.limpiarIntentosJuegos(); 
+          await this.limpiarIntentosJuegos();
           this.resetVista();
         }
       )
@@ -361,8 +357,8 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       this.mostrarCuenta = false;
       this.mostrarJuegosPedido = false;
     } else if (this.estadoPedido === 'pagado') {
-      this.limpiarIntentosJuegos(); 
-      this.resetVista(); 
+      this.limpiarIntentosJuegos();
+      this.resetVista();
     } else {
       this.mostrarJuegosPedido = false;
       this.mostrarCuenta = false;
@@ -406,10 +402,28 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     }
   }
 
+  async pedirCuenta(): Promise<void> {
+    try {
+      const { data: mesaRow } = await supabase
+        .from("mesas")
+        .select("numero")
+        .eq("id", this.mesaAsignadaId)
+        .maybeSingle();
+      const mesaNumero = mesaRow?.numero ?? this.mesaAsignadaId;
+      const title = "Cuenta solicitada";
+      const body = `Cliente Mesa (${mesaNumero}) solicita la cuenta`;
+      await this.push.sendToRoles(["mozo"], title, body, {
+        mesaId: this.mesaAsignadaId,
+        mesaNumero
+      });
+      this.mostrarToast("Aviso enviado al mozo.");
+    } catch { }
+  }
+
   async salir() {
     try {
       await supabase.auth.signOut();
-    } catch {}
+    } catch { }
     this.router.navigate(['/login'], { replaceUrl: true });
   }
 
@@ -419,7 +433,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       duration: 2500,
       color,
       cssClass: 'toast2',
-      position: 'bottom',
+      position: 'top',
       buttons: [{ text: 'OK', role: 'cancel' }],
     });
     await t.present();
