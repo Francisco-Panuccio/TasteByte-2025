@@ -1,4 +1,4 @@
-import { Component, HostListener, inject, OnInit, OnDestroy, ViewChild } from "@angular/core";
+import { Component, inject, OnInit, ViewChild } from "@angular/core";
 import { IonContent, IonModal, ToastController } from "@ionic/angular";
 import { Chat } from "src/app/services/chat/chat";
 import { Mesas } from "src/app/services/mesas/mesas";
@@ -14,7 +14,7 @@ type Filtro = "todos" | "pendiente" | "aceptado" | "rechazado" | "terminado";
   styleUrls: ["./pedidos-mozo.page.scss"],
   standalone: false
 })
-export class PedidosMozoPage implements OnInit, OnDestroy {
+export class PedidosMozoPage implements OnInit {
   private pedidosSrv = inject(Pedidos);
   private chatSvc = inject(Chat);
   private toast = inject(ToastController);
@@ -43,17 +43,6 @@ export class PedidosMozoPage implements OnInit, OnDestroy {
   @ViewChild("inboxModal", { read: IonModal }) inboxModal?: IonModal;
   inbox: Array<{ chatId: string; mesaId: number; mesaNumero?: number; lastText: string; time: string }> = [];
 
-  @HostListener("document:ionBackButton", ["$event"])
-  onHardwareBack(ev: any): void {
-    if (this.chatOpen) {
-      ev.detail.register(100, () => this.cerrarChat());
-      return;
-    }
-    if (this.inboxOpen) {
-      ev.detail.register(100, () => this.cerrarInbox());
-    }
-  }
-
   async ngOnInit() {
     await this.ensureMozo();
     this.myUserId = await this.chatSvc.getMyUserId();
@@ -64,10 +53,7 @@ export class PedidosMozoPage implements OnInit, OnDestroy {
     const tk = this.push.getToken?.();
     const { data: au } = await supabase.auth.getUser();
     if (tk && au?.user?.id) {
-      await supabase.from("push_tokens").upsert(
-        { token: tk, usuario_id: au.user.id, role: "mozo", active: true, revoked: false },
-        { onConflict: "token" }
-      );
+      await supabase.from("push_tokens").update({ usuario_id: au.user.id, role: "mozo", active: true, revoked: false }).eq("token", tk);
     }
   }
 
@@ -89,7 +75,7 @@ export class PedidosMozoPage implements OnInit, OnDestroy {
       const mesas = await Promise.all(ids.map(id => this.mesasSrv.getById(id)));
       mesas.forEach(m => { if (m) this.mesasNum.set(m.id!, m.numero!); });
     } finally {
-      setTimeout(() => (this.loading = false), 500);
+      this.loading = false;
     }
   }
 
@@ -118,6 +104,10 @@ export class PedidosMozoPage implements OnInit, OnDestroy {
             const title = estado === "aceptado" ? "Pedido aceptado" : "Pedido rechazado";
             const body = estado === "aceptado" ? `Mesa ${mesaNumero}: tu pedido fue aceptado` : `Mesa ${mesaNumero}: tu pedido fue rechazado. Podés modificarlo y reenviarlo`;
             await this.push.send(tokens, title, body, { tipo: "pedido", pedidoId, mesaId, estado });
+          }
+          if (estado === "aceptado") {
+            const mesaNumero = this.mesasNum.get(mesaId);
+            await this.notificarAreasNuevoPedido({ id: pedidoId, mesa_id: mesaId, mesa_numero: mesaNumero });
           }
         }
       } catch { }
@@ -232,5 +222,44 @@ export class PedidosMozoPage implements OnInit, OnDestroy {
   async abrirDesdeInbox(item: { chatId: string; mesaId: number }) {
     await this.cerrarInbox();
     await this.abrirChat(item.mesaId);
+  }
+
+  private async notificarAreasNuevoPedido(p: any) {
+    const mesaNumero = p?.mesa?.numero ?? p?.mesa_numero ?? p?.mesa_id ?? "NN";
+    const title = "Nuevo pedido";
+    const body = `Nuevo pedido mesa ${mesaNumero}`;
+    const data = {
+      tipo: "nuevo_pedido",
+      pedidoId: p?.id ?? null,
+      mesaId: p?.mesa_id ?? p?.mesa?.id ?? null
+    };
+
+    if (typeof (this as any).push.toTopic === "function") {
+      await Promise.all([
+        (this as any).push.toTopic("bar", title, body, data),
+        (this as any).push.toTopic("cocina", title, body, data)
+      ]);
+      return;
+    }
+
+    if (typeof (this as any).push.toRol === "function") {
+      await Promise.all([
+        (this as any).push.toRol("bartender", title, body, data),
+        (this as any).push.toRol("cocinero", title, body, data)
+      ]);
+      return;
+    }
+
+    const { data: tokens, error } = await supabase
+      .from("push_subscriptions")
+      .select("token")
+      .in("rol", ["bartender", "cocinero"]);
+
+    if (!error && tokens?.length) {
+      const list = tokens.map(t => t.token);
+      if (typeof (this as any).push.sendToTokens === "function") {
+        await (this as any).push.sendToTokens(list, { title, body, data });
+      }
+    }
   }
 }
