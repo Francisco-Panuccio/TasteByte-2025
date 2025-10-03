@@ -95,6 +95,14 @@
 - Fecha Final: 24/09/2025
 - Branch: panuccio/altas
 
+<p align="center">
+  <img src="src/assets/imagesGithub/encuestas.jpeg" alt="Encuestas" width="400" height="800">
+  <img src="src/assets/imagesGithub/graficos_uno.jpeg" alt="Gráficos 1" width="400" height="800">
+  <img src="src/assets/imagesGithub/graficos_dos.jpeg" alt="Gráficos 2" width="400" height="800">
+  <img src="src/assets/imagesGithub/encuesta_uno.jpeg" alt="Realizar Encuesta 1" width="400" height="800">
+  <img src="src/assets/imagesGithub/encuesta_dos.jpeg" alt="Realizar Encuesta 2" width="400" height="800">
+</p>
+
 * Roman
 - Objetivos: Puntos 15 (Acceso a Juegos), 19 (Entrega del Pedido)
 - Fecha Inicial: 22/09/2025
@@ -102,7 +110,10 @@
 - Branch: roman
 
 <p align="center">
-  <img src="src/assets/imagesGithub/main_cliente.jpeg" alt="Main Cliente" width="400" height="800">
+  <img src="src/assets/imagesGithub/juegos_main.jpeg" alt="Main Juegos" width="400" height="800">
+  <img src="src/assets/imagesGithub/ahorcado.jpeg" alt="Ahorcado" width="400" height="800">
+  <img src="src/assets/imagesGithub/mayor_menor.jpeg" alt="Mayor o Menor" width="400" height="800">
+  <img src="src/assets/imagesGithub/memotest.jpeg" alt="Memotest" width="400" height="800">
 </p>
 
 * Avallone
@@ -111,6 +122,9 @@
 - Fecha Final: 
 - Branch: avallone
 
+<p align="center">
+  <img src="src/assets/imagesGithub/cocina.jpeg" alt="Cocina" width="400" height="800">
+</p>
 
 ## Responsabilidades (Cuarta Semana) 🛠️
 * Panuccio
@@ -119,11 +133,20 @@
 - Fecha Final: 3/10/2025
 - Branch: panuccio/altas
 
+<p align="center">
+  <img src="src/assets/imagesGithub/push_notification.jpeg" alt="Notificación" width="400" height="800">
+</p>
+
 * Roman
 - Objetivos: 21 (Solicitud de Cuenta), Punto 22 (Confirmación de Pago y Liberación de Mesa)
 - Fecha Inicial: 29/09/2025
 - Fecha Final: 3/10/2025
 - Branch: roman
+
+<p align="center">
+  <img src="src/assets/imagesGithub/main_pedir_cuenta.jpeg" alt="Pedir Cuenta" width="400" height="800">
+  <img src="src/assets/imagesGithub/cuenta.jpeg" alt="Cuenta" width="400" height="800">
+</p>
 
 * Avallone
 - Objetivos: 17 (Bar Recibe Productos)
@@ -131,5 +154,8 @@
 - Fecha Final: 3/10/2025
 - Branch: avallone
 
+<p align="center">
+  <img src="src/assets/imagesGithub/bar.jpeg" alt="Bar" width="400" height="800">
+</p>
 
 
