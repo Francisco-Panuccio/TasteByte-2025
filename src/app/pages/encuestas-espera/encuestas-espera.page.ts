@@ -410,7 +410,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
         .eq("id", this.mesaAsignadaId)
         .maybeSingle();
       const mesaNumero = mesaRow?.numero ?? this.mesaAsignadaId;
-      const title = "Cuenta solicitada";
+      const title = "Cuenta Solicitada";
       const body = `Cliente Mesa (${mesaNumero}) solicita la cuenta`;
       await this.push.sendToRoles(["mozo"], title, body, {
         mesaId: this.mesaAsignadaId,

@@ -59,6 +59,7 @@
       <ion-button
         expand="block"
         color="warning"
+        (click)="pedirCuenta()"
         [routerLink]="['/cuenta']"
         [queryParams]="{ pedidoId: pedidoId, anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId, userId : userUid }"
       >
