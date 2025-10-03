@@ -330,9 +330,6 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       return;
     }
     this.yaRegistrado = true;
-    this.mostrarToast(
-      'Te uniste a la lista de espera. Esperá a que el maître te asigne una mesa.'
-    );
   }
 
   async registrarEncuesta(encuestaId: string) {
@@ -397,9 +394,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
           .eq('cliente_id', this.clienteId);
         console.log('🧹 Intentos de juegos eliminados (cliente_id).');
       }
-    } catch (err) {
-      console.error('❌ Error al limpiar intentos_juegos:', err);
-    }
+    } catch { }
   }
 
   async pedirCuenta(): Promise<void> {
