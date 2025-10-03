@@ -1,0 +1,35 @@
+.user_background {
+  background: var(--ion-color-light);
+  min-height: 100%;
+}
+
+.div_total {
+  margin-top: 15px;
+  font-size: 14px;
+  color: var(--ion-color-dark);
+}
+
+.total_final {
+  margin-top: 10px;
+  font-size: 22px;
+  font-weight: bold;
+  color: #2e7d32;
+  text-align: right;
+}
+
+.ion_btns {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.btn_logged {
+  font-size: 20px;
+  font-weight: 1000;
+  color: #554738;
+  --background: #e6dacd;
+  border: 2px solid black;
+  border-radius: 0;
+  width: 90%;
+  margin: 10px auto;
+}

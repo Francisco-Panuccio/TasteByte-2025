@@ -93,7 +93,11 @@ const routes: Routes = [
   },
   {
     path: 'juegos',
-    loadChildren: () => import('./pages/juegos/juegos.module').then(m => m.JuegosPageModule)
+    loadChildren: () => import('./pages/juegos/juegos.module').then( m => m.JuegosPageModule)
+  },
+  {
+    path: 'cuenta',
+    loadChildren: () => import('./pages/cuenta/cuenta.module').then( m => m.CuentaPageModule)
   }
 
 ];

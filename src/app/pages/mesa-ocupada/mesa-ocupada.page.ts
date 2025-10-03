@@ -472,6 +472,8 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     if (this.anonimoId) q.anonimoId = this.anonimoId;
     if (this.usuarioId !== null) q.usuarioId = this.usuarioId;
     if (this.clienteId !== null) q.clienteId = this.clienteId;
+    q.tienePermiso = true,
+    q.qrValido = true
     return q;
   }
 

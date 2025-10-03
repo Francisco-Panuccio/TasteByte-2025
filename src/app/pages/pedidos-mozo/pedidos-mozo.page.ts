@@ -1,18 +1,24 @@
-import { Component, inject, OnInit, ViewChild } from "@angular/core";
-import { IonContent, IonModal, ToastController } from "@ionic/angular";
-import { Chat } from "src/app/services/chat/chat";
-import { Mesas } from "src/app/services/mesas/mesas";
-import { Pedidos } from "src/app/services/pedidos/pedidos";
-import { supabase } from "src/supabase.client";
-import { Push } from "src/app/services/push/push";
+import { Component, inject, OnInit, ViewChild } from '@angular/core';
+import { IonContent, IonModal, ToastController } from '@ionic/angular';
+import { Chat } from 'src/app/services/chat/chat';
+import { Mesas } from 'src/app/services/mesas/mesas';
+import { Pedidos } from 'src/app/services/pedidos/pedidos';
+import { supabase } from 'src/supabase.client';
+import { Push } from 'src/app/services/push/push';
 
-type Filtro = "todos" | "pendiente" | "aceptado" | "rechazado" | "terminado";
+type Filtro =
+  | 'todos'
+  | 'pendiente'
+  | 'aceptado'
+  | 'rechazado'
+  | 'terminado'
+  | 'impagado';
 
 @Component({
-  selector: "app-pedidos-mozo",
-  templateUrl: "./pedidos-mozo.page.html",
-  styleUrls: ["./pedidos-mozo.page.scss"],
-  standalone: false
+  selector: 'app-pedidos-mozo',
+  templateUrl: './pedidos-mozo.page.html',
+  styleUrls: ['./pedidos-mozo.page.scss'],
+  standalone: false,
 })
 export class PedidosMozoPage implements OnInit {
   private pedidosSrv = inject(Pedidos);
@@ -21,7 +27,7 @@ export class PedidosMozoPage implements OnInit {
   private mesasSrv = inject(Mesas);
   private push = inject(Push);
 
-  filtro: Filtro = "todos";
+  filtro: Filtro = 'todos';
   loading = true;
   busy = false;
 
@@ -29,31 +35,46 @@ export class PedidosMozoPage implements OnInit {
   sub?: any;
 
   chatOpen = false;
-  @ViewChild("chatModal", { read: IonModal }) chatModal?: IonModal;
-  @ViewChild("chatContent") chatContent?: IonContent;
+  @ViewChild('chatModal', { read: IonModal }) chatModal?: IonModal;
+  @ViewChild('chatContent') chatContent?: IonContent;
   messages: any[] = [];
-  newMsg = "";
+  newMsg = '';
   chatId?: string;
   myUserId?: string;
-  myName = "Mozo";
+  myName = 'Mozo';
   mesasNum = new Map<number, number>();
   mesaChatId?: number;
 
   inboxOpen = false;
-  @ViewChild("inboxModal", { read: IonModal }) inboxModal?: IonModal;
-  inbox: Array<{ chatId: string; mesaId: number; mesaNumero?: number; lastText: string; time: string }> = [];
+  @ViewChild('inboxModal', { read: IonModal }) inboxModal?: IonModal;
+  inbox: Array<{
+    chatId: string;
+    mesaId: number;
+    mesaNumero?: number;
+    lastText: string;
+    time: string;
+  }> = [];
 
   async ngOnInit() {
+    console.log('🟢 INIT PedidosMozoPage');
     await this.ensureMozo();
     this.myUserId = await this.chatSvc.getMyUserId();
     await this.cargar();
     this.sub = this.pedidosSrv.subscribeCambios(() => this.cargar());
-    await this.push.init(undefined, "mozo");
+    await this.push.init(undefined, 'mozo');
     await this.push.ready();
     const tk = this.push.getToken?.();
     const { data: au } = await supabase.auth.getUser();
     if (tk && au?.user?.id) {
-      await supabase.from("push_tokens").update({ usuario_id: au.user.id, role: "mozo", active: true, revoked: false }).eq("token", tk);
+      await supabase
+        .from('push_tokens')
+        .update({
+          usuario_id: au.user.id,
+          role: 'mozo',
+          active: true,
+          revoked: false,
+        })
+        .eq('token', tk);
     }
   }
 
@@ -64,71 +85,162 @@ export class PedidosMozoPage implements OnInit {
 
   private async ensureMozo() {
     const { data } = await supabase.auth.getUser();
-    if (!data.user) throw new Error("Auth requerida");
+    console.log('👤 mozo user:', data?.user?.id);
+    if (!data.user) throw new Error('Auth requerida');
   }
 
   async cargar() {
     this.loading = true;
     try {
-      this.pedidos = await this.pedidosSrv.listar(this.filtro === "todos" ? undefined : (this.filtro as any));
-      const ids = Array.from(new Set(this.pedidos.map(p => p.mesa_id))).filter(Boolean) as number[];
-      const mesas = await Promise.all(ids.map(id => this.mesasSrv.getById(id)));
-      mesas.forEach(m => { if (m) this.mesasNum.set(m.id!, m.numero!); });
+      console.log('📥 cargar() filtro=', this.filtro);
+      this.pedidos = await this.pedidosSrv.listar(
+        this.filtro === 'todos' ? undefined : (this.filtro as any)
+      );
+      console.log('📦 pedidos=', this.pedidos);
+
+      const ids = Array.from(
+        new Set(this.pedidos.map((p) => p.mesa_id))
+      ).filter(Boolean) as number[];
+      console.log('📌 mesa_ids en pedidos=', ids);
+
+      const mesas = await Promise.all(
+        ids.map((id) => this.mesasSrv.getById(id))
+      );
+      mesas.forEach((m) => {
+        if (m) {
+          this.mesasNum.set(m.id!, m.numero!);
+          console.log(`✅ mesa cargada: id=${m.id} num=${m.numero}`);
+        }
+      });
     } finally {
       this.loading = false;
     }
   }
 
-  async setEstado(pedidoId: string, estado: "aceptado" | "rechazado") {
+  async setEstado(
+    pedidoId: string,
+    estado: 'aceptado' | 'rechazado' | 'pagado'
+  ) {
     if (this.busy) return;
     this.busy = true;
     try {
+      console.log('⚡ setEstado()', { pedidoId, estado });
       await this.pedidosSrv.actualizarEstado(pedidoId, estado as any);
+
       try {
-        const { data: ped } = await supabase.from("pedidos").select("mesa_id").eq("id", pedidoId).single();
+        const { data: ped } = await supabase
+          .from('pedidos')
+          .select('mesa_id')
+          .eq('id', pedidoId)
+          .single();
         const mesaId = ped?.mesa_id as number | undefined;
+        console.log('📌 pedido→mesaId:', mesaId);
+
         if (mesaId != null) {
           let tokens: string[] = [];
-          const { data: chatRow } = await supabase.from("chats").select("id").eq("mesa_id", mesaId).maybeSingle();
+          const { data: chatRow } = await supabase
+            .from('chats')
+            .select('id')
+            .eq('mesa_id', mesaId)
+            .maybeSingle();
           if (chatRow?.id) {
-            const { data: part } = await supabase.from("chat_participants").select("user_id,push_token").eq("chat_id", chatRow.id).eq("role", "cliente").maybeSingle();
+            const { data: part } = await supabase
+              .from('chat_participants')
+              .select('user_id,push_token')
+              .eq('chat_id', chatRow.id)
+              .eq('role', 'cliente')
+              .maybeSingle();
             if (part?.push_token) {
               tokens = [part.push_token as string];
             } else if (part?.user_id) {
               const { data: toks } = await supabase
-                .from("push_tokens")
-                .select("token")
-                .eq("usuario_id", part.user_id as string)
-                .eq("role", "cliente")
-                .eq("active", true)
-                .eq("revoked", false);
+                .from('push_tokens')
+                .select('token')
+                .eq('usuario_id', part.user_id as string)
+                .eq('role', 'cliente')
+                .eq('active', true)
+                .eq('revoked', false);
               tokens = (toks ?? []).map((t: any) => t.token as string);
             }
           }
+
+          console.log('📨 tokens a notificar:', tokens);
+
+          if (estado === 'pagado') {
+            console.log('🧹 Liberando mesa', mesaId);
+            await this.mesasSrv.liberarMesa(mesaId);
+          }
+
           if (tokens.length) {
             const { data: valids } = await supabase
-              .from("push_tokens")
-              .select("token")
-              .in("token", tokens)
-              .eq("role", "cliente")
-              .eq("active", true)
-              .eq("revoked", false);
-            const safe = Array.from(new Set((valids ?? []).map((t: any) => t.token as string)));
+              .from('push_tokens')
+              .select('token')
+              .in('token', tokens)
+              .eq('role', 'cliente')
+              .eq('active', true)
+              .eq('revoked', false);
+            const safe = Array.from(
+              new Set((valids ?? []).map((t: any) => t.token as string))
+            );
             if (safe.length) {
               const mesaNumero = this.mesasNum.get(mesaId) ?? mesaId;
-              const title = estado === "aceptado" ? "Pedido aceptado" : "Pedido rechazado";
-              const body = estado === "aceptado" ? `Mesa ${mesaNumero}: tu pedido fue aceptado` : `Mesa ${mesaNumero}: tu pedido fue rechazado. Podés modificarlo y reenviarlo`;
-              await this.push.send(safe, title, body, { tipo: "pedido", pedidoId, mesaId, estado });
+              let title = '';
+              let body = '';
+              if (estado === 'pagado') {
+                title = 'Pago confirmado';
+                body = `Mesa ${mesaNumero}: tu pago fue validado ✅`;
+              } else if (estado === 'rechazado') {
+                title = 'Pago rechazado';
+                body = `Mesa ${mesaNumero}: hubo un problema con tu pago ❌`;
+              } else {
+                title =
+                  estado === 'aceptado'
+                    ? 'Pedido aceptado'
+                    : 'Pedido rechazado';
+                body =
+                  estado === 'aceptado'
+                    ? `Mesa ${mesaNumero}: tu pedido fue aceptado`
+                    : `Mesa ${mesaNumero}: tu pedido fue rechazado. Podés modificarlo y reenviarlo`;
+              }
+              await this.push.send(safe, title, body, {
+                tipo: 'pedido',
+                pedidoId,
+                mesaId,
+                estado,
+              });
             }
           }
-          if (estado === "aceptado") {
+
+          if (estado === 'aceptado') {
             const mesaNumero = this.mesasNum.get(mesaId);
-            await this.notificarAreasNuevoPedido({ id: pedidoId, mesa_id: mesaId, mesa_numero: mesaNumero });
+            await this.notificarAreasNuevoPedido({
+              id: pedidoId,
+              mesa_id: mesaId,
+              mesa_numero: mesaNumero,
+            });
           }
         }
-      } catch { }
-      const msg = estado === "aceptado" ? "Pedido aceptado" : "Pedido rechazado";
-      (await this.toast.create({ message: msg, duration: 1200, position: "top", cssClass: "toast" })).present();
+      } catch (e) {
+        console.log('⚠️ sub-bloque notificaciones/liberar mesa falló:', e);
+      }
+
+      const msg =
+        estado === 'pagado'
+          ? 'Pago validado'
+          : estado === 'rechazado'
+          ? 'Pago rechazado'
+          : estado === 'aceptado'
+          ? 'Pedido aceptado'
+          : 'Pedido rechazado';
+
+      (
+        await this.toast.create({
+          message: msg,
+          duration: 1200,
+          position: 'top',
+          cssClass: 'toast',
+        })
+      ).present();
       await this.cargar();
     } finally {
       this.busy = false;
@@ -136,7 +248,7 @@ export class PedidosMozoPage implements OnInit {
   }
 
   canEliminar(p: any): boolean {
-    return p.estado === "aceptado" || p.estado === "rechazado";
+    return p.estado === 'aceptado' || p.estado === 'rechazado';
   }
 
   async eliminar(p: any) {
@@ -144,11 +256,25 @@ export class PedidosMozoPage implements OnInit {
     this.busy = true;
     try {
       await this.pedidosSrv.eliminarPedido(p.id);
-      this.pedidos = this.pedidos.filter(x => x.id !== p.id);
-      (await this.toast.create({ message: "Pedido eliminado", duration: 1200, position: "top", cssClass: "toast" })).present();
+      this.pedidos = this.pedidos.filter((x) => x.id !== p.id);
+      (
+        await this.toast.create({
+          message: 'Pedido eliminado',
+          duration: 1200,
+          position: 'top',
+          cssClass: 'toast',
+        })
+      ).present();
       await this.cargar();
     } catch {
-      (await this.toast.create({ message: "No se pudo eliminar", duration: 1500, position: "top", cssClass: "toast" })).present();
+      (
+        await this.toast.create({
+          message: 'No se pudo eliminar',
+          duration: 1500,
+          position: 'top',
+          cssClass: 'toast',
+        })
+      ).present();
     } finally {
       this.busy = false;
     }
@@ -161,25 +287,34 @@ export class PedidosMozoPage implements OnInit {
       const m = await this.mesasSrv.getById(mesaId);
       if (m) this.mesasNum.set(mesaId, m.numero!);
     }
-    const chat = await this.chatSvc.getOrCreateForMesa(mesaId, "mozo");
+    const chat = await this.chatSvc.getOrCreateForMesa(mesaId, 'mozo');
     this.chatId = chat.id;
     const msgs = await this.chatSvc.loadMessages(chat.id, 200);
-    this.messages = msgs.map(m => {
+    this.messages = msgs.map((m) => {
       const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
-      return { ...vm, role: vm.from === "yo" ? "mozo" : "cliente" };
+      return { ...vm, role: vm.from === 'yo' ? 'mozo' : 'cliente' };
     });
     this.chatOpen = true;
     this.scrollToBottomAfterRender();
     this.chatSvc.unsubscribe();
     this.chatSvc.subscribeToMessages(chat.id, (m) => {
       const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
-      this.messages.push({ ...vm, role: vm.from === "yo" ? "mozo" : "cliente" });
+      this.messages.push({
+        ...vm,
+        role: vm.from === 'yo' ? 'mozo' : 'cliente',
+      });
       this.scrollToBottomAfterRender();
     });
   }
 
-  private scrollToBottom(ms: number = 200) { try { this.chatContent?.scrollToBottom(ms); } catch { } }
-  private scrollToBottomAfterRender() { requestAnimationFrame(() => setTimeout(() => this.scrollToBottom(200), 0)); }
+  private scrollToBottom(ms: number = 200) {
+    try {
+      this.chatContent?.scrollToBottom(ms);
+    } catch {}
+  }
+  private scrollToBottomAfterRender() {
+    requestAnimationFrame(() => setTimeout(() => this.scrollToBottom(200), 0));
+  }
 
   async cerrarChat() {
     await this.chatModal?.dismiss();
@@ -191,7 +326,7 @@ export class PedidosMozoPage implements OnInit {
     const t = this.newMsg.trim();
     if (!t || !this.chatId || !this.mesaChatId || this.busy) return;
     await this.chatSvc.sendMessage(this.chatId, t);
-    this.newMsg = "";
+    this.newMsg = '';
   }
 
   async abrirInbox() {
@@ -206,32 +341,63 @@ export class PedidosMozoPage implements OnInit {
   }
 
   private hhmm(d: Date): string {
-    const hh = String(d.getHours()).padStart(2, "0");
-    const mm = String(d.getMinutes()).padStart(2, "0");
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
     return `${hh}:${mm}`;
   }
 
   private async cargarInbox() {
-    const { data: msgs } = await supabase.from("chat_messages").select("chat_id, body, created_at").order("created_at", { ascending: false }).limit(200);
-    const dedup = new Map<string, { chatId: string; lastText: string; time: string }>();
-    for (const m of (msgs ?? [])) {
+    const { data: msgs } = await supabase
+      .from('chat_messages')
+      .select('chat_id, body, created_at')
+      .order('created_at', { ascending: false })
+      .limit(200);
+    const dedup = new Map<
+      string,
+      { chatId: string; lastText: string; time: string }
+    >();
+    for (const m of msgs ?? []) {
       const id = (m as any).chat_id as string;
       if (!dedup.has(id)) {
         const dt = new Date((m as any).created_at as string);
-        dedup.set(id, { chatId: id, lastText: (m as any).body as string, time: this.hhmm(dt) });
+        dedup.set(id, {
+          chatId: id,
+          lastText: (m as any).body as string,
+          time: this.hhmm(dt),
+        });
       }
     }
     const chatIds = Array.from(dedup.keys());
-    if (!chatIds.length) { this.inbox = []; return; }
-    const { data: chats } = await supabase.from("chats").select("id, mesa_id").in("id", chatIds);
+    if (!chatIds.length) {
+      this.inbox = [];
+      return;
+    }
+    const { data: chats } = await supabase
+      .from('chats')
+      .select('id, mesa_id')
+      .in('id', chatIds);
     const byId = new Map<string, number>();
-    (chats ?? []).forEach((c: any) => byId.set(c.id as string, c.mesa_id as number));
-    const mesaIds = Array.from(new Set((chats ?? []).map((c: any) => c.mesa_id as number)));
-    const mesas = await Promise.all(mesaIds.map(id => this.mesasSrv.getById(id)));
-    mesas.forEach(m => { if (m) this.mesasNum.set(m.id!, m.numero!); });
-    this.inbox = Array.from(dedup.values()).map(v => {
+    (chats ?? []).forEach((c: any) =>
+      byId.set(c.id as string, c.mesa_id as number)
+    );
+    const mesaIds = Array.from(
+      new Set((chats ?? []).map((c: any) => c.mesa_id as number))
+    );
+    const mesas = await Promise.all(
+      mesaIds.map((id) => this.mesasSrv.getById(id))
+    );
+    mesas.forEach((m) => {
+      if (m) this.mesasNum.set(m.id!, m.numero!);
+    });
+    this.inbox = Array.from(dedup.values()).map((v) => {
       const mesaId = byId.get(v.chatId)!;
-      return { chatId: v.chatId, mesaId, mesaNumero: this.mesasNum.get(mesaId), lastText: v.lastText, time: v.time };
+      return {
+        chatId: v.chatId,
+        mesaId,
+        mesaNumero: this.mesasNum.get(mesaId),
+        lastText: v.lastText,
+        time: v.time,
+      };
     });
   }
 
@@ -240,35 +406,45 @@ export class PedidosMozoPage implements OnInit {
     await this.abrirChat(item.mesaId);
   }
 
+  async validarPago(pedidoId: string) {
+    console.log('👉 validarPago', pedidoId);
+    await this.setEstado(pedidoId, 'pagado');
+  }
+
+  async rechazarPago(pedidoId: string) {
+    console.log('👉 rechazarPago', pedidoId);
+    await this.setEstado(pedidoId, 'rechazado');
+  }
+
   private async notificarAreasNuevoPedido(p: any) {
-    const mesaNumero = p?.mesa?.numero ?? p?.mesa_numero ?? p?.mesa_id ?? "NN";
-    const title = "Nuevo pedido";
+    const mesaNumero = p?.mesa?.numero ?? p?.mesa_numero ?? p?.mesa_id ?? 'NN';
+    const title = 'Nuevo pedido';
     const body = `Nuevo pedido mesa ${mesaNumero}`;
-    const data = { tipo: "nuevo_pedido", pedidoId: p?.id ?? null, mesaId: p?.mesa_id ?? p?.mesa?.id ?? null };
-    if (typeof (this as any).push.toTopic === "function") {
+    const data = { tipo: 'nuevo_pedido', pedidoId: p?.id ?? null, mesaId: p?.mesa_id ?? p?.mesa?.id ?? null };
+    if (typeof (this as any).push.toTopic === 'function') {
       await Promise.all([
-        (this as any).push.toTopic("bar", title, body, data),
-        (this as any).push.toTopic("cocina", title, body, data)
+        (this as any).push.toTopic('bar', title, body, data),
+        (this as any).push.toTopic('cocina', title, body, data),
       ]);
       return;
     }
-    if (typeof (this as any).push.toRol === "function") {
+    if (typeof (this as any).push.toRol === 'function') {
       await Promise.all([
-        (this as any).push.toRol("bartender", title, body, data),
-        (this as any).push.toRol("cocinero", title, body, data)
+        (this as any).push.toRol('bartender', title, body, data),
+        (this as any).push.toRol('cocinero', title, body, data),
       ]);
       return;
     }
     const { data: toks } = await supabase
-      .from("push_tokens")
-      .select("token")
-      .in("role", ["bartender", "cocinero"])
-      .eq("active", true)
-      .eq("revoked", false);
+      .from('push_tokens')
+      .select('token')
+      .in('role', ['bartender', 'cocinero'])
+      .eq('active', true)
+      .eq('revoked', false);
     const list = Array.from(new Set((toks ?? []).map((t: any) => t.token as string)));
-    if (list.length && typeof (this as any).push.sendToTokens === "function") {
+    if (list.length && typeof (this as any).push.sendToTokens === 'function') {
       await (this as any).push.sendToTokens(list, { title, body, data });
-    } else if (list.length && typeof (this as any).push.send === "function") {
+    } else if (list.length && typeof (this as any).push.send === 'function') {
       await (this as any).push.send(list, title, body, data);
     }
   }
