@@ -43,6 +43,8 @@ export class PedidosMozoPage implements OnInit {
   @ViewChild("inboxModal", { read: IonModal }) inboxModal?: IonModal;
   inbox: Array<{ chatId: string; mesaId: number; mesaNumero?: number; lastText: string; time: string }> = [];
 
+  private sentNuevoPedido = new Set<string>();
+
   async ngOnInit() {
     await this.ensureMozo();
     this.myUserId = await this.chatSvc.getMyUserId();
@@ -241,34 +243,25 @@ export class PedidosMozoPage implements OnInit {
   }
 
   private async notificarAreasNuevoPedido(p: any) {
+    const pid = String(p?.id ?? "");
+    if (!pid || this.sentNuevoPedido.has(pid)) return;
+    this.sentNuevoPedido.add(pid);
     const mesaNumero = p?.mesa?.numero ?? p?.mesa_numero ?? p?.mesa_id ?? "NN";
     const title = "Nuevo pedido";
     const body = `Nuevo pedido mesa ${mesaNumero}`;
     const data = { tipo: "nuevo_pedido", pedidoId: p?.id ?? null, mesaId: p?.mesa_id ?? p?.mesa?.id ?? null };
-    if (typeof (this as any).push.toTopic === "function") {
-      await Promise.all([
-        (this as any).push.toTopic("bar", title, body, data),
-        (this as any).push.toTopic("cocina", title, body, data)
-      ]);
-      return;
-    }
-    if (typeof (this as any).push.toRol === "function") {
-      await Promise.all([
-        (this as any).push.toRol("bartender", title, body, data),
-        (this as any).push.toRol("cocinero", title, body, data)
-      ]);
-      return;
-    }
     const { data: toks } = await supabase
       .from("push_tokens")
       .select("token")
       .in("role", ["bartender", "cocinero"])
       .eq("active", true)
       .eq("revoked", false);
-    const list = Array.from(new Set((toks ?? []).map((t: any) => t.token as string)));
-    if (list.length && typeof (this as any).push.sendToTokens === "function") {
+    const self = this.push.getToken?.() || null;
+    const list = Array.from(new Set((toks ?? []).map((t: any) => t.token as string))).filter(t => (self ? t !== self : true));
+    if (!list.length) return;
+    if (typeof (this as any).push.sendToTokens === "function") {
       await (this as any).push.sendToTokens(list, { title, body, data });
-    } else if (list.length && typeof (this as any).push.send === "function") {
+    } else if (typeof (this as any).push.send === "function") {
       await (this as any).push.send(list, title, body, data);
     }
   }
