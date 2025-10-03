@@ -1,105 +1,135 @@
-import { Component, OnInit } from "@angular/core";
-import { ActivatedRoute, Router } from "@angular/router";
-import { supabase } from "src/supabase.client";
-import { ToastController } from "@ionic/angular";
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ToastController } from '@ionic/angular';
+import { supabase } from 'src/supabase.client';
 
 @Component({
-  selector: "app-cuenta",
-  templateUrl: "./cuenta.page.html",
-  styleUrls: ["./cuenta.page.scss"],
+  selector: 'app-cuenta',
+  templateUrl: './cuenta.page.html',
+  styleUrls: ['./cuenta.page.scss'],
   standalone: false
 })
 export class CuentaPage implements OnInit {
   pedidoId!: string;
-  items: any[] = [];
   ped: any;
+  items: any[] = [];
   descuento: number = 0;
-  propina: number = 0;
+  propinaSeleccionada: number = 0; // porcentaje
   totalFinal: number = 0;
+  loading = true;
+
+  anonimoId?: string;
+  usuarioId: number | null = null;
+  clienteId: number | null = null;
+  userId!: string | null;
 
   constructor(
     private ar: ActivatedRoute,
+    private router: Router,
     private toast: ToastController,
-    private router: Router
-  ) {}
+    private route: ActivatedRoute
+  ) {
+    this.route.queryParams.subscribe(params => {
+      this.clienteId = params['clienteId'] ? Number(params['clienteId']) : null;
+      this.usuarioId = params['usuarioId'] ? Number(params['usuarioId']) : null;
+      this.anonimoId = params['anonimoId'] ?? null;
+      this.userId = params['userId'] ?? null;
+    });
+  }
 
   async ngOnInit() {
     this.pedidoId =
-      this.ar.snapshot.paramMap.get("id") ??
-      this.ar.snapshot.queryParamMap.get("id") ??
-      "";
+      this.ar.snapshot.paramMap.get('pedidoId') ??
+      this.ar.snapshot.queryParamMap.get('pedidoId') ??
+      '';
 
     if (!this.pedidoId) {
-      await this.mostrarToast("⚠ No se encontró el pedido");
+      await this.mostrarToast('⚠ No se detectó pedido.');
+      this.router.navigate(['/encuestas-espera']);
       return;
     }
 
-    // 1. Traer pedido e ítems
-    const { data: pedido } = await supabase
-      .from("pedidos")
-      .select("id, total, estado, cliente_uid, mesa_id")
-      .eq("id", this.pedidoId)
+    await this.cargarPedido();
+  }
+
+  private async cargarPedido() {
+    // 1. Traer pedido
+    const { data: ped, error: errPed } = await supabase
+      .from('pedidos')
+      .select('id, total, estado, cliente_uid')
+      .eq('id', this.pedidoId)
       .maybeSingle();
 
-    this.ped = pedido;
+    if (errPed || !ped) {
+      await this.mostrarToast('❌ Error cargando pedido.');
+      return;
+    }
+    this.ped = ped;
 
-    const { data: items } = await supabase
-      .from("pedido_items")
-      .select("nombre, cantidad, precio_unit")
-      .eq("pedido_id", this.pedidoId);
+    // 2. Traer items
+    const { data: items, error: errItems } = await supabase
+      .from('pedidos_items')
+      .select('id, nombre, tipo, cantidad, precio_unit')
+      .eq('pedido_id', this.pedidoId);
 
-    this.items = items || [];
+    if (!errItems && items) this.items = items;
 
-    // 2. Buscar descuento
+    // 3. Traer descuento
     const { data: desc } = await supabase
-      .from("descuentos")
-      .select("porcentaje")
-      .eq("pedido_id", this.pedidoId)
+      .from('descuentos')
+      .select('porcentaje')
+      .eq('pedido_id', this.pedidoId)
       .maybeSingle();
 
-    this.descuento = desc ? desc.porcentaje : 0;
+    if (desc) this.descuento = desc.porcentaje;
 
-    // 3. Calcular total
-    let subtotal = this.items.reduce(
-      (acc, it) => acc + it.cantidad * it.precio_unit,
-      0
-    );
+    // 4. Calcular total inicial
+    this.actualizarTotal();
+    this.loading = false;
+  }
 
+  actualizarTotal() {
+    let subtotal = this.ped.total;
     if (this.descuento > 0) {
       subtotal = subtotal * (1 - this.descuento / 100);
     }
-
-    this.totalFinal = subtotal; // sin propina aún
-  }
-
-  aplicarPropina(p: number) {
-    this.propina = (this.totalFinal * p) / 100;
-    this.totalFinal = this.totalFinal + this.propina;
+    this.totalFinal = subtotal * (1 + this.propinaSeleccionada / 100);
   }
 
   async pagar() {
-    // Opcional: guardar en tabla propinas
-    const { error } = await supabase.from("propinas").insert({
-      pedido_id: this.pedidoId,
-      propina: this.propina,
-      pagado_en: new Date().toISOString()
-    });
+    const { error } = await supabase
+      .from('pedidos')
+      .update({ estado: 'impagado' })
+      .eq('id', this.pedidoId);
 
     if (error) {
       await this.mostrarToast(`❌ Error al pagar: ${error.message}`);
       return;
     }
 
-    await this.mostrarToast("✅ Pago realizado. Espera confirmación del mozo.");
-    this.router.navigate(["/encuestas-espera"]);
+    await this.mostrarToast('✅ Pago solicitado. Espera confirmación del mozo.');
+    this.volver();
   }
 
-  private async mostrarToast(mensaje: string, color: string = "primary") {
+  volver() {
+    this.router.navigate(['/encuestas-espera'], {
+      queryParams: {
+        clienteId: this.clienteId,
+        anonimoId: this.anonimoId,
+        tienePermiso: true,
+        qrValido: true,
+        userId: this.userId,
+        mostrarCuenta: false
+      }
+    });
+  }
+
+  private async mostrarToast(mensaje: string, color: string = 'primary') {
     const t = await this.toast.create({
       message: mensaje,
       duration: 2500,
       color,
-      position: "top"
+      position: 'top'
     });
     await t.present();
   }

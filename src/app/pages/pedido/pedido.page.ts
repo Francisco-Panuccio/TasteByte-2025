@@ -88,12 +88,7 @@ export class PedidoPage implements OnInit {
 
     if (desc && this.ped?.total) {
       this.ped.totalConDescuento = this.ped.total * (1 - desc.porcentaje / 100);
-      await this.mostrarToast(
-        `🎉 Descuento detectado: ${desc.porcentaje}% aplicado`
-      );
-    } else {
-      await this.mostrarToast("ℹ Pedido sin descuento aplicado");
-    }
+    } 
   }
 
   volver() {

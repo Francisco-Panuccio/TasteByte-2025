@@ -1,46 +1,74 @@
-<header>
-  <ion-toolbar color="dark">
-    <ion-title>Cuenta</ion-title>
-  </ion-toolbar>
-</header>
+@if(loading) {
+  <ion-content class="ion-padding user_background">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando cuenta...</p>
+  </ion-content>
+} @else {
+  <header>
+    <ion-toolbar color="dark">
+      <ion-title>Detalle de la Cuenta</ion-title>
+    </ion-toolbar>
+  </header>
 
-<ion-content class="ion-padding user_background">
-  <div class="div_main">
-    <h2>Detalle de tu cuenta</h2>
+  <ion-content class="ion-padding user_background">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Tu Pedido</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        @for (it of items; track it.id) {
+          <ion-item>
+            <ion-label>
+              <div>{{ it.nombre }}</div>
+              <small>{{ it.tipo }}</small>
+            </ion-label>
+            <ion-note slot="end">
+              {{ it.cantidad }} × {{ it.precio_unit | currency:"ARS":"symbol-narrow" }}
+            </ion-note>
+          </ion-item>
+        }
 
-    <!-- Ítems -->
-    <ion-list>
-      <ion-item *ngFor="let it of items">
-        <ion-label>
-          <div>{{ it.nombre }}</div>
-          <small>{{ it.cantidad }} × {{ it.precio_unit | currency:"ARS" }}</small>
-        </ion-label>
-        <ion-note slot="end">{{ it.cantidad * it.precio_unit | currency:"ARS" }}</ion-note>
-      </ion-item>
-    </ion-list>
+        <div class="div_total">
+          <p><b>Subtotal:</b> {{ ped?.total | currency:"ARS":"symbol-narrow" }}</p>
 
-    <!-- Descuento -->
-    <p *ngIf="descuento > 0" style="color: green; font-weight: bold;">
-      Descuento aplicado: -{{ descuento }}%
-    </p>
+          @if(descuento > 0) {
+            <p style="color: green;">
+              Descuento aplicado: -{{ descuento }}%
+            </p>
+          }
 
-    <!-- Propina -->
-    <h3>Propina</h3>
-    <div class="propinas">
-      <ion-button size="small" (click)="aplicarPropina(0)">0%</ion-button>
-      <ion-button size="small" (click)="aplicarPropina(10)">10%</ion-button>
-      <ion-button size="small" (click)="aplicarPropina(15)">15%</ion-button>
-      <ion-button size="small" (click)="aplicarPropina(20)">20%</ion-button>
-    </div>
+          <ion-item>
+            <ion-label>Propina</ion-label>
+            <ion-select
+              placeholder="Seleccionar"
+              [(ngModel)]="propinaSeleccionada"
+              (ionChange)="actualizarTotal()"
+            >
+              <ion-select-option [value]="0">Sin propina</ion-select-option>
+              <ion-select-option [value]="5">5%</ion-select-option>
+              <ion-select-option [value]="10">10%</ion-select-option>
+              <ion-select-option [value]="15">15%</ion-select-option>
+              <ion-select-option [value]="20">20%</ion-select-option>
+            </ion-select>
+          </ion-item>
 
-    <!-- Total -->
-    <h2 class="total_final">
-      TOTAL: {{ totalFinal | currency:"ARS" }}
-    </h2>
+          <p class="total_final">
+            TOTAL: {{ totalFinal | currency:"ARS":"symbol-narrow" }}
+          </p>
+        </div>
+      </ion-card-content>
+    </ion-card>
 
-    <!-- Botón de pago -->
-    <ion-button expand="block" color="primary" (click)="pagar()">
-      Pagar cuenta
+    <ion-button expand="block" color="success" (click)="pagar()">
+      Pagar
     </ion-button>
-  </div>
-</ion-content>
+
+    <footer>
+      <ion-toolbar>
+        <ion-buttons class="ion_btns">
+          <ion-button class="btn_logged" (click)="volver()">Volver</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </footer>
+  </ion-content>
+}

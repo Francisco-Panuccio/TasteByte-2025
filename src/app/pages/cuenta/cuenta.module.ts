@@ -7,13 +7,15 @@ import { IonicModule } from '@ionic/angular';
 import { CuentaPageRoutingModule } from './cuenta-routing.module';
 
 import { CuentaPage } from './cuenta.page';
+import { LoadingPage } from '../loading/loading.page';
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
-    CuentaPageRoutingModule
+    CuentaPageRoutingModule,
+    LoadingPage,
   ],
   declarations: [CuentaPage]
 })
