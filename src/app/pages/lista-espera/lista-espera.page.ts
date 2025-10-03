@@ -102,7 +102,7 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
         return { ...c, nombre: nombre ?? 'Cliente anónimo', foto_url: foto };
       });
     }
-    setTimeout(() => (this.loading = false), 500);
+    setTimeout(() => (this.loading = false), 2000);
   }
 
   async aprobar(cliente: any) {

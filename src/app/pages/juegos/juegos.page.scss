@@ -3,7 +3,6 @@
   min-height: 100%;
 }
 
-/* Contenedor principal */
 .div_main {
   padding: 20px;
   text-align: center;
@@ -16,7 +15,6 @@
   color: var(--ion-color-dark);
 }
 
-/* Botones de juegos */
 .btn_juego {
   margin-bottom: 12px;
   font-weight: bold;
@@ -37,7 +35,6 @@
   --color: black;
 }
 
-
 .ion_btns {
   display: flex;
   justify-content: center;
@@ -47,11 +44,4 @@
 .btn_logged {
   font-size: 20px;
   font-weight: 1000;
-  color: #554738;
-  --background: #e6dacd;
-  border: 2px solid black;
-  border-radius: 0;
-  width: 90%;
-  margin: 10px auto;
 }
-
