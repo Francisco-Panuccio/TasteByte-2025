@@ -41,7 +41,7 @@ export class CocinaPage implements OnInit, OnDestroy {
       })
       .subscribe();
       
-    this.loading = false;
+    setTimeout(() => (this.loading = false), 500);
   }
 
   ngOnDestroy() {

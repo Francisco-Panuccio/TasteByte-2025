@@ -157,6 +157,7 @@ export class PedidosMozoPage implements OnInit {
                 .from('push_tokens')
                 .select('token')
                 .eq('usuario_id', part.user_id as string)
+                .eq('role', 'cliente')
                 .eq('active', true)
                 .eq('revoked', false);
               tokens = (toks ?? []).map((t: any) => t.token as string);
@@ -166,33 +167,56 @@ export class PedidosMozoPage implements OnInit {
           console.log('📨 tokens a notificar:', tokens);
 
           if (estado === 'pagado') {
-          console.log('🧹 Liberando mesa', mesaId);
-          await this.mesasSrv.liberarMesa(mesaId);
+            console.log('🧹 Liberando mesa', mesaId);
+            await this.mesasSrv.liberarMesa(mesaId);
           }
 
           if (tokens.length) {
-            const mesaNumero = this.mesasNum.get(mesaId) ?? mesaId;
-            let title = '';
-            let body = '';
-            if (estado === 'pagado') {
-              title = 'Pago confirmado';
-              body = `Mesa ${mesaNumero}: tu pago fue validado ✅`;
-            } else if (estado === 'rechazado') {
-              title = 'Pago rechazado';
-              body = `Mesa ${mesaNumero}: hubo un problema con tu pago ❌`;
-            } else {
-              title =
-                estado === 'aceptado' ? 'Pedido aceptado' : 'Pedido rechazado';
-              body =
-                estado === 'aceptado'
-                  ? `Mesa ${mesaNumero}: tu pedido fue aceptado`
-                  : `Mesa ${mesaNumero}: tu pedido fue rechazado. Podés modificarlo y reenviarlo`;
+            const { data: valids } = await supabase
+              .from('push_tokens')
+              .select('token')
+              .in('token', tokens)
+              .eq('role', 'cliente')
+              .eq('active', true)
+              .eq('revoked', false);
+            const safe = Array.from(
+              new Set((valids ?? []).map((t: any) => t.token as string))
+            );
+            if (safe.length) {
+              const mesaNumero = this.mesasNum.get(mesaId) ?? mesaId;
+              let title = '';
+              let body = '';
+              if (estado === 'pagado') {
+                title = 'Pago confirmado';
+                body = `Mesa ${mesaNumero}: tu pago fue validado ✅`;
+              } else if (estado === 'rechazado') {
+                title = 'Pago rechazado';
+                body = `Mesa ${mesaNumero}: hubo un problema con tu pago ❌`;
+              } else {
+                title =
+                  estado === 'aceptado'
+                    ? 'Pedido aceptado'
+                    : 'Pedido rechazado';
+                body =
+                  estado === 'aceptado'
+                    ? `Mesa ${mesaNumero}: tu pedido fue aceptado`
+                    : `Mesa ${mesaNumero}: tu pedido fue rechazado. Podés modificarlo y reenviarlo`;
+              }
+              await this.push.send(safe, title, body, {
+                tipo: 'pedido',
+                pedidoId,
+                mesaId,
+                estado,
+              });
             }
-            await this.push.send(tokens, title, body, {
-              tipo: 'pedido',
-              pedidoId,
-              mesaId,
-              estado,
+          }
+
+          if (estado === 'aceptado') {
+            const mesaNumero = this.mesasNum.get(mesaId);
+            await this.notificarAreasNuevoPedido({
+              id: pedidoId,
+              mesa_id: mesaId,
+              mesa_numero: mesaNumero,
             });
           }
         }
@@ -392,8 +416,36 @@ export class PedidosMozoPage implements OnInit {
     await this.setEstado(pedidoId, 'rechazado');
   }
 
-  private async mostrarToast(mensaje: string, color: string = 'primary') {
-    const t = await this.toast.create({ message: mensaje, duration: 2500, color, cssClass: 'toast2', position: 'bottom', buttons: [{ text: 'OK', role: 'cancel' }] });
-    await t.present();
+  private async notificarAreasNuevoPedido(p: any) {
+    const mesaNumero = p?.mesa?.numero ?? p?.mesa_numero ?? p?.mesa_id ?? 'NN';
+    const title = 'Nuevo pedido';
+    const body = `Nuevo pedido mesa ${mesaNumero}`;
+    const data = { tipo: 'nuevo_pedido', pedidoId: p?.id ?? null, mesaId: p?.mesa_id ?? p?.mesa?.id ?? null };
+    if (typeof (this as any).push.toTopic === 'function') {
+      await Promise.all([
+        (this as any).push.toTopic('bar', title, body, data),
+        (this as any).push.toTopic('cocina', title, body, data),
+      ]);
+      return;
+    }
+    if (typeof (this as any).push.toRol === 'function') {
+      await Promise.all([
+        (this as any).push.toRol('bartender', title, body, data),
+        (this as any).push.toRol('cocinero', title, body, data),
+      ]);
+      return;
+    }
+    const { data: toks } = await supabase
+      .from('push_tokens')
+      .select('token')
+      .in('role', ['bartender', 'cocinero'])
+      .eq('active', true)
+      .eq('revoked', false);
+    const list = Array.from(new Set((toks ?? []).map((t: any) => t.token as string)));
+    if (list.length && typeof (this as any).push.sendToTokens === 'function') {
+      await (this as any).push.sendToTokens(list, { title, body, data });
+    } else if (list.length && typeof (this as any).push.send === 'function') {
+      await (this as any).push.send(list, title, body, data);
+    }
   }
 }

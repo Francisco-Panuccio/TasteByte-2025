@@ -9,9 +9,11 @@
     <ion-segment [(ngModel)]="filtro" (ionChange)="cargar()" [disabled]="busy">
       <ion-segment-button value="todos">Todos</ion-segment-button>
       <ion-segment-button value="pendiente">Pendientes</ion-segment-button>
+
       <ion-segment-button value="aceptado">Aceptados</ion-segment-button>
       <ion-segment-button value="rechazado">Rechazados</ion-segment-button>
-      <ion-segment-button value="rechazado">Terminados</ion-segment-button>
+
+      <ion-segment-button value="terminado">Terminados</ion-segment-button>
       <ion-segment-button value="impagado">Impagados</ion-segment-button>
     </ion-segment>
 

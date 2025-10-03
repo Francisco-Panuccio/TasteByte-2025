@@ -13,11 +13,9 @@ export class JuegosPage {
   clienteId!: number | null;
   usuarioId!: number | null;
   anonimoId!: string | null;
-
+  loading: boolean = true;
   userId!: string | null;
 
-
-  // Control del descuento
   descuentoAplicado: boolean = false;
   porcentajeDescuento: number | null = null;
 
@@ -32,15 +30,14 @@ export class JuegosPage {
   }
 
   async ngOnInit() {
-
     if (!this.userId) {
       const { data } = await supabase.auth.getUser();
       this.userId = data.user?.id ?? null;
     }
+    setTimeout(() => (this.loading = false), 500);
   }
 
   aplicarDescuento(porcentaje: number) {
-    // Solo aplicar el primer descuento
     if (!this.descuentoAplicado) {
       this.descuentoAplicado = true;
       this.porcentajeDescuento = porcentaje;
@@ -50,9 +47,7 @@ export class JuegosPage {
 
   volver() {
     this.router.navigate(['/encuestas-espera'], {
-        queryParams: { clienteId: this.clienteId, anonimoId : this.anonimoId, tienePermiso : true, qrValido : true, userId : this.userId }
-      });
+      queryParams: { clienteId: this.clienteId, anonimoId: this.anonimoId, tienePermiso: true, qrValido: true, userId: this.userId }
+    });
   }
-
-
 }

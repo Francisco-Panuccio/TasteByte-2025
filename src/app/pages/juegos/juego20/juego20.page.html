@@ -1,25 +1,19 @@
 <header>
-  <ion-toolbar color="dark">
-    <ion-title>Memotest</ion-title>
-  </ion-toolbar>
+  <title>Memotest</title>
 </header>
 
-<ion-content class="ion-padding user_background">
+<ion-content>
   <div class="div_main">
     <h2>Encuentra todas las parejas</h2>
 
     <div class="vidas">
-      Vidas restantes: 
+      Vidas restantes:
       <span *ngFor="let v of [].constructor(vidasRestantes)">❤️</span>
     </div>
 
     <div class="tablero">
       <div class="carta" *ngFor="let carta of cartas" (click)="seleccionarCarta(carta)">
-        <img
-          *ngIf="carta.volteada || carta.encontrada"
-          [src]="carta.imagen"
-          alt="Carta"
-        />
+        <img *ngIf="carta.volteada || carta.encontrada" [src]="carta.imagen" alt="Carta" />
         <div *ngIf="!carta.volteada && !carta.encontrada" class="carta_oculta"></div>
       </div>
     </div>
@@ -40,12 +34,12 @@
       </p>
     </div>
   </div>
-
-  <footer>
-    <ion-toolbar>
-      <ion-buttons class="ion_btns">
-        <ion-button class="btn_logged" (click)="volver()">Volver</ion-button>
-      </ion-buttons>
-    </ion-toolbar>
-  </footer>
 </ion-content>
+
+<footer>
+  <ion-toolbar>
+    <ion-buttons class="ion_btns">
+      <ion-button class="btn_logged" (click)="volver()">Volver</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</footer>

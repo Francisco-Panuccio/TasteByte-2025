@@ -97,19 +97,25 @@ export class CuentaPage implements OnInit {
   }
 
   async pagar() {
-    const { error } = await supabase
-      .from('pedidos')
-      .update({ estado: 'impagado' })
-      .eq('id', this.pedidoId);
 
-    if (error) {
-      await this.mostrarToast(`❌ Error al pagar: ${error.message}`);
-      return;
-    }
+  const { error } = await supabase
+    .from('pedidos')
+    .update({
+      estado: 'impagado',
+      total: this.totalFinal
+    })
+    .eq('id', this.pedidoId);
 
-    await this.mostrarToast('✅ Pago solicitado. Espera confirmación del mozo.');
-    this.volver();
+  if (error) {
+    await this.mostrarToast(`❌ Error al pagar: ${error.message}`);
+    return;
   }
+
+  await this.mostrarToast('✅ Pago solicitado. Espera confirmación del mozo.');
+  this.volver();
+}
+
+
 
   volver() {
     this.router.navigate(['/encuestas-espera'], {
