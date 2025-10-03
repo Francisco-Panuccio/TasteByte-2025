@@ -14,7 +14,7 @@ export class CuentaPage implements OnInit {
   ped: any;
   items: any[] = [];
   descuento: number = 0;
-  propinaSeleccionada: number = 0; // porcentaje
+  propinaSeleccionada: number = 0;
   totalFinal: number = 0;
   loading = true;
 
@@ -53,7 +53,6 @@ export class CuentaPage implements OnInit {
   }
 
   private async cargarPedido() {
-    // 1. Traer pedido
     const { data: ped, error: errPed } = await supabase
       .from('pedidos')
       .select('id, total, estado, cliente_uid')
@@ -66,7 +65,6 @@ export class CuentaPage implements OnInit {
     }
     this.ped = ped;
 
-    // 2. Traer items
     const { data: items, error: errItems } = await supabase
       .from('pedidos_items')
       .select('id, nombre, tipo, cantidad, precio_unit')
@@ -74,7 +72,6 @@ export class CuentaPage implements OnInit {
 
     if (!errItems && items) this.items = items;
 
-    // 3. Traer descuento
     const { data: desc } = await supabase
       .from('descuentos')
       .select('porcentaje')
@@ -82,8 +79,6 @@ export class CuentaPage implements OnInit {
       .maybeSingle();
 
     if (desc) this.descuento = desc.porcentaje;
-
-    // 4. Calcular total inicial
     this.actualizarTotal();
     this.loading = false;
   }
@@ -97,25 +92,22 @@ export class CuentaPage implements OnInit {
   }
 
   async pagar() {
+    const { error } = await supabase
+      .from('pedidos')
+      .update({
+        estado: 'impagado',
+        total: this.totalFinal
+      })
+      .eq('id', this.pedidoId);
 
-  const { error } = await supabase
-    .from('pedidos')
-    .update({
-      estado: 'impagado',
-      total: this.totalFinal
-    })
-    .eq('id', this.pedidoId);
+    if (error) {
+      await this.mostrarToast(`❌ Error al pagar: ${error.message}`);
+      return;
+    }
 
-  if (error) {
-    await this.mostrarToast(`❌ Error al pagar: ${error.message}`);
-    return;
+    await this.mostrarToast('✅ Pago solicitado. Espera confirmación del mozo.');
+    this.volver();
   }
-
-  await this.mostrarToast('✅ Pago solicitado. Espera confirmación del mozo.');
-  this.volver();
-}
-
-
 
   volver() {
     this.router.navigate(['/encuestas-espera'], {
