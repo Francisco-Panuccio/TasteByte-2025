@@ -149,118 +149,140 @@ export class PedidosMozoPage implements OnInit {
   }
 
   async setEstado(pedidoId: string, estado: "aceptado" | "rechazado" | "pagado") {
-    if (this.busy) return;
-    this.busy = true;
+  if (this.busy) return;
+  this.busy = true;
+  try {
+    await this.pedidosSrv.actualizarEstado(pedidoId, estado as any);
+
     try {
-      await this.pedidosSrv.actualizarEstado(pedidoId, estado as any);
+      const { data: ped } = await supabase
+        .from("pedidos")
+        .select("mesa_id")
+        .eq("id", pedidoId)
+        .single();
+      const mesaId = ped?.mesa_id as number | undefined;
 
-      try {
-        const { data: ped } = await supabase
-          .from("pedidos")
-          .select("mesa_id")
-          .eq("id", pedidoId)
-          .single();
-        const mesaId = ped?.mesa_id as number | undefined;
-
-        if (mesaId != null) {
-          let tokens: string[] = [];
-          const { data: chatRow } = await supabase
-            .from("chats")
-            .select("id")
-            .eq("mesa_id", mesaId)
+      if (mesaId != null) {
+        let tokens: string[] = [];
+        const { data: chatRow } = await supabase
+          .from("chats")
+          .select("id")
+          .eq("mesa_id", mesaId)
+          .maybeSingle();
+        if (chatRow?.id) {
+          const { data: part } = await supabase
+            .from("chat_participants")
+            .select("user_id,push_token")
+            .eq("chat_id", chatRow.id)
+            .eq("role", "cliente")
             .maybeSingle();
-          if (chatRow?.id) {
-            const { data: part } = await supabase
-              .from("chat_participants")
-              .select("user_id,push_token")
-              .eq("chat_id", chatRow.id)
-              .eq("role", "cliente")
-              .maybeSingle();
-            if (part?.push_token) {
-              tokens = [part.push_token as string];
-            } else if (part?.user_id) {
-              const { data: toks } = await supabase
-                .from("push_tokens")
-                .select("token")
-                .eq("usuario_id", part.user_id as string)
-                .eq("role", "cliente")
-                .eq("active", true)
-                .eq("revoked", false);
-              tokens = (toks ?? []).map((t: any) => t.token as string);
-            }
-          }
-
-          if (estado === "pagado") {
-            await this.mesasSrv.liberarMesa(mesaId);
-          }
-
-          if (tokens.length) {
-            const { data: valids } = await supabase
+          if (part?.push_token) {
+            tokens = [part.push_token as string];
+          } else if (part?.user_id) {
+            const { data: toks } = await supabase
               .from("push_tokens")
               .select("token")
-              .in("token", tokens)
+              .eq("usuario_id", part.user_id as string)
               .eq("role", "cliente")
               .eq("active", true)
               .eq("revoked", false);
-            const safe = Array.from(
-              new Set((valids ?? []).map((t: any) => t.token as string))
-            );
-            if (safe.length) {
-              const mesaNumero = this.mesasNum.get(mesaId) ?? mesaId;
-              let title = "";
-              let body = "";
-              if (estado === "pagado") {
-                title = "Pago confirmado";
-                body = `Mesa ${mesaNumero}: tu pago fue validado ✅`;
-              } else {
-                title = estado === "aceptado" ? "Pedido aceptado" : "Pedido rechazado";
-                body =
-                  estado === "aceptado"
-                    ? `Mesa ${mesaNumero}: tu pedido fue aceptado`
-                    : `Mesa ${mesaNumero}: tu pedido fue rechazado. Podés modificarlo y reenviarlo`;
-              }
-              await this.push.send(safe, title, body, {
-                tipo: "pedido",
-                pedidoId,
-                mesaId,
-                estado
-              });
-            }
+            tokens = (toks ?? []).map((t: any) => t.token as string);
           }
+        }
 
-          if (estado === "aceptado") {
-            const mesaNumero = this.mesasNum.get(mesaId);
-            await this.notificarAreasNuevoPedido({
-              id: pedidoId,
-              mesa_id: mesaId,
-              mesa_numero: mesaNumero
+        if (estado === "pagado") {
+          await this.mesasSrv.liberarMesa(mesaId);
+
+          // 🔔 Notificar a dueño y supervisor
+          const { data: tokensDS } = await supabase
+            .from("push_tokens")
+            .select("token")
+            .in("role", ["dueño", "supervisor"])
+            .eq("active", true)
+            .eq("revoked", false);
+
+          const safeDS = Array.from(new Set((tokensDS ?? []).map((t: any) => t.token as string)));
+          if (safeDS.length) {
+            const mesaNumero = this.mesasNum.get(mesaId) ?? mesaId;
+            const title = "Pago confirmado";
+            const body = `Mesa ${mesaNumero}: el pago fue validado por el mozo ✅`;
+            await this.push.send(safeDS, title, body, {
+              tipo: "pago_validado",
+              pedidoId,
+              mesaId,
+              estado
             });
           }
         }
-      } catch (e) { }
 
-      const msg =
-        estado === "pagado"
-          ? "Pago validado"
-          : estado === "rechazado"
-            ? "Pago rechazado"
-            : estado === "aceptado"
-              ? "Pedido aceptado"
-              : "Pedido rechazado";
+        if (tokens.length) {
+          const { data: valids } = await supabase
+            .from("push_tokens")
+            .select("token")
+            .in("token", tokens)
+            .eq("role", "cliente")
+            .eq("active", true)
+            .eq("revoked", false);
+          const safe = Array.from(
+            new Set((valids ?? []).map((t: any) => t.token as string))
+          );
+          if (safe.length) {
+            const mesaNumero = this.mesasNum.get(mesaId) ?? mesaId;
+            let title = "";
+            let body = "";
+            if (estado === "pagado") {
+              title = "Pago confirmado";
+              body = `Mesa ${mesaNumero}: tu pago fue validado ✅`;
+            } else {
+              title = estado === "aceptado" ? "Pedido aceptado" : "Pedido rechazado";
+              body =
+                estado === "aceptado"
+                  ? `Mesa ${mesaNumero}: tu pedido fue aceptado`
+                  : `Mesa ${mesaNumero}: tu pedido fue rechazado. Podés modificarlo y reenviarlo`;
+            }
+            await this.push.send(safe, title, body, {
+              tipo: "pedido",
+              pedidoId,
+              mesaId,
+              estado
+            });
+          }
+        }
 
-      (
-        await this.toast.create({
-          message: msg,
-          duration: 1200,
-          position: "top",
-          cssClass: "toast"
-        })
-      ).present();
-      await this.cargar();
-    } finally {
-      this.busy = false;
-    }
+        if (estado === "aceptado") {
+          const mesaNumero = this.mesasNum.get(mesaId);
+          await this.notificarAreasNuevoPedido({
+            id: pedidoId,
+            mesa_id: mesaId,
+            mesa_numero: mesaNumero
+          });
+        }
+      }
+    } catch (e) {}
+
+    const msg =
+      estado === "pagado"
+        ? "Pago validado"
+        : estado === "rechazado"
+        ? "Pago rechazado"
+        : estado === "aceptado"
+        ? "Pedido aceptado"
+        : "Pedido rechazado";
+
+    (
+      await this.toast.create({
+        message: msg,
+        duration: 1200,
+        position: "top",
+        cssClass: "toast"
+      })
+    ).present();
+    await this.cargar();
+  } finally {
+    this.busy = false;
   }
+}
+
 
   canEliminar(p: any): boolean {
     return p.estado === "aceptado" || p.estado === "rechazado";
