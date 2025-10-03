@@ -11,42 +11,42 @@ import { supabase } from "src/supabase.client";
 export class BarPage implements OnInit, OnDestroy {
   private toast = inject(ToastController);
   private alertCtrl = inject(AlertController);
-  
-  pedidos: Array<{ 
-    id: string; 
-    pedido_id: string; 
-    mesa_id: number; 
-    mesa_numero: number; 
-    creado_en: string; 
+
+  pedidos: Array<{
+    id: string;
+    pedido_id: string;
+    mesa_id: number;
+    mesa_numero: number;
+    creado_en: string;
     estado: "pendiente" | "terminado";
-    items: any[]; 
-    total: number; 
+    items: any[];
+    total: number;
     cantidad: number;
   }> = [];
-  
+
   private channel?: ReturnType<typeof supabase.channel>;
   loading: boolean = true;
 
   async ngOnInit() {
     await this.cargar();
-    
+
     this.channel = supabase
       .channel("bar_pedidos_changes")
-      .on("postgres_changes", { 
+      .on("postgres_changes", {
         event: "*",
-        schema: "public", 
-        table: "bar_pedidos" 
+        schema: "public",
+        table: "bar_pedidos"
       }, () => {
         this.cargar();
       })
       .subscribe();
-      
-    this.loading = false;
+
+    setTimeout(() => (this.loading = false), 500);
   }
 
   ngOnDestroy() {
-    try { 
-      this.channel && supabase.removeChannel(this.channel); 
+    try {
+      this.channel && supabase.removeChannel(this.channel);
     } catch { }
   }
 
@@ -59,9 +59,9 @@ export class BarPage implements OnInit, OnDestroy {
         .order("creado_en", { ascending: false });
 
       if (error) throw error;
-      
+
       this.pedidos = (data ?? []) as any[];
-      
+
     } catch (error) {
       console.error('Error cargando pedidos:', error);
       this.mostrarError('Error al cargar los pedidos');
@@ -71,7 +71,7 @@ export class BarPage implements OnInit, OnDestroy {
   async terminar(id: string) {
     try {
       const pedido = this.pedidos.find(p => p.id === id);
-      
+
       const alert = await this.alertCtrl.create({
         header: 'Confirmar',
         message: `¿Marcar como terminado el pedido de la Mesa ${pedido?.mesa_numero}?`,
@@ -88,9 +88,9 @@ export class BarPage implements OnInit, OnDestroy {
           }
         ]
       });
-      
+
       await alert.present();
-      
+
     } catch (error) {
       console.error('Error al terminar pedido:', error);
       this.mostrarError('Error al terminar el pedido');
@@ -100,9 +100,9 @@ export class BarPage implements OnInit, OnDestroy {
   private async finalizarPedido(id: string) {
     const { error } = await supabase
       .from("bar_pedidos")
-      .update({ 
-        estado: "terminado", 
-        terminado_en: new Date().toISOString() 
+      .update({
+        estado: "terminado",
+        terminado_en: new Date().toISOString()
       })
       .eq("id", id);
 

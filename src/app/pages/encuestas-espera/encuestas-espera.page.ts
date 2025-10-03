@@ -66,6 +66,17 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
         await this.push.ready();
       }
 
+      const tk = this.push.getToken?.();
+      const { data: au } = await supabase.auth.getUser();
+      let upsertUserId: string | null = au?.user?.id ?? null;
+      if (!upsertUserId && this.anonimoId) upsertUserId = `anon-${this.anonimoId}`;
+      if (tk && upsertUserId) {
+        await supabase.from('push_tokens').upsert(
+          { token: tk, usuario_id: upsertUserId, role: 'cliente', active: true, revoked: false },
+          { onConflict: 'token' }
+        );
+      }
+
       await this.cargarMesaAsignada();
 
       this.subscription = supabase

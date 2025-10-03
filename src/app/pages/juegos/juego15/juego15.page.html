@@ -1,10 +1,8 @@
 <header>
-  <ion-toolbar color="dark">
-    <ion-title>Mayor o Menor</ion-title>
-  </ion-toolbar>
+  <title>Mayor o Menor</title>
 </header>
 
-<ion-content class="ion-padding user_background">
+<ion-content>
   <div class="div_main">
     <h2>¿La siguiente carta será mayor o menor?</h2>
 
@@ -17,16 +15,16 @@
     </div>
 
     <div *ngIf="!play">
-      <ion-button expand="block" color="success" (click)="iniciarJuego()">
+      <ion-button style="border: 2px solid black; border-radius: 8px;" (click)="iniciarJuego()">
         Empezar
       </ion-button>
     </div>
 
     <div *ngIf="play && !juegoFinalizado" class="acciones">
-      <ion-button expand="block" color="success" (click)="elegir('mayor')">
+      <ion-button (click)="elegir('mayor')">
         Mayor
       </ion-button>
-      <ion-button expand="block" color="warning" (click)="elegir('menor')">
+      <ion-button style="--background: white; --color: #554738;"  (click)="elegir('menor')">
         Menor
       </ion-button>
     </div>
@@ -34,17 +32,17 @@
     <div *ngIf="juegoFinalizado" class="resultado">
       <p *ngIf="gano">🎉 ¡Ganaste! Lograste los 4 aciertos seguidos.</p>
       <p *ngIf="!gano">❌ Perdiste. Intenta de nuevo.</p>
-      <ion-button expand="block" color="primary" (click)="resetear()">
+      <ion-button style="border: 2px solid black; border-radius: 8px;" (click)="resetear()">
         Volver a Jugar
       </ion-button>
     </div>
   </div>
-  
-  <footer>
-    <ion-toolbar>
-      <ion-buttons class="ion_btns">
-        <ion-button class="btn_logged" (click)="volver()">Volver</ion-button>
-      </ion-buttons>
-    </ion-toolbar>
-  </footer>
 </ion-content>
+
+<footer>
+  <ion-toolbar>
+    <ion-buttons class="ion_btns">
+      <ion-button class="btn_logged" (click)="volver()">Volver</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</footer>

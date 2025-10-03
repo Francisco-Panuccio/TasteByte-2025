@@ -33,7 +33,6 @@ const routes: Routes = [
   },
   {
     path: 'register',
-
     loadChildren: () => import('./pages/register/register.module').then(m => m.RegisterPageModule)
   },
   {
@@ -74,26 +73,27 @@ const routes: Routes = [
   },
   {
     path: 'anon-register',
-    loadChildren: () => import('./pages/anon-register/anon-register.module').then( m => m.AnonRegisterPageModule)
+    loadChildren: () => import('./pages/anon-register/anon-register.module').then(m => m.AnonRegisterPageModule)
   },
   {
     path: 'cocina',
-    loadChildren: () => import('./pages/cocina/cocina.module').then( m => m.CocinaPageModule)
+    loadChildren: () => import('./pages/cocina/cocina.module').then(m => m.CocinaPageModule)
   },
   {
     path: 'bar',
-    loadChildren: () => import('./pages/bar/bar.module').then( m => m.BarPageModule)
+    loadChildren: () => import('./pages/bar/bar.module').then(m => m.BarPageModule)
   },
   {
     path: 'encuestas',
-    loadChildren: () => import('./pages/encuestas/encuestas.module').then( m => m.EncuestasPageModule)
+    loadChildren: () => import('./pages/encuestas/encuestas.module').then(m => m.EncuestasPageModule)
   },
   {
     path: 'encuesta-nueva',
-    loadChildren: () => import('./pages/encuesta-nueva/encuesta-nueva.module').then( m => m.EncuestaNuevaPageModule)
-  },  {
+    loadChildren: () => import('./pages/encuesta-nueva/encuesta-nueva.module').then(m => m.EncuestaNuevaPageModule)
+  },
+  {
     path: 'juegos',
-    loadChildren: () => import('./pages/juegos/juegos.module').then( m => m.JuegosPageModule)
+    loadChildren: () => import('./pages/juegos/juegos.module').then(m => m.JuegosPageModule)
   }
 
 ];

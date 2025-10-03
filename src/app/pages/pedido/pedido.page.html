@@ -19,6 +19,10 @@
           </ion-item>
         }
 
+        <ion-button (click)="confirmarRecibido();" [disabled]="verificando || !ped || ped?.estado === 'terminado'">
+          Pedido Recibido
+        </ion-button>
+
         <div class="div_total">
           <p><span style="color: black;">Total: </span> {{ ped?.total | currency:"ARS":"symbol-narrow" }}</p>
           <p><span style="color: black;">Espera: </span> {{ ped?.eta_minutos }} min</p>
