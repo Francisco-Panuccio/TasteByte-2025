@@ -64,13 +64,9 @@ export class AltaClientePage implements OnInit {
     this.formAnonimo = this.fb.group({ nombre: ["", [Validators.required, Validators.minLength(2)]] });
   }
 
-  private async presentPushToast(header: string, message: string, screen?: string, params?: any) {
+  private async presentPushToast(header: string, message: string) {
     const t = await this.toast.create({
-      header, message, position: "top", cssClass: "toast", duration: undefined,
-      buttons: [
-        { text: "Ver", role: "confirm", handler: () => { if (screen) this.router.navigate([`/${screen}`], { queryParams: params ?? {} }); } },
-        { text: "Cerrar", role: "cancel" }
-      ]
+      header, message, position: "top", cssClass: "toast", duration: 1000,
     });
     await t.present();
   }
@@ -113,7 +109,7 @@ export class AltaClientePage implements OnInit {
       else { throw new Error("No se pudo obtener la imagen"); }
 
       const fileName = `cliente_${Date.now()}.${ext}`;
-      const filePath = `cliente/${fileName}`;                // clientes/cliente
+      const filePath = `cliente/${fileName}`;
       const up = await supabase.storage.from("clientes").upload(filePath, blob, { contentType: blob.type, upsert: true });
       if (up.error) throw up.error;
       const { data } = supabase.storage.from("clientes").getPublicUrl(filePath);
@@ -182,8 +178,16 @@ export class AltaClientePage implements OnInit {
               );
             }
           }
-          await this.presentPushToast("📋 Nuevo Cliente Pendiente", `${nombres} ${apellidos} espera aprobación`, "clientes-pendientes", { highlight: (usuarioDB as any).id });
+          await this.presentPushToast("📋 Nuevo Cliente Pendiente", `${nombres} ${apellidos} espera aprobación`);
         } catch { }
+
+        const estado = (usuarioDB as any)?.estado ?? "pendiente";
+        if (estado !== "activo") {
+          await supabase.auth.signOut();
+          await this.presentPushToast("Cuenta en revisión", "Te avisaremos cuando sea aprobada");
+          this.router.navigateByUrl("/login", { replaceUrl: true });
+          return;
+        }
 
         this.ok = true;
         this.formAltaCliente.reset();
