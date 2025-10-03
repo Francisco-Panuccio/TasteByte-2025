@@ -96,7 +96,7 @@
 - Branch: panuccio/altas
 
 * Roman
-- Objetivos: Puntos 15 (Acceso a Juegos), 19 (Entrega del Pedido), 21 (Solicitud de Cuenta)
+- Objetivos: Puntos 15 (Acceso a Juegos), 19 (Entrega del Pedido)
 - Fecha Inicial: 22/09/2025
 - Fecha Final: 25/09/2025
 - Branch: roman
@@ -106,7 +106,7 @@
 </p>
 
 * Avallone
-- Objetivos: Puntos 16 (Cocina Recibe Productos), 17 (Bar Recibe Productos), 18 (Pedido Completado)
+- Objetivos: Puntos 16 (Cocina Recibe Productos)
 - Fecha Inicial: 22/09/2025
 - Fecha Final: 
 - Branch: avallone
@@ -114,21 +114,21 @@
 
 ## Responsabilidades (Cuarta Semana) 🛠️
 * Panuccio
-- Objetivos: Estilado de Encuestas y Corrección de Push Notifications
+- Objetivos: Estilado de Encuestas y Corrección de Push Notifications, 18 (Pedido Completado)
 - Fecha Inicial: 29/09/2025
-- Fecha Final: 
+- Fecha Final: 3/10/2025
 - Branch: panuccio/altas
 
 * Roman
-- Objetivos: Puntos 15 (Juegos), Punto 22 (Confirmación de Pago y Liberación de Mesa)
+- Objetivos: 21 (Solicitud de Cuenta), Punto 22 (Confirmación de Pago y Liberación de Mesa)
 - Fecha Inicial: 29/09/2025
-- Fecha Final:
+- Fecha Final: 3/10/2025
 - Branch: roman
 
 * Avallone
-- Objetivos: Puntos 16 (Cocina Recibe Productos), 17 (Bar Recibe Productos), 18 (Pedido Completado)
+- Objetivos: 17 (Bar Recibe Productos)
 - Fecha Inicial: 29/09/2025
-- Fecha Final: 
+- Fecha Final: 3/10/2025
 - Branch: avallone
 
 
