@@ -1,66 +1,71 @@
 @if(loading) {
   <ion-content class="ion-padding user_background">
-    <ion-spinner name="crescent"></ion-spinner>
-    <p>Cargando cuenta...</p>
+    <div class="loading-container">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p class="loading-text">Cargando cuenta...</p>
+    </div>
   </ion-content>
 } @else {
-  <header>
-    <title>Detalle de la Cuenta</title>
-  </header>
+  <ion-content class="cuenta-content">
+    <div class="cuenta-wrapper">
+      <div class="cuenta-container">
+        <ion-card class="cuenta-card">
+          <ion-card-header>
+            <ion-card-title>🧾 Tu Pedido</ion-card-title>
+          </ion-card-header>
 
-  <ion-content>
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Tu Pedido</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        @for (it of items; track it.id) {
-          <ion-item>
-            <ion-label>
-              <div>{{ it.nombre }}</div>
-              <small>{{ it.tipo }}</small>
-            </ion-label>
-            <ion-note slot="end">
-              {{ it.cantidad }} × {{ it.precio_unit | currency:"ARS":"symbol-narrow" }}
-            </ion-note>
-          </ion-item>
-        }
+          <ion-card-content>
+            <div class="items-list">
+              @for (it of items; track it.id) {
+                <ion-item lines="none" class="item-row">
+                  <ion-label>
+                    <h2>{{ it.nombre }}</h2>
+                    <p>{{ it.tipo }}</p>
+                  </ion-label>
+                  <ion-note slot="end">
+                    {{ it.cantidad }} × {{ it.precio_unit | currency:"ARS":"symbol-narrow" }}
+                  </ion-note>
+                </ion-item>
+              }
+            </div>
 
-        <div class="div_total">
-          <p><b>Subtotal:</b> {{ ped?.total | currency:"ARS":"symbol-narrow" }}</p>
+            <div class="totales">
+              <p><b>Subtotal:</b> {{ ped?.total | currency:"ARS":"symbol-narrow" }}</p>
 
-          @if(descuento > 0) {
-            <p style="color: green;">
-              Descuento aplicado: -{{ descuento }}%
-            </p>
-          }
+              @if(descuento > 0) {
+                <p class="descuento">Descuento aplicado: -{{ descuento }}%</p>
+              }
 
-          <ion-item>
-            <ion-label>Propina</ion-label>
-            <ion-select
-              placeholder="Seleccionar"
-              [(ngModel)]="propinaSeleccionada"
-              (ionChange)="actualizarTotal()"
-            >
-              <ion-select-option [value]="0">Sin propina</ion-select-option>
-              <ion-select-option [value]="5">5%</ion-select-option>
-              <ion-select-option [value]="10">10%</ion-select-option>
-              <ion-select-option [value]="15">15%</ion-select-option>
-              <ion-select-option [value]="20">20%</ion-select-option>
-            </ion-select>
-          </ion-item>
+              <div class="div_propina">
+                <ion-button expand="block" size="large" class="btn-pagar" (click)="escanearPropina()">
+                  📱 Escanear QR de Propina
+                </ion-button>
 
-          <p class="total_final">
-            TOTAL: {{ totalFinal | currency:"ARS":"symbol-narrow" }}
-          </p>
+                @if(propinaSeleccionada > 0) {
+                  <p class="propina-text">Propina seleccionada: {{ propinaSeleccionada }}%</p>
+                  <ion-button color="danger" expand="block" size="large" (click)="quitarPropina()">
+                    ❌ Quitar Propina
+                  </ion-button>
+                } @else {
+                  <p class="propina-text">Sin propina seleccionada</p>
+                }
+              </div>
+
+              <p class="total_final">
+                💰 TOTAL: {{ totalFinal | currency:"ARS":"symbol-narrow" }}
+              </p>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <div class="botones">
+          <ion-button expand="block" size="large" class="btn-pagar" (click)="pagar()">💵 Pagar</ion-button>
         </div>
-      </ion-card-content>
-    </ion-card>
-
-    <ion-button style="text-align: center; align-self: center; justify-self: center;" (click)="pagar()">
-      Pagar
-    </ion-button>
+      </div>
+    </div>
   </ion-content>
+
+
 
   <footer>
     <ion-toolbar>
@@ -70,3 +75,5 @@
     </ion-toolbar>
   </footer>
 }
+
+
