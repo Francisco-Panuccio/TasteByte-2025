@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastController } from '@ionic/angular';
 import { supabase } from 'src/supabase.client';
+import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 
 @Component({
   selector: 'app-cuenta',
@@ -90,6 +91,47 @@ export class CuentaPage implements OnInit {
     }
     this.totalFinal = subtotal * (1 + this.propinaSeleccionada / 100);
   }
+
+  async escanearPropina() {
+    try {
+      const { barcodes } = await BarcodeScanner.scan();
+      if (!barcodes?.length) {
+        await this.mostrarToast('No se detectó ningún código QR.');
+        return;
+      }
+
+      const contenido = barcodes[0].rawValue?.trim().toLowerCase();
+      if (!contenido) {
+        await this.mostrarToast('QR inválido.');
+        return;
+      }
+
+      if (contenido.includes('10')) {
+        this.propinaSeleccionada = 10;
+      } else if (contenido.includes('15')) {
+        this.propinaSeleccionada = 15;
+      } else if (contenido.includes('20')) {
+        this.propinaSeleccionada = 20;
+      } else {
+        this.propinaSeleccionada = 0;
+        await this.mostrarToast('QR no reconocido. No se aplicó propina.');
+      }
+
+      this.actualizarTotal();
+      await this.mostrarToast(`Propina seleccionada: ${this.propinaSeleccionada}%`);
+    } catch (err) {
+      console.error(err);
+      await this.mostrarToast('❌ Error al escanear QR.');
+    }
+  }
+
+  async quitarPropina() {
+  this.propinaSeleccionada = 0;
+  this.actualizarTotal();
+  await this.mostrarToast('Propina eliminada.');
+}
+
+
 
   async pagar() {
     const { error } = await supabase
