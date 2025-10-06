@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ToastController } from '@ionic/angular';
 import { Descuentos } from 'src/app/services/descuentos/descuentos';
 
 @Component({
@@ -19,7 +18,7 @@ export class Juego15Page implements OnInit {
   imagenes: string[] = [];
 
   intentos = 0;
-  racha = 0; // 👈 aciertos consecutivos
+  racha = 0;
   descuentoAplicado = false;
   juegoFinalizado = false;
   gano = false;
@@ -31,7 +30,6 @@ export class Juego15Page implements OnInit {
   userId!: string | null;
 
   constructor(
-    private toast: ToastController,
     private router: Router,
     private route: ActivatedRoute,
     private descuentos: Descuentos
@@ -105,7 +103,6 @@ export class Juego15Page implements OnInit {
     if (acierto) {
       this.racha++;
       if (this.racha >= 4) {
-        // 👑 Ganó el desafío
         this.gano = true;
         this.juegoFinalizado = true;
 
@@ -136,16 +133,6 @@ export class Juego15Page implements OnInit {
 
   resetear() {
     this.iniciarJuego();
-  }
-
-  private async mostrarToast(mensaje: string, color: string) {
-    const t = await this.toast.create({
-      message: mensaje,
-      duration: 2000,
-      color,
-      position: 'top'
-    });
-    await t.present();
   }
 
   volver() {

@@ -30,8 +30,8 @@
     </div>
 
     <div *ngIf="juegoFinalizado" class="resultado">
-      <p *ngIf="gano">🎉 ¡Ganaste! Lograste los 4 aciertos seguidos.</p>
-      <p *ngIf="!gano">❌ Perdiste. Intenta de nuevo.</p>
+      <p *ngIf="gano">🎉 ¡Ganaste! 🎉 <br> Lograste los 4 aciertos seguidos.</p>
+      <p *ngIf="!gano">💀 Perdiste. 💀 <br> Intenta de nuevo.</p>
       <ion-button style="border: 2px solid black; border-radius: 8px;" (click)="resetear()">
         Volver a Jugar
       </ion-button>

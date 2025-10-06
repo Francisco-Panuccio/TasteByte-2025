@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ToastController } from '@ionic/angular';
 import { Descuentos } from 'src/app/services/descuentos/descuentos';
 
 interface Carta {
@@ -24,7 +23,7 @@ export class Juego20Page implements OnInit {
   descuentoAplicado = false;
   juegoFinalizado = false;
 
-  vidasRestantes = 3; // 🔴 Máximo de errores permitidos
+  vidasRestantes = 3;
 
   mesaId!: number;
   clienteId!: number | null;
@@ -42,7 +41,6 @@ export class Juego20Page implements OnInit {
   ];
 
   constructor(
-    private toast: ToastController,
     private router: Router,
     private route: ActivatedRoute,
     private descuentos: Descuentos
@@ -63,7 +61,7 @@ export class Juego20Page implements OnInit {
   iniciarJuego() {
     this.intentos = 0;
     this.aciertos = 0;
-    this.vidasRestantes = 3; 
+    this.vidasRestantes = 3;
     this.descuentoAplicado = false;
     this.juegoFinalizado = false;
 
@@ -103,12 +101,12 @@ export class Juego20Page implements OnInit {
     } else {
       c1.volteada = false;
       c2.volteada = false;
-      this.vidasRestantes--; 
+      this.vidasRestantes--;
 
       if (this.vidasRestantes <= 0) {
         this.finalizarJuego(false);
         return;
-      } 
+      }
     }
     this.seleccionadas = [];
   }
@@ -134,16 +132,6 @@ export class Juego20Page implements OnInit {
 
   resetear() {
     this.iniciarJuego();
-  }
-
-  private async mostrarToast(mensaje: string, color: string) {
-    const t = await this.toast.create({
-      message: mensaje,
-      duration: 2000,
-      color,
-      position: 'top'
-    });
-    await t.present();
   }
 
   volver() {

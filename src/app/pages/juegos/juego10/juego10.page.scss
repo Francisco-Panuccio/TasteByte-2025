@@ -19,8 +19,15 @@
   margin-bottom: 16px;
 }
 
-.img_ahorcado {
+.img_ahorcado,
+.img_ahorcado_two {
   width: 180px;
+  height: auto;
+  margin-bottom: 12px;
+}
+
+.img_ahorcado_two {
+  width: 400px;
   height: auto;
   margin-bottom: 12px;
 }
@@ -48,6 +55,13 @@
 
 .div_keyboard {
   margin-top: 20px;
+
+  ion-button {
+    --color: black;
+    --border-color: black;
+    --background: #e6d5c3;
+    font-weight: 600;
+  }
 }
 
 ion-grid {
@@ -73,14 +87,26 @@ ion-row {
   text-align: center;
   margin-top: 30px;
 
-  .victoria {
-    color: var(--ion-color-success);
+  p {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    font-weight: 600;
+    font-size: 20px;
+  }
+
+  .victoria,
+  .derrota {
+    margin-top: 25px;
+    color: white;
     font-weight: bold;
+    font-size: 30px;
   }
 
   .derrota {
-    color: var(--ion-color-danger);
-    font-weight: bold;
+    margin-top: 10px;
   }
 }
 
@@ -93,4 +119,16 @@ ion-row {
 .btn_logged {
   font-size: 20px;
   font-weight: 1000;
+}
+
+.timer {
+  --color: white;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.fallos {
+  --color: black;
+  font-size: 16px;
+  font-weight: 600;
 }

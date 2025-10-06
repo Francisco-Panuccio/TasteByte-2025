@@ -8,7 +8,7 @@
 
     <div class="vidas">
       Vidas restantes:
-      <span *ngFor="let v of [].constructor(vidasRestantes)">❤️</span>
+      <span *ngFor="let v of [].constructor(vidasRestantes)">🖤</span>
     </div>
 
     <div class="tablero">
@@ -19,15 +19,15 @@
     </div>
 
     <div class="info">
-      <p>Pares encontrados: {{ aciertos }}/{{ imagenesBase.length }}</p>
+      <p>Pares encontrados: {{ aciertos }} / {{ imagenesBase.length }}</p>
     </div>
 
     <div *ngIf="juegoFinalizado" class="resultado">
-      <ion-button style="border: 2px solid black; border-radius: 8px;" (click)="resetear()">
+      <ion-button class="btn_replay" (click)="resetear()">
         Volver a Jugar
       </ion-button>
       <p *ngIf="vidasRestantes <= 0" class="perdio-texto">
-        😢 Te quedaste sin vidas. Inténtalo de nuevo.
+        😢 Te quedaste sin vidas 😢 <br> Inténtalo de nuevo
       </p>
       <p *ngIf="aciertos === imagenesBase.length" class="gano-texto">
         🎉 ¡Ganaste el juego!
