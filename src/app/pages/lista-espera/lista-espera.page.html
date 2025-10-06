@@ -21,13 +21,16 @@
           }
         </ion-label>
 
-      @if(esMaitre) {
-        <ion-button (click)="aprobar(c)" slot="end" fill="solid" shape="round">
-          Aprobar
-        </ion-button>
-      }
-
-
+        @if(esMaitre) {
+          <ion-buttons slot="end">
+            <ion-button (click)="aprobar(c)" fill="solid" shape="round">
+              Aprobar
+            </ion-button>
+            <ion-button color="danger" (click)="quitar(c)" fill="outline" shape="round">
+              Quitar
+            </ion-button>
+          </ion-buttons>
+        }
       </ion-item>
     </ion-list>
 
@@ -37,7 +40,7 @@
       </ion-text>
     </ng-template>
   </ion-content>
-  
+
   <footer>
     <ion-toolbar>
       <ion-buttons class="ion_btns">
