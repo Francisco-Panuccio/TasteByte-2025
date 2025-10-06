@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ToastController } from '@ionic/angular';
 import { Descuentos } from 'src/app/services/descuentos/descuentos';
 
 @Component({
@@ -28,26 +27,21 @@ export class Juego10Page implements OnInit {
   inicio!: number;
   tiempoTranscurrido = '00:00:00';
   intervalo!: ReturnType<typeof setInterval>;
-  juego_finalizado = 0; // 0=jugando, 1=ganó, 2=perdió
+  juego_finalizado = 0;
 
   mesaId!: number;
   clienteId!: number | null;
   usuarioId!: number | null;
   anonimoId!: string | null;
-  userId!: string | null; // 👉 este es el uuid real del usuario
+  userId!: string | null;
 
-  constructor(
-    private toast: ToastController,
-    private router: Router,
-    private route: ActivatedRoute,
-    private descuentos: Descuentos
-  ) {
+  constructor(private router: Router, private route: ActivatedRoute, private descuentos: Descuentos) {
     this.route.queryParams.subscribe(params => {
       this.mesaId = params['mesaId'] ? Number(params['mesaId']) : 0;
       this.clienteId = params['clienteId'] ? Number(params['clienteId']) : null;
       this.usuarioId = params['usuarioId'] ? Number(params['usuarioId']) : null;
       this.anonimoId = params['anonimoId'] ?? null;
-      this.userId = params['userId'] ?? null; 
+      this.userId = params['userId'] ?? null;
     });
   }
 
@@ -98,13 +92,11 @@ export class Juego10Page implements OnInit {
     this.juego_finalizado = resultado ? 1 : 2;
 
     if (resultado && this.intentos === 1 && !this.descuentoAplicado && this.userId) {
-    // gano al primer intento => aplicar descuento y registrar
-    await this.descuentos.aplicarDescuento(this.clienteId, this.userId, this.mesaId, 10, 'juego10');
-    this.descuentoAplicado = true;
-  } else if (!this.descuentoAplicado && this.userId) {
-    // perdio => igual registrar intento sin descuento
-    await this.descuentos.registrarIntento(this.userId, 'juego10', false);
-  }
+      await this.descuentos.aplicarDescuento(this.clienteId, this.userId, this.mesaId, 10, 'juego10');
+      this.descuentoAplicado = true;
+    } else if (!this.descuentoAplicado && this.userId) {
+      await this.descuentos.registrarIntento(this.userId, 'juego10', false);
+    }
 
   }
 
@@ -132,16 +124,6 @@ export class Juego10Page implements OnInit {
       'assets/images/ahorcado/6_ahorcado.png'
     ];
     this.url_ahorcado = this.imagenes[0];
-  }
-
-  private async mostrarToast(mensaje: string, color: string = 'primary') {
-    const t = await this.toast.create({
-      message: mensaje,
-      duration: 2000,
-      color,
-      position: 'top'
-    });
-    await t.present();
   }
 
   volver() {

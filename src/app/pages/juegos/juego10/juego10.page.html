@@ -7,10 +7,10 @@
     <div class="div_body">
       <div class="div_contenedor_ahorcado">
         <div class="div_contenido_img">
-          <img class="img_ahorcado" [src]="url_ahorcado" alt="horca" />
+          <img class="img_ahorcado" [src]="url_ahorcado" alt="horca"/>
           <div class="div_contenido_estadisticas">
-            <ion-chip color="medium">⏱ {{ tiempoTranscurrido }}</ion-chip>
-            <ion-chip color="danger">❌ {{ fallos }}/{{ max_fallos }}</ion-chip>
+            <ion-chip class="timer">⏱ {{ tiempoTranscurrido }}</ion-chip>
+            <ion-chip class="fallos">❌ {{ fallos }} / {{ max_fallos }}</ion-chip>
           </div>
         </div>
 
@@ -77,13 +77,16 @@
   } @else {
     <div class="div_final_juego">
       @if(juego_finalizado === 1) {
-        <p>🎉 <span class="victoria">¡¡¡Ganaste!!!</span> 🎉</p>
+        <p><span class="victoria">🎉 ¡¡¡Ganaste!!! 🎉</span></p>
       } @else if (juego_finalizado === 2) {
-        <p>💀 <span class="derrota">¡Perdiste!</span> 💀 <br />La palabra era: {{ palabra }}</p>
+        <p><span class="derrota">💀 ¡Perdiste! 💀</span> <br />La palabra era: {{ palabra }}</p>
       }
       <ion-button style="border: 2px solid black; border-radius: 8px;" (click)="resetear()">
         Volver a Jugar
       </ion-button>
+      <div class="div_contenido_img">
+        <img class="img_ahorcado_two" src="assets/images/ahorcado/6_ahorcado.png" alt="horca"/>
+      </div>
     </div>
   }
 </ion-content>

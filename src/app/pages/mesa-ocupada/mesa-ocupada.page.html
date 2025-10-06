@@ -14,16 +14,8 @@
       <div class="resumen-flotante">
         <section class="resumen">
           <div class="div_data">
-            <div class="importe">Total: {{ total | currency:"ARS":"symbol-narrow" }}</div>
+            <div class="importe">Total: {{ total | currency:"ARS":"symbol-narrow":"1.0-0" }}</div>
             <div class="tiempo_espera">Espera: {{ etaMin }} min</div>
-          </div>
-          <div class="div_btn">
-            <button
-              class="btn_pedido"
-              [disabled]="submitting || pedidoBloqueado || itemsSel.length===0"
-              (click)="terminarPedido();">
-              Finalizar Pedido
-            </button>
           </div>
         </section>
 
@@ -121,6 +113,15 @@
       </div>
     }
   </ion-content>
+
+  <div class="div_btn">
+    <button
+      class="btn_pedido"
+      [disabled]="submitting || pedidoBloqueado || itemsSel.length===0"
+      (click)="terminarPedido();">
+      Finalizar Pedido
+    </button>
+  </div>
 
   <footer>
     <ion-toolbar>

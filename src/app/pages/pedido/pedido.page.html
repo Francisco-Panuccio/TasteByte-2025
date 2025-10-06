@@ -15,13 +15,15 @@
               <div>{{ it.nombre }}</div>
               <small>{{ it.tipo }} • {{ it.duracion_min }} min</small>
             </ion-label>
-            <ion-note slot="end">{{ it.cantidad }} × {{ it.precio_unit | currency:"ARS":"symbol-narrow" }}</ion-note>
+            <ion-note slot="end" style="font-size: 16px;">{{ it.cantidad }} × {{ it.precio_unit | currency:"ARS":"symbol-narrow" }}</ion-note>
           </ion-item>
         }
 
-        <ion-button (click)="confirmarRecibido();" [disabled]="verificando || !ped || ped?.estado === 'terminado'">
-          Pedido Recibido
-        </ion-button>
+        <div class="div_btn_recibido">
+          <ion-button class="btn_recibido" (click)="confirmarRecibido();" [disabled]="verificando || !ped || ped?.estado === 'terminado'">
+            Pedido Recibido
+          </ion-button>
+        </div>
 
         <div class="div_total">
           <p><span style="color: black;">Total: </span> {{ ped?.total | currency:"ARS":"symbol-narrow" }}</p>

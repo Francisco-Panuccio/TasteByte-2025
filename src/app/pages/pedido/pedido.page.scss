@@ -51,14 +51,28 @@ ion-item {
   bottom: 0;
   width: 100%;
   border-top: 2px solid black;
+
+  p {
+    color: #554738;
+    font-weight: 600;
+    margin: 0;
+    padding: 5px;
+    border: 2px solid black;
+    border-right: none;
+    border-left: none;
+    font-size: 20px;
+  }
 }
 
-p {
-  color: #554738;
-  font-weight: 600;
-  margin: 0;
-  padding: 5px;
-  border: 2px solid black;
-  border-right: none;
-  border-left: none;
+.div_btn_recibido {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .btn_recibido {
+    position: absolute;
+    bottom: 23%;
+    z-index: 1;
+    font-size: 17px;
+  }
 }
