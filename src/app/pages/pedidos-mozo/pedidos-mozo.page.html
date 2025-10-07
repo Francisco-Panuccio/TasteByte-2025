@@ -9,7 +9,7 @@
     <ion-segment [(ngModel)]="filtro" (ionChange)="cargar()" [disabled]="busy">
       <ion-segment-button value="pendiente">Pendientes</ion-segment-button>
       <ion-segment-button value="aceptado">Aceptados</ion-segment-button>
-      <ion-segment-button value="rechazado">Rechazados</ion-segment-button>
+      <ion-segment-button value="recibido">Entregados</ion-segment-button>
       <ion-segment-button value="terminado">Terminados</ion-segment-button>
       <ion-segment-button value="impagado">Impagados</ion-segment-button>
     </ion-segment>
@@ -30,6 +30,8 @@
 
         <div class="div_btns">
           <button (click)="abrirChat(p.mesa_id)" class="btn_chat" [disabled]="busy">Chat</button>
+
+          <button class="btn_entregar" *ngIf="p.estado==='aceptado'" (click)="setEstado(p.id,'recibido')" [disabled]="busy">Entregar</button>
           
           <button class="btn_aceptar" *ngIf="p.estado==='pendiente'" (click)="setEstado(p.id,'aceptado')" [disabled]="busy">Aceptar</button>
           <button class="btn_rechazar" *ngIf="p.estado==='pendiente'" (click)="setEstado(p.id,'rechazado')" [disabled]="busy">Rechazar</button>

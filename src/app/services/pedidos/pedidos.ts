@@ -145,7 +145,7 @@ export class Pedidos {
     .from("pedidos")
     .select("id, total, estado, mesa_id, cliente_uid, cliente_email")
     .eq("cliente_email", email)
-    .in("estado", ["pendiente", "aceptado", "terminado"])
+    .in("estado", ["pendiente", "aceptado", "terminado", "recibido"])
     .order("created_at", { ascending: false })
     .limit(1);
 

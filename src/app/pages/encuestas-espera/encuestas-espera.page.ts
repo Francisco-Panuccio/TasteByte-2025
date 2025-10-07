@@ -394,6 +394,9 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     if (this.estadoPedido === 'aceptado') {
       this.mostrarJuegosPedido = true;
       this.mostrarCuenta = false;
+    } else if (this.estadoPedido === 'recibido') {
+      this.mostrarCuenta = false;
+      this.mostrarJuegosPedido = true;
     } else if (this.estadoPedido === 'terminado') {
       this.mostrarCuenta = true;
       this.mostrarJuegosPedido = false;

@@ -148,8 +148,23 @@ export class PedidosMozoPage implements OnInit {
     }
   }
 
-  async setEstado(pedidoId: string, estado: "aceptado" | "rechazado" | "pagado") {
+  async setEstado(pedidoId: string, estado: "aceptado" | "rechazado" | "pagado" | "recibido") {
   if (this.busy) return;
+
+    if (estado === "recibido") {
+    const validacion = await this.validarEstadoAreas(pedidoId);
+    if (!validacion.valido) {
+      const toast = await this.toast.create({
+        message: validacion.mensaje,
+        duration: 3000,
+        position: 'top',
+        cssClass: 'toast'
+      });
+      toast.present();
+      return;
+    }
+  }
+
   this.busy = true;
   try {
     await this.pedidosSrv.actualizarEstado(pedidoId, estado as any);
@@ -267,7 +282,9 @@ export class PedidosMozoPage implements OnInit {
         ? "Pago rechazado"
         : estado === "aceptado"
         ? "Pedido aceptado"
-        : "Pedido rechazado";
+        : estado === "recibido"
+        ? "Pedido entregado"
+        : "Estado actualizado";
 
     (
       await this.toast.create({
@@ -492,6 +509,75 @@ export class PedidosMozoPage implements OnInit {
         `Pedido mesa ${mesaNumero} completo`,
         { tipo: "pedido_completo", pedidoId: id, mesaId: mesaId ?? null }
       );
+    }
+  }
+
+  private async validarEstadoAreas(pedidoId: string): Promise<{valido: boolean, mensaje: string}> {
+    try {
+      const [{ data: barPedido }, { data: cocinaPedido }] = await Promise.all([
+        supabase
+          .from("bar_pedidos")
+          .select("estado")
+          .eq("pedido_id", pedidoId)
+          .maybeSingle(),
+        supabase
+          .from("cocina_pedidos")
+          .select("estado")
+          .eq("pedido_id", pedidoId)
+          .maybeSingle()
+      ]);
+
+      console.log('Estado actual bar:', barPedido?.estado);
+      console.log('Estado actual cocina:', cocinaPedido?.estado);
+
+      const hasBar = !!barPedido;
+      const hasCocina = !!cocinaPedido;
+      const doneBar = hasBar && barPedido.estado === "terminado";
+      const doneCocina = hasCocina && cocinaPedido.estado === "terminado";
+      
+      const ready =
+        (hasBar && hasCocina && doneBar && doneCocina) ||
+        (hasBar && !hasCocina && doneBar) ||
+        (!hasBar && hasCocina && doneCocina);
+
+      console.log('Pedido listo para entregar:', ready);
+
+      if (!ready) {
+        let mensaje = "Falta terminar el pedido en ";
+        
+        if (hasBar && hasCocina) {
+          if (!doneBar && !doneCocina) {
+            mensaje += "cocina y bar";
+          } else if (!doneBar) {
+            mensaje += "bar";
+          } else if (!doneCocina) {
+            mensaje += "cocina";
+          }
+        } else if (hasBar && !doneBar) {
+          mensaje += "bar";
+        } else if (hasCocina && !doneCocina) {
+          mensaje += "cocina";
+        } else {
+          mensaje = "El pedido no está listo para entregar";
+        }
+        
+        return {
+          valido: false,
+          mensaje: mensaje
+        };
+      }
+
+      return {
+        valido: true,
+        mensaje: "Pedido listo para entregar"
+      };
+
+    } catch (error) {
+      console.error("Error validando estado de áreas:", error);
+      return {
+        valido: false,
+        mensaje: "Error al verificar el estado del pedido"
+      };
     }
   }
 }
