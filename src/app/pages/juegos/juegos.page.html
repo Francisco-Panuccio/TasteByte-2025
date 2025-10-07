@@ -5,36 +5,39 @@
     <title>Juegos</title>
   </header>
 
-  <ion-content >
+  <ion-content>
     <div class="div_main">
       <h2>Elige un juego para obtener descuentos</h2>
 
-      <ion-button 
-      expand="block" 
-      class="btn_juego juego10" 
-      [routerLink]="['/juegos/juego10']"
-      [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId, userId : userId, mesaId : mesaId}"
-      >
+      <ion-button expand="block" class="btn_juego juego10" [routerLink]="['/juegos/juego10']"
+        [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId, userId : userId, mesaId : mesaId}">
         Juego 10% Descuento
       </ion-button>
+      <div class="div_img"
+      [routerLink]="['/juegos/juego10']"
+      [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId, userId : userId, mesaId : mesaId}">
+        <img src="assets/images/ahorcado/6_ahorcado_negro.png" alt="ahorcado">
+      </div>
 
-      <ion-button 
-      expand="block" 
-      class="btn_juego juego10" 
-      [routerLink]="['/juegos/juego15']"
-      [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId, userId : userId, mesaId : mesaId}"
-      >
+      <ion-button expand="block" class="btn_juego juego10" [routerLink]="['/juegos/juego15']"
+        [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId, userId : userId, mesaId : mesaId}">
         Juego 15% Descuento
       </ion-button>
+      <div class="div_img"
+      [routerLink]="['/juegos/juego15']"
+      [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId, userId : userId, mesaId : mesaId}">
+        <img src="assets/images/mayor-menor/baraja.jpg" alt="mayor-menor">
+      </div>
 
-      <ion-button 
-      expand="block" 
-      class="btn_juego juego10" 
-      [routerLink]="['/juegos/juego20']"
-      [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId, userId : userId, mesaId : mesaId}"
-      >
+      <ion-button expand="block" class="btn_juego juego10" [routerLink]="['/juegos/juego20']"
+        [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId, userId : userId, mesaId : mesaId}">
         Juego 20% Descuento
       </ion-button>
+      <div class="div_img"
+      [routerLink]="['/juegos/juego20']"
+      [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId, userId : userId, mesaId : mesaId}">
+        <img src="assets/images/memotest/bananas.png" alt="memotest">
+      </div>
     </div>
   </ion-content>
 
