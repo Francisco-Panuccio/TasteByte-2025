@@ -1,16 +1,220 @@
-.div_total {
+/* 🔹 Estructura principal */
+.cuenta-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(180deg, #fffdf7 0%, #f1f1f1 100%);
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  --overflow: hidden;
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+}
+
+.cuenta-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  width: 100%;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+.cuenta-container {
+  width: 100%;
+  max-width: 600px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 🔹 Contenedor blanco grande */
+.cuenta-card {
+  width: 100%;
+  height: 55vh;
+  border-radius: 25px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  font-size: 1.2rem;
+  background-color: #ffffff;
+
+  /* 🔸 Centra todo el contenido interno verticalmente */
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* 👈 centra todos los elementos del card */
+  align-items: stretch;
+}
+
+ion-card-header {
+  margin-bottom: 10px;
+}
+
+ion-card-title {
+  font-size: 2rem;
+  text-align: center;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+}
+
+.items-list {
+  margin: 10px 0;
+}
+
+.item-row {
+  --min-height: 70px;
+  font-size: 1.2rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.totales {
   margin-top: 15px;
-  font-size: 14px;
-  color: var(--ion-color-dark);
+  text-align: center;
+
+  p {
+    font-size: 1.9rem;
+    margin: 4px 0;
+  }
+}
+
+.descuento {
+  color: green;
+  font-weight: bold;
+}
+
+.div_propina {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+
+  ion-button {
+    font-size: 1.3rem;
+    height: 65px;
+    width: 100%;
+  }
+
+  .propina-text {
+    margin-top: 5px;
+    font-size: 1.9rem;  // esto
+    font-weight : bold;
+  }
 }
 
 .total_final {
-  margin-top: 10px;
-  font-size: 22px;
+  margin-top: 15px;
+  font-size: 1.8rem;
   font-weight: bold;
-  color: #2e7d32;
-  text-align: right;
+  color: #222;
 }
+
+/* 🔹 Botones fuera del card (centrados también) */
+.botones {
+  width: 100%;
+  margin-top: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center;
+
+  ion-button {
+    width: 100%;
+    font-size: 1.3rem;
+    height: 65px;
+    border-radius: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.25s ease;
+  }
+
+  /* 🎨 Botón Pagar personalizado */
+  ion-button[color="success"] {
+    --background: linear-gradient(135deg, #d2691e, #f4a261);
+    --color: #fff8f0; /* texto claro, cálido */
+    --border: none;
+    --box-shadow: 0 4px 12px rgba(210, 105, 30, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+
+    &:hover {
+      --background: linear-gradient(135deg, #e07b39, #f6a971);
+      transform: scale(1.02);
+    }
+
+    &:active {
+      transform: scale(0.97);
+      --background: linear-gradient(135deg, #b85c1d, #e68958);
+    }
+  }
+
+  /* 🎨 Botón Volver */
+  ion-button[color="medium"] {
+    --background: #f1f1f1;
+    --color: #333;
+    border: 2px solid #ccc;
+    font-weight: 500;
+
+    &:hover {
+      --background: #eaeaea;
+      transform: scale(1.02);
+    }
+
+    &:active {
+      transform: scale(0.97);
+    }
+  }
+}
+
+/* 🔹 Centrado del loading */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  text-align: center;
+
+  .loading-text {
+    margin-top: 15px;
+    font-size: 1.4rem;
+  }
+}
+
+/* 🔹 Botón Pagar personalizado sin depender del color="success" */
+.btn-pagar {
+  --background: linear-gradient(135deg, #864619, #6b4425);
+  --color: #fff8f0; /* texto claro */
+  --border: none;
+  --box-shadow: 0 4px 12px rgba(210, 105, 30, 0.4);
+  font-weight: 700;
+  font-size: 1.4rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border-radius: 12px;
+  height: 65px;
+  width: 100%;
+  transition: all 0.25s ease;
+
+  &:hover {
+    --background: linear-gradient(135deg, #572809, #b15e23);
+    transform: scale(1.02);
+  }
+
+  &:active {
+    transform: scale(0.97);
+    --background: linear-gradient(135deg, #b15111, #a84a18);
+  }
+}
+
+
+
 
 .ion_btns {
   display: flex;

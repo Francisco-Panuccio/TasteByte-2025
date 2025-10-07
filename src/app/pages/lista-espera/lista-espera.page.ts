@@ -28,7 +28,7 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
     private modalCtrl: ModalController,
     private navCtrl: NavController,
     private push: Push
-  ) { }
+  ) {}
 
   private normalizarPerfil(p?: string): string {
     return (p ?? '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -52,7 +52,11 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
     try {
       const { data: authData } = await supabase.auth.getUser();
       if (authData?.user?.email) {
-        const { data: usuario } = await supabase.from('usuarios').select('id, perfil').eq('correo_electronico', authData.user.email).maybeSingle();
+        const { data: usuario } = await supabase
+          .from('usuarios')
+          .select('id, perfil')
+          .eq('correo_electronico', authData.user.email)
+          .maybeSingle();
         perfil = usuario?.perfil;
         usuarioIdNum = usuario?.id ?? undefined;
         const norm = this.normalizarPerfil(perfil);
@@ -62,7 +66,7 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
       const role = this.perfilToRole(perfil);
       await this.push.init(usuarioIdNum, role as any);
       await this.push.ready();
-    } catch { }
+    } catch {}
 
     await this.cargarLista();
 
@@ -78,7 +82,11 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
           if (this.seenWaitIds.has(id)) return;
           this.seenWaitIds.add(id);
           if (this.esMaitre) {
-            await this.push.sendToRoles(['maitre'], 'Nuevo cliente en lista de espera', '', { tipo: 'lista_espera', screen: 'lista-espera', lista_espera_id: row.id });
+            await this.push.sendToRoles(['maitre'], 'Nuevo cliente en lista de espera', '', {
+              tipo: 'lista_espera',
+              screen: 'lista-espera',
+              lista_espera_id: row.id
+            });
           }
           await this.cargarLista();
         }
@@ -87,17 +95,27 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    try { if (this.rtChannel) supabase.removeChannel(this.rtChannel); } catch { }
+    try {
+      if (this.rtChannel) supabase.removeChannel(this.rtChannel);
+    } catch {}
   }
 
   async cargarLista() {
     this.loading = true;
-    const { data, error } = await supabase.from('lista_espera_v').select('*').eq('estado', 'pendiente').order('creado_en', { ascending: true });
+    const { data, error } = await supabase
+      .from('lista_espera_v')
+      .select('*')
+      .eq('estado', 'pendiente')
+      .order('creado_en', { ascending: true });
     if (error) {
       this.clientes = [];
     } else {
       this.clientes = (data || []).map((c) => {
-        const nombre = c.cliente_anonimo_nombre || (c.usuario_nombre && c.usuario_apellido ? `${c.usuario_nombre} ${c.usuario_apellido}` : null);
+        const nombre =
+          c.cliente_anonimo_nombre ||
+          (c.usuario_nombre && c.usuario_apellido
+            ? `${c.usuario_nombre} ${c.usuario_apellido}`
+            : null);
         const foto = c.cliente_anonimo_foto || c.usuario_foto || null;
         return { ...c, nombre: nombre ?? 'Cliente anónimo', foto_url: foto };
       });
@@ -111,10 +129,17 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
     const { data: mesaSeleccionada } = await modal.onDidDismiss();
     if (!mesaSeleccionada) return;
 
-    const { error: errorLista } = await supabase.from('lista_espera').update({ estado: 'aprobado', mesa_id: mesaSeleccionada.id }).eq('id', cliente.id);
+    const { error: errorLista } = await supabase
+      .from('lista_espera')
+      .update({ estado: 'aprobado', mesa_id: mesaSeleccionada.id })
+      .eq('id', cliente.id);
     if (errorLista) return;
 
-    const { data: le } = await supabase.from('lista_espera').select('cliente_id, cliente_anonimo_id, push_token').eq('id', cliente.id).maybeSingle();
+    const { data: le } = await supabase
+      .from('lista_espera')
+      .select('cliente_id, cliente_anonimo_id, push_token')
+      .eq('id', cliente.id)
+      .maybeSingle();
 
     const payload: any = { mesa_id: mesaSeleccionada.id, estado: 'asignada' };
     if (le?.cliente_id) payload.cliente_id = le.cliente_id;
@@ -124,10 +149,28 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
 
     const tok = le?.push_token as string | undefined;
     if (tok) {
-      await this.push.send(tok, `Mesa ${mesaSeleccionada.numero} Asignada`, '', { tipo: 'mesa_asignada', mesa_id: mesaSeleccionada.id, mesa_numero: mesaSeleccionada.numero });
+      await this.push.send(tok, `Mesa ${mesaSeleccionada.numero} Asignada`, '', {
+        tipo: 'mesa_asignada',
+        mesa_id: mesaSeleccionada.id,
+        mesa_numero: mesaSeleccionada.numero
+      });
     }
 
     this.clientes = this.clientes.filter((c) => c.id !== cliente.id);
+  }
+
+  async quitar(cliente: any) {
+    const { error } = await supabase.from('lista_espera').delete().eq('id', cliente.id);
+    if (error) return;
+    this.clientes = this.clientes.filter((c) => c.id !== cliente.id);
+
+    const tok = cliente.push_token as string | undefined;
+    if (tok) {
+      await this.push.send(tok, 'Tu turno fue cancelado', '', {
+        tipo: 'lista_cancelada',
+        lista_espera_id: cliente.id
+      });
+    }
   }
 
   getPosicionCliente(): number | null {
@@ -136,5 +179,7 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
     return idx >= 0 ? idx + 1 : null;
   }
 
-  volver() { this.navCtrl.back(); }
+  volver() {
+    this.navCtrl.back();
+  }
 }

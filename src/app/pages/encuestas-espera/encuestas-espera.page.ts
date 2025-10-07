@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, NgZone } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ToastController } from '@ionic/angular';
 import { Qr } from 'src/app/services/qr/qr';
@@ -25,8 +25,11 @@ interface AsignacionMesaRow {
 export class EncuestasEsperaPage implements OnInit, OnDestroy {
   private qr = inject(Qr);
   private push = inject(Push);
+  private zone = inject(NgZone);
   private subscription: any;
   private pedidoSub: any;
+  private listaEsperaSub: any;
+
 
   nombreCliente: string | undefined;
   usuarioId: number | null = null;
@@ -147,13 +150,57 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
         )
         .subscribe();
 
+
+
+      this.listaEsperaSub = supabase
+      .channel('lista_espera_sub')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'lista_espera',
+        },
+        async (payload: any) => {
+          const row = (payload.new as any) ?? (payload.old as any);
+          if (!row) return;
+
+          const esEsteCliente =
+            row.cliente_anonimo_id === this.anonimoId ||
+            row.cliente_id === this.clienteId;
+
+          if (!esEsteCliente) return;
+
+          if (payload.eventType === 'DELETE') {
+            this.zone.run(() => {
+              this.yaRegistrado = false;
+              this.mostrarToast('Fuiste removido de la lista de espera.', 'warning');
+            });
+          }
+
+          if (payload.eventType === 'UPDATE') {
+            const nuevoEstado = row.estado;
+            if (nuevoEstado && nuevoEstado !== 'pendiente') {
+              this.zone.run(() => {
+                this.yaRegistrado = false;
+                this.mostrarToast(`Tu estado cambió a "${nuevoEstado}".`, 'medium');
+              });
+            }
+          }
+        }
+      )
+      .subscribe();
+
+
       setTimeout(() => (this.loading = false), 2000);
     });
+    
   }
 
   ngOnDestroy() {
     if (this.subscription) supabase.removeChannel(this.subscription);
     if (this.pedidoSub) supabase.removeChannel(this.pedidoSub);
+    if (this.listaEsperaSub) supabase.removeChannel(this.listaEsperaSub);
   }
 
   async escanearQr() {
