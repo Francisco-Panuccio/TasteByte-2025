@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastController } from '@ionic/angular';
 import { supabase } from 'src/supabase.client';
 import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
+import { Push } from 'src/app/services/push/push';
 
 @Component({
   selector: 'app-cuenta',
@@ -11,6 +12,7 @@ import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
   standalone: false
 })
 export class CuentaPage implements OnInit {
+  private push = inject(Push);
   pedidoId!: string;
   ped: any;
   items: any[] = [];
@@ -24,12 +26,7 @@ export class CuentaPage implements OnInit {
   clienteId: number | null = null;
   userId!: string | null;
 
-  constructor(
-    private ar: ActivatedRoute,
-    private router: Router,
-    private toast: ToastController,
-    private route: ActivatedRoute
-  ) {
+  constructor(private ar: ActivatedRoute, private router: Router, private toast: ToastController, private route: ActivatedRoute) {
     this.route.queryParams.subscribe(params => {
       this.clienteId = params['clienteId'] ? Number(params['clienteId']) : null;
       this.usuarioId = params['usuarioId'] ? Number(params['usuarioId']) : null;
@@ -126,29 +123,42 @@ export class CuentaPage implements OnInit {
   }
 
   async quitarPropina() {
-  this.propinaSeleccionada = 0;
-  this.actualizarTotal();
-  await this.mostrarToast('Propina eliminada.');
-}
+    this.propinaSeleccionada = 0;
+    this.actualizarTotal();
+    await this.mostrarToast('Propina eliminada.');
+  }
 
+  async pagar(): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from("pedidos")
+        .update({ estado: "impagado", total: this.totalFinal })
+        .eq("id", this.pedidoId);
+      if (error) {
+        await this.mostrarToast(`Error al pagar: ${error.message}`);
+        return;
+      }
 
+      const { data: pedRow } = await supabase
+        .from("pedidos")
+        .select("mesa_id, mesas(numero)")
+        .eq("id", this.pedidoId)
+        .maybeSingle();
+      const mesaId = pedRow?.mesa_id ?? null;
+      const mesaNumero = (pedRow as any)?.mesas?.numero ?? mesaId ?? "NN";
 
-  async pagar() {
-    const { error } = await supabase
-      .from('pedidos')
-      .update({
-        estado: 'impagado',
-        total: this.totalFinal
-      })
-      .eq('id', this.pedidoId);
+      await this.push.sendToRoles(
+        ["dueño", "mozo", "supervisor"],
+        "Pago realizado",
+        `Cliente Mesa (${mesaNumero}) realizó su pago`,
+        { tipo: "pago_realizado", pedidoId: this.pedidoId, mesaId, mesaNumero }
+      );
 
-    if (error) {
-      await this.mostrarToast(`❌ Error al pagar: ${error.message}`);
-      return;
+      await this.mostrarToast("✅ Pago solicitado. Espera confirmación del mozo.");
+      this.volver();
+    } catch {
+      await this.mostrarToast("Error al pagar.");
     }
-
-    await this.mostrarToast('✅ Pago solicitado. Espera confirmación del mozo.');
-    this.volver();
   }
 
   volver() {
@@ -167,7 +177,7 @@ export class CuentaPage implements OnInit {
   private async mostrarToast(mensaje: string, color: string = 'primary') {
     const t = await this.toast.create({
       message: mensaje,
-      duration: 2500,
+      duration: 1500,
       color,
       position: 'top'
     });

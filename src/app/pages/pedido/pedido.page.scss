@@ -68,11 +68,10 @@ ion-item {
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 100%;
 
   .btn_recibido {
-    position: absolute;
-    bottom: 23%;
-    z-index: 1;
+    width: 100%;
     font-size: 17px;
   }
 }

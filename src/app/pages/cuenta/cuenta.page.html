@@ -1,11 +1,10 @@
 @if(loading) {
-  <ion-content class="ion-padding user_background">
-    <div class="loading-container">
-      <ion-spinner name="crescent"></ion-spinner>
-      <p class="loading-text">Cargando cuenta...</p>
-    </div>
-  </ion-content>
+  <app-loading/>
 } @else {
+  <header>
+    <title>Cuenta</title>
+  </header>
+
   <ion-content class="cuenta-content">
     <div class="cuenta-wrapper">
       <div class="cuenta-container">
@@ -64,9 +63,7 @@
       </div>
     </div>
   </ion-content>
-
-
-
+  
   <footer>
     <ion-toolbar>
       <ion-buttons class="ion_btns">
