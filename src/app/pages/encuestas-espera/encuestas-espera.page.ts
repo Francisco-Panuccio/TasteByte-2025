@@ -175,6 +175,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
             this.zone.run(() => {
               this.yaRegistrado = false;
               this.mostrarToast('Fuiste removido de la lista de espera.', 'warning');
+              this.toast.getTop().then(t => t?.onDidDismiss().then(() => location.reload()));
             });
           }
 
@@ -458,6 +459,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       const title = "Cuenta Solicitada";
       const body = `Cliente Mesa (${mesaNumero}) solicita la cuenta`;
       await this.push.sendToRoles(["mozo"], title, body, {
+        tipo: "pedir_cuenta",
         mesaId: this.mesaAsignadaId,
         mesaNumero
       });

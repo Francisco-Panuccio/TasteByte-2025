@@ -52,9 +52,12 @@ export class EncuestaNuevaPage implements OnInit {
       tiempo_espera: this.tiempoEspera,
       opinion: this.opinion ?? null
     });
-    const t = await this.toast.create({ message: "¡Gracias por tu Encuesta!", duration: 2000, position: "top", cssClass: "toast" });
+    const t = await this.toast.create({ message: "¡Gracias por tu Encuesta!", duration: 1000, position: "top", cssClass: "toast" });
     await t.present();
-    this.volver();
+    await t.onDidDismiss();
+
+    const url = this.router.serializeUrl(this.router.createUrlTree(["/encuestas"], { queryParams: { anonimoId: this.anonimoId, usuarioId: this.usuarioId, clienteId: this.clienteId } }));
+    window.location.replace(url);
   }
 
   volver() {

@@ -1,4 +1,3 @@
-/* 🔹 Estructura principal */
 .cuenta-content {
   display: flex;
   justify-content: center;
@@ -6,8 +5,6 @@
   background: linear-gradient(180deg, #fffdf7 0%, #f1f1f1 100%);
   height: 100vh;
   width: 100%;
-  overflow: hidden;
-  --overflow: hidden;
   --padding-start: 0;
   --padding-end: 0;
   --padding-top: 0;
@@ -18,7 +15,6 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
   width: 100%;
   padding: 2rem;
   box-sizing: border-box;
@@ -34,7 +30,6 @@
   justify-content: center;
 }
 
-/* 🔹 Contenedor blanco grande */
 .cuenta-card {
   width: 100%;
   height: 55vh;
@@ -43,11 +38,9 @@
   padding: 20px;
   font-size: 1.2rem;
   background-color: #ffffff;
-
-  /* 🔸 Centra todo el contenido interno verticalmente */
   display: flex;
   flex-direction: column;
-  justify-content: center; /* 👈 centra todos los elementos del card */
+  justify-content: center;
   align-items: stretch;
 }
 
@@ -103,8 +96,8 @@ ion-card-title {
 
   .propina-text {
     margin-top: 5px;
-    font-size: 1.9rem;  // esto
-    font-weight : bold;
+    font-size: 1.9rem;
+    font-weight: bold;
   }
 }
 
@@ -115,7 +108,6 @@ ion-card-title {
   color: #222;
 }
 
-/* 🔹 Botones fuera del card (centrados también) */
 .botones {
   width: 100%;
   margin-top: 25px;
@@ -134,10 +126,9 @@ ion-card-title {
     transition: all 0.25s ease;
   }
 
-  /* 🎨 Botón Pagar personalizado */
   ion-button[color="success"] {
     --background: linear-gradient(135deg, #d2691e, #f4a261);
-    --color: #fff8f0; /* texto claro, cálido */
+    --color: #fff8f0;
     --border: none;
     --box-shadow: 0 4px 12px rgba(210, 105, 30, 0.4);
     text-transform: uppercase;
@@ -154,7 +145,6 @@ ion-card-title {
     }
   }
 
-  /* 🎨 Botón Volver */
   ion-button[color="medium"] {
     --background: #f1f1f1;
     --color: #333;
@@ -172,7 +162,6 @@ ion-card-title {
   }
 }
 
-/* 🔹 Centrado del loading */
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -187,10 +176,9 @@ ion-card-title {
   }
 }
 
-/* 🔹 Botón Pagar personalizado sin depender del color="success" */
 .btn-pagar {
   --background: linear-gradient(135deg, #864619, #6b4425);
-  --color: #fff8f0; /* texto claro */
+  --color: #fff8f0;
   --border: none;
   --box-shadow: 0 4px 12px rgba(210, 105, 30, 0.4);
   font-weight: 700;
@@ -212,9 +200,6 @@ ion-card-title {
     --background: linear-gradient(135deg, #b15111, #a84a18);
   }
 }
-
-
-
 
 .ion_btns {
   display: flex;

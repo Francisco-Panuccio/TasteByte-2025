@@ -19,13 +19,6 @@
           </ion-item>
         }
 
-        @if(ped?.estado === 'recibido') {
-          <div class="div_btn_recibido">
-              <ion-button class="btn_recibido" (click)="confirmarRecibido();" [disabled]="verificando">
-              Pedido Recibido
-            </ion-button>
-          </div>
-        }
         <div class="div_total">
           <p><span style="color: black;">Total: </span> {{ ped?.total | currency:"ARS":"symbol-narrow" }}</p>
           <p><span style="color: black;">Espera: </span> {{ ped?.eta_minutos }} min</p>
@@ -35,6 +28,14 @@
             <p style="color: green; font-weight: bold;">
               💸 Total con descuento: {{ ped?.totalConDescuento | currency:"ARS":"symbol-narrow" }}
             </p>
+          }
+
+          @if(ped?.estado === 'recibido') {
+            <div class="div_btn_recibido">
+                <ion-button class="btn_recibido" (click)="confirmarRecibido();" [disabled]="verificando">
+                Pedido Recibido
+              </ion-button>
+            </div>
           }
         </div>
       }
