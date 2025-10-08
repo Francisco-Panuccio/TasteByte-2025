@@ -118,33 +118,65 @@ export class AltaEmpleadoPage implements OnInit {
   }
 
   async enviar() {
-    this.err = null;
-    this.ok = false;
-    if (!this.isDuenoSupervisor) return;
-    if (this.formAltaEmpleado.invalid) { this.formAltaEmpleado.markAllAsTouched(); return; }
+  this.err = null;
+  this.ok = false;
+  if (!this.isDuenoSupervisor) return;
+  if (this.formAltaEmpleado.invalid) { this.formAltaEmpleado.markAllAsTouched(); return; }
 
-    this.loading = true;
-    try {
-      const email = String(this.f["correo"].value).trim().toLowerCase();
-      const password = String(this.f["clave"].value).trim();
-      const { error: authError } = await supabase.auth.signUp({ email, password });
-      if (authError) throw authError;
+  this.loading = true;
+  
+  // VARIABLES PARA GUARDAR LA SESIÓN ACTUAL
+  let currentSession: any = null;
+  let currentAuthUser: any = null;
 
-      const user = new User(
-        String(this.f["apellidos"].value).trim(),
-        String(this.f["nombres"].value).trim(),
-        email,
-        String(this.f["perfil"].value).trim(),
-        String(this.f["dni"].value).trim(),
-        String(this.f["cuil"].value).trim(),
-        undefined
-      );
+  try {
+    // GUARDAR LA SESIÓN ACTUAL DEL SUPERVISOR/DUEÑO
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    currentAuthUser = authUser;
+    
+    if (currentAuthUser?.email) {
+      const { data: sessionData } = await supabase.auth.getSession();
+      currentSession = sessionData.session;
+    }
 
-      await this.usuarios.createFromUser(user, String(this.f["foto"].value));
+    const email = String(this.f["correo"].value).trim().toLowerCase();
+    const password = String(this.f["clave"].value).trim();
+    const { error: authError } = await supabase.auth.signUp({ email, password });
+    if (authError) throw authError;
 
-      this.ok = true;
-      this.formAltaEmpleado.reset();
-    } catch (e: any) { this.err = e.message || "No se pudo registrar el empleado"; }
-    finally { this.loading = false; }
+    const user = new User(
+      String(this.f["apellidos"].value).trim(),
+      String(this.f["nombres"].value).trim(),
+      email,
+      String(this.f["perfil"].value).trim(),
+      String(this.f["dni"].value).trim(),
+      String(this.f["cuil"].value).trim(),
+      undefined
+    );
+
+    await this.usuarios.createFromUser(user, String(this.f["foto"].value));
+
+    // RESTAURAR LA SESIÓN DEL SUPERVISOR/DUEÑO
+    if (currentSession) {
+      const { error: restoreError } = await supabase.auth.setSession({
+        access_token: currentSession.access_token,
+        refresh_token: currentSession.refresh_token
+      });
+      
+      if (restoreError) {
+        console.error("Error restaurando sesión:", restoreError);
+      } else {
+        console.log("Sesión del supervisor/dueño restaurada correctamente");
+      }
+    }
+
+    this.ok = true;
+    this.formAltaEmpleado.reset();
+  } catch (e: any) { 
+    this.err = e.message || "No se pudo registrar el empleado"; 
   }
+  finally { 
+    this.loading = false; 
+  }
+}
 }
