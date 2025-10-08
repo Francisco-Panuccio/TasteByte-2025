@@ -18,6 +18,8 @@ type Tab = "platos" | "bebidas" | "postres";
 type AddItem = { id: number; nombre: string; precio: number; duracionMin: number; tipo: "plato" | "bebida" | "postre" };
 type Estado = "pendiente" | "aceptado" | "rechazado" | "terminado";
 
+type PedidoRow = { id: string; estado: Estado; mesa_id: number };
+
 @Component({
   selector: "app-mesa-ocupada",
   templateUrl: "./mesa-ocupada.page.html",
@@ -103,13 +105,14 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
       this.clienteId = qp.get("clienteId") ? Number(qp.get("clienteId")) : null;
 
       const [allPlatos, bebidas] = await Promise.all([this.platosSrv.list(), this.bebidasSrv.list()]);
-      this.postres = allPlatos.filter(p => !!p.esPostre);
-      this.platos = allPlatos.filter(p => !p.esPostre);
+      this.postres = allPlatos.filter((p:any) => !!p.esPostre);
+      this.platos = allPlatos.filter((p:any) => !p.esPostre);
       this.bebidas = bebidas;
 
       const { data: au } = await supabase.auth.getUser();
-      this.userUid = au.user?.id ?? "";
       this.clienteEmail = au.user?.email ?? null;
+
+      this.userUid = this.anonimoId ? "" : (au.user?.id ?? "");
 
       this.myUserId = this.anonimoId ? `anon-${this.anonimoId}` : await this.chatSvc.getMyUserId();
 
@@ -153,22 +156,77 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
+  private applyIdentityFilters(q: any): any {
+    if (this.clienteEmail) {
+      q = q.eq("cliente_email", this.clienteEmail);
+    } else if (this.anonimoId) {
+      q = q.eq("anonimo_id", this.anonimoId);
+    } else if (this.usuarioId !== null) {
+      q = q.eq("usuario_id", this.usuarioId);
+    } else if (this.clienteId !== null) {
+      q = q.eq("cliente_id", this.clienteId);
+    }
+    return q;
+  }
+
+  private async buscarPedidoActivoDb(): Promise<PedidoRow | null> {
+    if (!this.mesaId) return null;
+    let q = supabase
+      .from("pedidos")
+      .select("id, estado, mesa_id")
+      .eq("mesa_id", this.mesaId)
+      .in("estado", ["pendiente", "aceptado"])
+      .order("created_at", { ascending: false })
+      .limit(1) as any;
+    q = this.applyIdentityFilters(q);
+    const { data, error } = await q;
+    if (error) return null;
+    return (data && data[0]) ? (data[0] as PedidoRow) : null;
+  }
+
+  private async buscarUltimoRechazadoDb(): Promise<PedidoRow | null> {
+    if (!this.mesaId) return null;
+    let q = supabase
+      .from("pedidos")
+      .select("id, estado, mesa_id")
+      .eq("mesa_id", this.mesaId)
+      .eq("estado", "rechazado")
+      .order("created_at", { ascending: false })
+      .limit(1) as any;
+    q = this.applyIdentityFilters(q);
+    const { data, error } = await q;
+    if (error) return null;
+    return (data && data[0]) ? (data[0] as PedidoRow) : null;
+  }
+
   private async detectarYPoblarPedido(): Promise<void> {
     if (!this.mesaId) return;
-    const activo = await this.pedidos.getPedidoActivo({ mesaId: this.mesaId, clienteUid: this.userUid || undefined, clienteEmail: this.clienteEmail || undefined });
-    if (activo) {
+
+    const activoDb = await this.buscarPedidoActivoDb();
+    if (activoDb) {
       this.pedidoEnCurso = true;
-      this.pedidoActualId = activo.id as string;
-      this.applyEstado((activo as any).estado);
+      this.pedidoActualId = activoDb.id;
+      this.applyEstado(activoDb.estado);
       await this.cargarItemsDePedido(this.pedidoActualId);
       return;
     }
-    let q = supabase.from("pedidos").select("id").eq("mesa_id", this.mesaId).eq("estado", "rechazado").order("created_at", { ascending: false }).limit(1);
-    if (this.clienteEmail) q = q.eq("cliente_email", this.clienteEmail);
-    if (this.userUid) q = q.eq("cliente_uid", this.userUid);
-    const { data: pedRej } = await q;
-    if (pedRej && pedRej[0]?.id) {
-      this.pedidoActualId = pedRej[0].id as string;
+
+    if (this.clienteEmail) {
+      try {
+        const activoSvc = await this.pedidos.getPedidoActivo({ mesaId: this.mesaId, clienteUid: undefined, clienteEmail: this.clienteEmail });
+        if (activoSvc) {
+          this.pedidoEnCurso = true;
+          this.pedidoActualId = (activoSvc.id as string);
+          this.applyEstado((activoSvc as any).estado);
+          await this.cargarItemsDePedido(this.pedidoActualId);
+          return;
+        }
+      } catch { }
+    }
+
+    const rej = await this.buscarUltimoRechazadoDb();
+    if (rej) {
+      this.pedidoActualId = rej.id;
       await this.cargarItemsDePedido(this.pedidoActualId);
       this.pedidoEnCurso = false;
       this.applyEstado("rechazado");
@@ -233,7 +291,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     await this.chatSvc.bindMyPushToken(this.chatId, this.anonimoId);
     const msgs = await this.chatSvc.loadMessages(chat.id, 200);
     this.seenIds.clear();
-    this.messages = msgs.map(m => {
+    this.messages = msgs.map((m:any) => {
       this.seenIds.add(m.id);
       const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
       const role = vm.from === "yo" ? "cliente" : "mozo";
@@ -410,43 +468,60 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
       if (!this.mesaId) throw new Error("Mesa inválida.");
       if (this.pedidoBloqueado) { this.updateBanner(); return; }
       this.submitting = true;
+
       if (!this.userUid && !this.clienteEmail) {
         const { data } = await supabase.auth.getUser();
-        this.userUid = data.user?.id ?? "";
         this.clienteEmail = data.user?.email ?? null;
+        this.userUid = this.anonimoId ? "" : (data.user?.id ?? "");
       }
-      const existente = await this.pedidos.getPedidoActivo({ mesaId: this.mesaId, clienteUid: this.userUid || undefined, clienteEmail: this.clienteEmail || undefined });
+
+      let existente = await this.buscarPedidoActivoDb();
+
+      if (!existente && this.clienteEmail) {
+        try {
+          const svc = await this.pedidos.getPedidoActivo({ mesaId: this.mesaId, clienteUid: undefined, clienteEmail: this.clienteEmail });
+          if (svc) existente = { id: svc.id as string, estado: (svc as any).estado, mesa_id: this.mesaId } as PedidoRow;
+        } catch { }
+      }
+
       let pedidoId: string | undefined;
+
       if (existente) {
         if (existente.estado !== "rechazado") {
           this.pedidoEnCurso = true;
-          this.pedidoActualId = existente.id as string;
-          this.applyEstado((existente as any).estado);
+          this.pedidoActualId = existente.id;
+          this.applyEstado(existente.estado);
           return;
         } else {
-          await this.pedidos.reemplazarItems(existente.id as string, this.itemsSel, this.total, this.etaMin, "pendiente");
-          pedidoId = existente.id as string;
+          await this.pedidos.reemplazarItems(existente.id, this.itemsSel, this.total, this.etaMin, "pendiente");
+          pedidoId = existente.id;
         }
       } else {
-        let q = supabase.from("pedidos").select("id").eq("mesa_id", this.mesaId).eq("estado", "rechazado").order("created_at", { ascending: false }).limit(1);
-        if (this.clienteEmail) q = q.eq("cliente_email", this.clienteEmail);
-        if (this.userUid) q = q.eq("cliente_uid", this.userUid);
-        const { data: pedRej } = await q;
-        const rejId = pedRej?.[0]?.id as string | undefined;
-        if (rejId) {
-          await this.pedidos.reemplazarItems(rejId, this.itemsSel, this.total, this.etaMin, "pendiente");
-          pedidoId = rejId;
+        const rej = await this.buscarUltimoRechazadoDb();
+        if (rej?.id) {
+          await this.pedidos.reemplazarItems(rej.id, this.itemsSel, this.total, this.etaMin, "pendiente");
+          pedidoId = rej.id;
         } else {
-          pedidoId = await this.pedidos.crearPedido(this.mesaId, this.userUid, this.clienteEmail, this.itemsSel, this.total, this.etaMin);
+          pedidoId = await this.pedidos.crearPedido(this.mesaId, this.anonimoId ? "" : this.userUid, this.clienteEmail, this.itemsSel, this.total, this.etaMin);
+          try {
+            const upd: any = {};
+            if (this.anonimoId) upd.anonimo_id = this.anonimoId;
+            if (this.usuarioId !== null) upd.usuario_id = this.usuarioId;
+            if (this.clienteId !== null) upd.cliente_id = this.clienteId;
+            if (Object.keys(upd).length) {
+              await supabase.from("pedidos").update(upd).eq("id", pedidoId);
+            }
+          } catch { }
         }
       }
+
       this.pedidoEnCurso = true;
       this.applyEstado("pendiente");
       this.pedidoActualId = pedidoId!;
       const mesaNumero = this.mesa?.numero ?? "NN";
       await this.chatSvc.notifyMozosNuevoPedido(mesaNumero as any, this.formatARS(this.total), pedidoId!, this.mesaId);
       this.unsubEstado?.();
-      this.unsubEstado = this.pedidos.onEstadoPedido(pedidoId!, async (estado) => {
+      this.unsubEstado = this.pedidos.onEstadoPedido(pedidoId!, async (estado:any) => {
         this.zone.run(async () => {
           this.applyEstado(estado);
           if (this.estadoPedido === "aceptado") {
@@ -472,8 +547,8 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     if (this.anonimoId) q.anonimoId = this.anonimoId;
     if (this.usuarioId !== null) q.usuarioId = this.usuarioId;
     if (this.clienteId !== null) q.clienteId = this.clienteId;
-    q.tienePermiso = true,
-    q.qrValido = true
+    q.tienePermiso = true;
+    q.qrValido = true;
     return q;
   }
 

@@ -9,13 +9,13 @@
       @if(!loading && !ped) {
         <div class="vacio">Pedido no encontrado</div>
       } @else {
-        @for (it of items; track it.id) {
+        @for (it of items; track it.producto_id || it.id || $index) {
           <ion-item>
             <ion-label>
               <div>{{ it.nombre }}</div>
               <small>{{ it.tipo }} • {{ it.duracion_min }} min</small>
             </ion-label>
-            <ion-note slot="end" style="font-size: 16px;">{{ it.cantidad }} × {{ it.precio_unit | currency:"ARS":"symbol-narrow" }}</ion-note>
+            <ion-note slot="end" style="font-size: 16px;">{{ it.cantidad }} × {{ it.precio_unit | currency:"ARS":"symbol-narrow":"1.0-0" }}</ion-note>
           </ion-item>
         }
 
