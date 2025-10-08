@@ -126,61 +126,96 @@ export class AltaClientePage implements OnInit {
     return new Blob([bytes], { type });
   }
 
-  async enviar(tipo: string) {
-    this.err = null; this.ok = false;
-    const form = tipo === "registrado" ? this.formAltaCliente : this.formAltaAnonimo;
-    if (form.invalid) { form.markAllAsTouched(); return; }
+async enviar(tipo: string) {
+  this.err = null; this.ok = false;
+  const form = tipo === "registrado" ? this.formAltaCliente : this.formAltaAnonimo;
+  if (form.invalid) { form.markAllAsTouched(); return; }
 
-    this.loading = true;
-    try {
-      if (tipo === "registrado") {
-        const email = String(this.f["correo"].value).trim().toLowerCase();
-        const password = String(this.f["clave"].value).trim();
-        const nombres = String(this.f["nombres"].value).trim();
-        const apellidos = String(this.f["apellidos"].value).trim();
+  this.loading = true;
+  try {
+    // VERIFICAR PRIMERO QUIÉN ESTÁ HACIENDO EL REGISTRO Y GUARDAR SU SESIÓN
+    const { data: { user: currentAuthUser } } = await supabase.auth.getUser();
+    let esEmpleado = false;
+    let usuarioActual: Usuario | null = null;
+    let currentSession: any = null;
 
-        const sign = await supabase.auth.signUp({ email, password });
-        if (sign.error) throw sign.error;
+    if (currentAuthUser?.email) {
+      usuarioActual = await this.usuarios.getByEmail(currentAuthUser.email);
+      const perfilesEmpleados = ["dueño", "supervisor", "maitre", "mozo", "bartender", "cocinero"];
+      esEmpleado = usuarioActual?.perfil ? perfilesEmpleados.includes(usuarioActual.perfil) : false;
+      
+      // Guardar la sesión actual si es empleado
+      if (esEmpleado) {
+        const { data: sessionData } = await supabase.auth.getSession();
+        currentSession = sessionData.session;
+      }
+    }
 
-        const usuarioLike: any = {
-          apellido: apellidos,
-          nombre: nombres,
-          dni: Number(String(this.f["dni"].value).trim()),
-          email,
-          perfil: "cliente_registrado",
-          cuil: null
-        };
+    if (tipo === "registrado") {
+      const email = String(this.f["correo"].value).trim().toLowerCase();
+      const password = String(this.f["clave"].value).trim();
+      const nombres = String(this.f["nombres"].value).trim();
+      const apellidos = String(this.f["apellidos"].value).trim();
 
-        const usuarioDB: Usuario = await this.usuarios.createFromUser(usuarioLike, String(this.f["foto"].value));
+      const sign = await supabase.auth.signUp({ email, password });
+      if (sign.error) throw sign.error;
 
-        await this.usuarios.update((usuarioDB as any).id, {
-          dni_qr_payload: this.qrPayload,
-          dni_qr_leido_en: this.qrPayload ? new Date().toISOString() : null
-        });
+      const usuarioLike: any = {
+        apellido: apellidos,
+        nombre: nombres,
+        dni: Number(String(this.f["dni"].value).trim()),
+        email,
+        perfil: "cliente_registrado",
+        cuil: null
+      };
 
-        try {
-          await this.email.sendEmail(email, "Registro Recibido - En Revisión", "registro_pendiente", { nombres });
-        } catch { }
+      const usuarioDB: Usuario = await this.usuarios.createFromUser(usuarioLike, String(this.f["foto"].value));
 
-        try {
-          const { data: rows, error: tkErr } = await supabase
-            .from("push_tokens").select("token")
-            .in("role", ["dueño", "supervisor"])
-            .eq("active", true).eq("revoked", false);
-          if (!tkErr) {
-            const tokens = (rows ?? []).map((r: any) => r.token as string).filter(Boolean);
-            if (tokens.length) {
-              await this.push.send(
-                tokens,
-                "",
-                "Nuevo cliente en lista de espera",
-                { screen: "clientes-pendientes", tipo: "cliente_registrado", cliente_id: (usuarioDB as any).id, cliente_nombre: `${nombres} ${apellidos}` }
-              );
-            }
+      await this.usuarios.update((usuarioDB as any).id, {
+        dni_qr_payload: this.qrPayload,
+        dni_qr_leido_en: this.qrPayload ? new Date().toISOString() : null
+      });
+
+      try {
+        await this.email.sendEmail(email, "Registro Recibido - En Revisión", "registro_pendiente", { nombres });
+      } catch { }
+
+      try {
+        const { data: rows, error: tkErr } = await supabase
+          .from("push_tokens").select("token")
+          .in("role", ["dueño", "supervisor"])
+          .eq("active", true).eq("revoked", false);
+        if (!tkErr) {
+          const tokens = (rows ?? []).map((r: any) => r.token as string).filter(Boolean);
+          if (tokens.length) {
+            await this.push.send(
+              tokens,
+              "",
+              "Nuevo cliente en lista de espera",
+              { screen: "clientes-pendientes", tipo: "cliente_registrado", cliente_id: (usuarioDB as any).id, cliente_nombre: `${nombres} ${apellidos}` }
+            );
           }
-          await this.presentPushToast("📋 Nuevo Cliente Pendiente", `${nombres} ${apellidos} espera aprobación`);
-        } catch { }
+        }
+        await this.presentPushToast("📋 Nuevo Cliente Pendiente", `${nombres} ${apellidos} espera aprobación`);
+      } catch { }
 
+      // RESTAURAR LA SESIÓN DEL EMPLEADO SI ES NECESARIO
+      if (esEmpleado && currentSession) {
+        // Restaurar la sesión del empleado
+        const { error: restoreError } = await supabase.auth.setSession({
+          access_token: currentSession.access_token,
+          refresh_token: currentSession.refresh_token
+        });
+        
+        if (restoreError) {
+          console.error("Error restaurando sesión:", restoreError);
+        } else {
+          console.log("Sesión del empleado restaurada correctamente");
+        }
+      }
+
+      // SOLO REDIRIGIR SI NO ES EMPLEADO
+      if (!esEmpleado) {
         const estado = (usuarioDB as any)?.estado ?? "pendiente";
         if (estado !== "activo") {
           await supabase.auth.signOut();
@@ -192,27 +227,40 @@ export class AltaClientePage implements OnInit {
         this.ok = true;
         this.formAltaCliente.reset();
         this.qrPayload = null;
-      } else if (tipo === "anonimo") {
-        const nombre = String(this.fAnonimo["nombre"].value).trim();
-        const foto_url = String(this.fAnonimo["foto"].value).trim();
-
-        const { error: insAnonErr } = await supabase.from("clientes_anonimos").insert({ nombre, foto_url });
-        if (insAnonErr) throw insAnonErr;
-
+      } else {
+        // SI ES EMPLEADO, SOLO MOSTRAR ÉXITO Y RESTAURAR SESIÓN
         this.ok = true;
-        this.formAltaAnonimo.reset();
-        this.router.navigate(["/encuestas-espera"]);
+        this.formAltaCliente.reset();
+        this.qrPayload = null;
+        await this.presentPushToast("Cliente registrado", "El cliente ha sido registrado exitosamente");
       }
-    } catch (e: any) {
-      const msg = String(e?.message || e);
-      if (/already registered|User already registered/i.test(msg)) this.err = "Correo registrado";
-      else if (/duplicate key.*numero_documento|numero_documento/i.test(msg)) this.err = "DNI registrado";
-      else this.err = msg || "No se pudo completar el registro";
-    } finally {
-      this.loading = false;
-    }
-  }
+      
+    } else if (tipo === "anonimo") {
+      const nombre = String(this.fAnonimo["nombre"].value).trim();
+      const foto_url = String(this.fAnonimo["foto"].value).trim();
 
+      const { error: insAnonErr } = await supabase.from("clientes_anonimos").insert({ nombre, foto_url });
+      if (insAnonErr) throw insAnonErr;
+
+      this.ok = true;
+      this.formAltaAnonimo.reset();
+      
+      // SOLO REDIRIGIR SI NO ES EMPLEADO
+      if (!esEmpleado) {
+        this.router.navigate(["/encuestas-espera"]);
+      } else {
+        await this.presentPushToast("Cliente anónimo registrado", "El cliente anónimo ha sido registrado exitosamente");
+      }
+    }
+  } catch (e: any) {
+    const msg = String(e?.message || e);
+    if (/already registered|User already registered/i.test(msg)) this.err = "Correo registrado";
+    else if (/duplicate key.*numero_documento|numero_documento/i.test(msg)) this.err = "DNI registrado";
+    else this.err = msg || "No se pudo completar el registro";
+  } finally {
+    this.loading = false;
+  }
+}
   async sacarFotoAnonimo() {
     this.err = null;
     try {
