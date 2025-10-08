@@ -14,7 +14,18 @@
     @if (segment === 'encuestas') {
       <div class="ion-padding-top">
         @if (puedeRealizar) {
-          <ion-button expand="block" routerLink="/encuesta-nueva">Realizar Encuesta</ion-button>
+          <ion-button
+            expand="block"
+            routerLink="/encuesta-nueva"
+            [queryParams]="{
+              clienteId: clienteId || undefined,
+              anonimoId: anonimoId || undefined,
+              usuarioId: usuarioId || undefined,
+              userId: userId || undefined
+            }"
+          >
+            Realizar Encuesta
+          </ion-button>
         }
         <h2>Últimas Encuestas</h2>
         <ion-list>
