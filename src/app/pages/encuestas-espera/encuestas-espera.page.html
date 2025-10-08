@@ -42,7 +42,7 @@
         expand="block"
         class="btn_pedido"
         [routerLink]="['/pedido']"
-        [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId }"
+        [queryParams]="{ id: pedidoId || undefined, mesaId: mesaAsignadaId || undefined, anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId }"
       >
         Pedido
       </ion-button>
