@@ -137,10 +137,10 @@ export class Pedidos {
 
     const uidOk = typeof opts.clienteUid === "string" && opts.clienteUid.trim() !== "";
     if (opts.clienteEmail) {
-      q = q.eq("cliente_email", opts.clienteEmail);             
+      q = q.eq("cliente_email", opts.clienteEmail);
     } else if (uidOk) {
-      q = q.eq("cliente_uid", opts.clienteUid as string);      
-    } 
+      q = q.eq("cliente_uid", opts.clienteUid as string);
+    }
 
     const { data, error } = await q;
     if (error) throw error;
@@ -169,6 +169,44 @@ export class Pedidos {
     const { data, error } = await q;
     if (error) throw error;
     return (data && data[0]?.id) || null;
+  }
+
+  async getPedidoAceptadoActual(mesaId: number, clienteUid: string | null, clienteEmail: string | null): Promise<string | null> {
+    const { data, error } = await supabase
+      .from("pedidos")
+      .select("id")
+      .eq("mesa_id", mesaId)
+      .eq("estado", "aceptado")
+      .order("created_at", { ascending: false })
+      .limit(1);
+    if (error) throw error;
+    return data?.[0]?.id ?? null;
+  }
+
+  async getEstadosAreas(pedidoId: string): Promise<{ bar: string | null; cocina: string | null }> {
+    const [barRes, cocRes] = await Promise.all([
+      supabase.from("bar_pedidos").select("estado").eq("pedido_id", pedidoId).order("creado_en", { ascending: false }).limit(1),
+      supabase.from("cocina_pedidos").select("estado").eq("pedido_id", pedidoId).order("creado_en", { ascending: false }).limit(1)
+    ]);
+    if (barRes.error) throw barRes.error;
+    if (cocRes.error) throw cocRes.error;
+    return {
+      bar: barRes.data?.[0]?.estado ?? null,
+      cocina: cocRes.data?.[0]?.estado ?? null
+    };
+  }
+
+  resolverMensajeAreas(estados: { bar: string | null; cocina: string | null }): string | null {
+    const barPend = estados.bar === "pendiente";
+    const cocPend = estados.cocina === "pendiente";
+    const barTerm = estados.bar === "terminado";
+    const cocTerm = estados.cocina === "terminado";
+
+    if (barPend && cocPend) return "Pedido en preparación en cocina y bar";
+    if (barPend && !cocPend) return "Pedido en preparación en bar";
+    if (cocPend && !barPend) return "Pedido en preparación en cocina";
+    if (barTerm && cocTerm) return "Pedido en manos del mozo";
+    return null;
   }
 
   async getPedidoActualPorEmail(email: string): Promise<{ ped: any; items: any[] }> {
