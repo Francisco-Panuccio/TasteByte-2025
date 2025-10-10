@@ -20,6 +20,8 @@ export class PedidoPage implements OnInit {
   clienteId: number | null = null;
   verificando = false;
 
+  mesaId?: number;
+
   constructor(
     private ar: ActivatedRoute,
     private pedidos: Pedidos,
@@ -37,10 +39,12 @@ export class PedidoPage implements OnInit {
     this.anonimoId = p.get("anonimoId") ?? undefined;
     this.usuarioId = p.get("usuarioId") ? Number(p.get("usuarioId")) : null;
     this.clienteId = p.get("clienteId") ? Number(p.get("clienteId")) : null;
+    this.mesaId = p.get("mesaId") ? Number(p.get("mesaId")) : undefined;
 
     if (!this.pedidoId) {
       const { data } = await supabase.auth.getUser();
       const email = data.user?.email ?? null;
+
       if (email) {
         const { ped, items } = await this.pedidos.getPedidoActualPorEmail(email);
         this.ped = ped;
@@ -53,6 +57,22 @@ export class PedidoPage implements OnInit {
         this.loading = false;
         return;
       }
+
+      if (this.mesaId != null) {
+        const activo = await this.pedidos.getPedidoActivo({ mesaId: this.mesaId }, true);
+        if (activo?.id) {
+          const { ped, items } = await this.pedidos.getPedido(activo.id as string);
+          this.ped = ped;
+          this.items = items;
+          if (this.ped) await this.verificarDescuento(this.ped.id);
+        } else {
+          await this.mostrarToast("⚠ No hay pedido asociado a la mesa");
+        }
+        this.loading = false;
+        return;
+      }
+
+      await this.mostrarToast("⚠ Falta id o mesa");
       this.loading = false;
       return;
     }
@@ -78,7 +98,7 @@ export class PedidoPage implements OnInit {
       .maybeSingle();
 
     if (descError) {
-      await this.mostrarToast(`❌ Error cargando descuento: ${descError.message}`, "danger");
+      await this.mostrarToast(`❌ Error cargando descuento: ${descError.message}`, "Error");
       return;
     }
 
@@ -92,6 +112,7 @@ export class PedidoPage implements OnInit {
       queryParams: {
         clienteId: this.clienteId,
         anonimoId: this.anonimoId,
+        mesaId: this.mesaId,
         tienePermiso: true,
         qrValido: true
       }
@@ -126,7 +147,7 @@ export class PedidoPage implements OnInit {
 
   async confirmarRecibido(): Promise<void> {
     if (!this.ped?.id) {
-      await this.mostrarToast("❌ Pedido no cargado", "danger");
+      await this.mostrarToast("❌ Pedido no cargado", "Error");
       return;
     }
 
@@ -171,37 +192,34 @@ export class PedidoPage implements OnInit {
           .eq("id", pedidoId);
 
         if (error) {
-          await this.mostrarToast(`❌ No se pudo marcar como terminado: ${error.message}`, "danger");
+          await this.mostrarToast(`❌ No se pudo marcar como terminado: ${error.message}`, "Error");
           return;
         }
 
         this.ped.estado = "terminado";
-        await this.toast.create({
-          message: "✅ Pedido marcado como Terminado",
-          duration: 2000,
-          cssClass: 'toast',
-          position: 'top'
-        });
+        await this.mostrarToast("✅ Pedido marcado como Terminado", "Éxito");
       } else {
         const faltan = [
           hayBar && !barOk ? "bar" : null,
           hayCocina && !cocinaOk ? "cocina" : null
         ].filter(Boolean).join(" y ");
-        await this.mostrarToast(`⏳ Aún en preparación (${faltan})`, "warning");
+        await this.mostrarToast(`⏳ Aún en preparación (${faltan})`, "Aviso");
       }
     } catch (e: any) {
-      await this.mostrarToast(`❌ Error verificando estados: ${e.message ?? e}`, "danger");
+      await this.mostrarToast(`❌ Error verificando estados: ${e.message ?? e}`, "Error");
     } finally {
       this.verificando = false;
     }
   }
 
-  private async mostrarToast(mensaje: string, color: string = "primary") {
+  private async mostrarToast(message: string, header = "Aviso", duration = 1500) {
     const t = await this.toast.create({
-      message: mensaje,
-      duration: 2500,
-      color,
-      position: "top"
+      header,
+      message,
+      duration,
+      position: "top",
+      cssClass: "toast",
+      buttons: [{ text: "OK", role: "cancel" }]
     });
     await t.present();
   }

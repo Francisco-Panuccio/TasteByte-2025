@@ -32,8 +32,6 @@ export class AltaClientePage implements OnInit {
   mensaje: string | null = null;
 
   loading = true;
-  ok = false;
-  err: string | null = null;
   escaneando = false;
   qrPayload: string | null = null;
 
@@ -64,15 +62,19 @@ export class AltaClientePage implements OnInit {
     this.formAnonimo = this.fb.group({ nombre: ["", [Validators.required, Validators.minLength(2)]] });
   }
 
-  private async presentPushToast(header: string, message: string) {
+  private async mostrarToast(message: string, header = "Aviso", duration = 1500): Promise<void> {
     const t = await this.toast.create({
-      header, message, position: "top", cssClass: "toast", duration: 1000,
+      header,
+      message,
+      duration,
+      cssClass: "toast",
+      position: "top",
+      buttons: [{ text: "OK", role: "cancel" }]
     });
     await t.present();
   }
 
   async escanearDNI() {
-    this.err = null;
     this.escaneando = true;
     try {
       const result = await BarcodeScanner.scan({ formats: [BarcodeFormat.Pdf417, BarcodeFormat.QrCode] });
@@ -88,19 +90,19 @@ export class AltaClientePage implements OnInit {
         if (/^\d{7,10}$/.test(dniSolo)) this.formAltaCliente.patchValue({ dni: dniSolo });
         else throw new Error("QR inválido o incompleto");
       }
+      await this.mostrarToast("DNI escaneado.", "Éxito");
     } catch (e: any) {
-      this.err = e.message || "Error al escanear el DNI";
+      await this.mostrarToast(e?.message || "Error al escanear el DNI", "Error");
     } finally {
       this.escaneando = false;
     }
   }
 
   async sacarFoto() {
-    this.err = null;
     try {
       if (this.platform !== "web") {
         const status = await Camera.requestPermissions({ permissions: ["camera"] });
-        if (status.camera !== "granted") { this.err = "Permiso de cámara denegado"; return; }
+        if (status.camera !== "granted") { await this.mostrarToast("Permiso de cámara denegado", "Error"); return; }
       }
       const photo = await Camera.getPhoto({ resultType: CameraResultType.Uri, quality: 85, source: CameraSource.Camera, allowEditing: false });
       let blob: Blob; let ext = "jpg";
@@ -114,8 +116,9 @@ export class AltaClientePage implements OnInit {
       if (up.error) throw up.error;
       const { data } = supabase.storage.from("clientes").getPublicUrl(filePath);
       this.formAltaCliente.patchValue({ foto: data.publicUrl });
+      await this.mostrarToast("Foto cargada.", "Éxito");
     } catch (e: any) {
-      this.err = `Error al tomar la foto: ${e.message || e}`;
+      await this.mostrarToast(`Error al tomar la foto: ${e?.message || e}`, "Error");
     }
   }
 
@@ -127,12 +130,25 @@ export class AltaClientePage implements OnInit {
   }
 
   async enviar(tipo: string) {
-    this.err = null; this.ok = false;
     const form = tipo === "registrado" ? this.formAltaCliente : this.formAltaAnonimo;
-    if (form.invalid) { form.markAllAsTouched(); return; }
+    if (form.invalid) { form.markAllAsTouched(); await this.mostrarToast("Completá los campos obligatorios.", "Error"); return; }
 
     this.loading = true;
     try {
+      const { data: { user: currentAuthUser } } = await supabase.auth.getUser();
+      let esEmpleado = false;
+      let currentSession: any = null;
+
+      if (currentAuthUser?.email) {
+        const usuarioActual: Usuario | null = await this.usuarios.getByEmail(currentAuthUser.email);
+        const perfilesEmpleados = ["dueño", "supervisor", "maitre", "mozo", "bartender", "cocinero"];
+        esEmpleado = usuarioActual?.perfil ? perfilesEmpleados.includes(usuarioActual.perfil) : false;
+        if (esEmpleado) {
+          const { data: sessionData } = await supabase.auth.getSession();
+          currentSession = sessionData.session;
+        }
+      }
+
       if (tipo === "registrado") {
         const email = String(this.f["correo"].value).trim().toLowerCase();
         const password = String(this.f["clave"].value).trim();
@@ -178,20 +194,32 @@ export class AltaClientePage implements OnInit {
               );
             }
           }
-          await this.presentPushToast("📋 Nuevo Cliente Pendiente", `${nombres} ${apellidos} espera aprobación`);
+          await this.mostrarToast(`${nombres} ${apellidos} espera aprobación`, "📋 Nuevo Cliente Pendiente", 1000);
         } catch { }
 
-        const estado = (usuarioDB as any)?.estado ?? "pendiente";
-        if (estado !== "activo") {
-          await supabase.auth.signOut();
-          await this.presentPushToast("Cuenta en revisión", "Te avisaremos cuando sea aprobada");
-          this.router.navigateByUrl("/login", { replaceUrl: true });
-          return;
+        if (esEmpleado && currentSession) {
+          await supabase.auth.setSession({
+            access_token: currentSession.access_token,
+            refresh_token: currentSession.refresh_token
+          });
         }
 
-        this.ok = true;
-        this.formAltaCliente.reset();
-        this.qrPayload = null;
+        if (!esEmpleado) {
+          const estado = (usuarioDB as any)?.estado ?? "pendiente";
+          if (estado !== "activo") {
+            await supabase.auth.signOut();
+            await this.mostrarToast("Te avisaremos cuando sea aprobada", "Cuenta en revisión", 1000);
+            this.router.navigateByUrl("/login", { replaceUrl: true });
+            return;
+          }
+          this.formAltaCliente.reset();
+          this.qrPayload = null;
+          await this.mostrarToast("Cliente registrado.", "Éxito");
+        } else {
+          this.formAltaCliente.reset();
+          this.qrPayload = null;
+          await this.mostrarToast("Cliente registrado.", "Éxito");
+        }
       } else if (tipo === "anonimo") {
         const nombre = String(this.fAnonimo["nombre"].value).trim();
         const foto_url = String(this.fAnonimo["foto"].value).trim();
@@ -199,26 +227,32 @@ export class AltaClientePage implements OnInit {
         const { error: insAnonErr } = await supabase.from("clientes_anonimos").insert({ nombre, foto_url });
         if (insAnonErr) throw insAnonErr;
 
-        this.ok = true;
         this.formAltaAnonimo.reset();
-        this.router.navigate(["/encuestas-espera"]);
+        if (!esEmpleado) {
+          this.router.navigate(["/encuestas-espera"]);
+        } else {
+          await this.mostrarToast("Cliente anónimo registrado.", "Éxito");
+        }
       }
     } catch (e: any) {
       const msg = String(e?.message || e);
-      if (/already registered|User already registered/i.test(msg)) this.err = "Correo registrado";
-      else if (/duplicate key.*numero_documento|numero_documento/i.test(msg)) this.err = "DNI registrado";
-      else this.err = msg || "No se pudo completar el registro";
+      if (/already registered|User already registered/i.test(msg)) {
+        await this.mostrarToast("Correo registrado.", "Error");
+      } else if (/duplicate key.*numero_documento|numero_documento/i.test(msg)) {
+        await this.mostrarToast("DNI registrado.", "Error");
+      } else {
+        await this.mostrarToast(msg || "No se pudo completar el registro.", "Error");
+      }
     } finally {
       this.loading = false;
     }
   }
 
   async sacarFotoAnonimo() {
-    this.err = null;
     try {
       if (this.platform !== "web") {
         const status = await Camera.requestPermissions({ permissions: ["camera"] });
-        if (status.camera !== "granted") { this.err = "Permiso de cámara denegado"; return; }
+        if (status.camera !== "granted") { await this.mostrarToast("Permiso de cámara denegado", "Error"); return; }
       }
       const photo = await Camera.getPhoto({ resultType: CameraResultType.Uri, quality: 85, source: CameraSource.Camera, allowEditing: false });
       let blob: Blob; let ext = "jpg";
@@ -232,8 +266,9 @@ export class AltaClientePage implements OnInit {
       if (up.error) throw up.error;
       const { data } = supabase.storage.from("clientes").getPublicUrl(filePath);
       this.formAltaAnonimo.patchValue({ foto: data.publicUrl });
+      await this.mostrarToast("Foto cargada.", "Éxito");
     } catch (e: any) {
-      this.err = `Error al tomar la foto: ${e.message || e}`;
+      await this.mostrarToast(`Error al tomar la foto: ${e?.message || e}`, "Error");
     }
   }
 }

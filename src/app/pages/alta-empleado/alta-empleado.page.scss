@@ -1,4 +1,3 @@
-/* Contenedor principal */
 ion-content {
   --background: #bb714e;
   display: flex;
@@ -7,7 +6,6 @@ ion-content {
   padding: 20px;
 }
 
-/* Card */
 form {
   background: #f8f5f0d2;
   padding: 2rem;
@@ -23,7 +21,8 @@ form {
   margin: 20px 0 40px 0;
 }
 
-.input-field {
+.input-field,
+.input-field2 {
   --background: transparent;
   --border-width: 0px;
   --padding-start: 0;
@@ -47,7 +46,6 @@ ion-input {
   height: 50px;
 }
 
-/* Botón registrar */
 ion-button[type="submit"] {
   --background: #d7b899;
   --color: #bb714e;
@@ -57,7 +55,6 @@ ion-button[type="submit"] {
   margin-top: 10px;
 }
 
-/* Botón tomar foto y escanear */
 ion-button[type="button"] {
   --background: #d7b899;
   --color: #554738;
@@ -66,7 +63,6 @@ ion-button[type="button"] {
   height: 40px;
 }
 
-/* Estilos para el select (menú desplegable) */
 ion-select {
   --color: #554738;
   --placeholder-color: #554738;
@@ -79,37 +75,29 @@ ion-select {
   height: 50px;
 }
 
-/* Opcional: estilo para el ícono de la flecha */
 ion-select::part(icon) {
   color: #554738;
   opacity: 0.8;
 }
 
-/* Cuando el select está enfocado, evita el cambio de color */
 ion-select.ion-touched {
   border-color: #d3a87c;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-/* Mensajes de error */
 ion-text[color="danger"] {
   font-size: 0.9rem;
   text-align: left;
   color: #bb2d3b !important;
+
+  p {
+    margin: 0;
+    font-weight: 600;
+  }
 }
 
-/* Mensaje de éxito */
-ion-text[color="success"] {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #2e7d32 !important;
-  text-align: center;
-  margin-top: 10px;
-}
-
-/* Contenedor de preview */
 .preview-foto {
-  margin-top: 15px;
+  margin-top: 10px;
   display: flex;
   justify-content: center;
 }
@@ -138,4 +126,15 @@ ion-text[color="success"] {
   font-weight: 800;
   height: 48px;
   margin-top: 0px;
+}
+
+.input-field2 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .btn_photo {
+    margin: 0 auto -5px auto;
+    text-align: center;
+  }
 }

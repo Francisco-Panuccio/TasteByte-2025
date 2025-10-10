@@ -42,7 +42,7 @@
         expand="block"
         class="btn_pedido"
         [routerLink]="['/pedido']"
-        [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId }"
+        [queryParams]="{ id: pedidoId || undefined, mesaId: mesaAsignadaId || undefined, anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId }"
       >
         Pedido
       </ion-button>
@@ -58,7 +58,7 @@
       } @if(mostrarCuenta && tieneMesa && estadoPedido !== 'impagado') {
       <ion-button
         expand="block"
-        color="warning"
+        class="btn_cuenta"
         (click)="pedirCuenta()"
         [routerLink]="['/cuenta']"
         [queryParams]="{ pedidoId: pedidoId, anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId, userId : userUid }"
@@ -80,9 +80,9 @@
 <div *ngIf="tieneMesa; else esperando" class="estado-mesa">
   <ion-card class="card-success">
     <ion-card-header>Mesa Asignada</ion-card-header>
-    <ion-card-content>
-      Ya puede tomar asiento en la mesa <b>#{{ mesaAsignadaId }}</b>.
-    </ion-card-content>
+    <div class="div_mesa">
+      Ya puede tomar asiento en la mesa <b>#{{ mesaAsignadaId }}</b>
+    </div>
   </ion-card>
 
   <ion-button expand="block" class="btns_main" (click)="escanearQrMesa()">

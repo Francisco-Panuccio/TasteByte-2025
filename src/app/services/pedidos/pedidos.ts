@@ -14,11 +14,13 @@ export class Pedidos {
     total: number,
     etaMin: number
   ): Promise<string> {
+    const uidOrNull = clienteUid && clienteUid.trim() !== "" ? clienteUid : null;
+
     const { data: ped, error } = await supabase
       .from("pedidos")
       .insert({
         mesa_id: mesaId,
-        cliente_uid: clienteUid,
+        cliente_uid: uidOrNull,
         cliente_email: clienteEmail,
         total,
         eta_minutos: etaMin,
@@ -132,31 +134,59 @@ export class Pedidos {
       .limit(1);
 
     if (opts.mesaId != null) q = q.eq("mesa_id", opts.mesaId);
-    if (opts.clienteEmail) q = q.eq("cliente_email", opts.clienteEmail);
-    if (opts.clienteUid) q = q.eq("cliente_uid", opts.clienteUid);
+
+    const uidOk = typeof opts.clienteUid === "string" && opts.clienteUid.trim() !== "";
+    if (opts.clienteEmail) {
+      q = q.eq("cliente_email", opts.clienteEmail);             
+    } else if (uidOk) {
+      q = q.eq("cliente_uid", opts.clienteUid as string);      
+    } 
 
     const { data, error } = await q;
     if (error) throw error;
     return (data && data[0]) || null;
   }
 
+  async getUltimoRechazado(
+    opts: { mesaId?: number; clienteUid?: string; clienteEmail?: string }
+  ): Promise<string | null> {
+    let q = supabase
+      .from("pedidos")
+      .select("id, created_at")
+      .eq("estado", "rechazado")
+      .order("created_at", { ascending: false })
+      .limit(1);
+
+    if (opts.mesaId != null) q = q.eq("mesa_id", opts.mesaId);
+
+    const uidOk = typeof opts.clienteUid === "string" && opts.clienteUid.trim() !== "";
+    if (opts.clienteEmail) {
+      q = q.eq("cliente_email", opts.clienteEmail);
+    } else if (uidOk) {
+      q = q.eq("cliente_uid", opts.clienteUid as string);
+    }
+
+    const { data, error } = await q;
+    if (error) throw error;
+    return (data && data[0]?.id) || null;
+  }
+
   async getPedidoActualPorEmail(email: string): Promise<{ ped: any; items: any[] }> {
-  const { data, error } = await supabase
-    .from("pedidos")
-    .select("id, total, estado, mesa_id, cliente_uid, cliente_email")
-    .eq("cliente_email", email)
-    .in("estado", ["pendiente", "aceptado", "terminado", "recibido"])
-    .order("created_at", { ascending: false })
-    .limit(1);
+    const { data, error } = await supabase
+      .from("pedidos")
+      .select("id, total, estado, mesa_id, cliente_uid, cliente_email")
+      .eq("cliente_email", email)
+      .in("estado", ["pendiente", "aceptado", "terminado", "recibido"])
+      .order("created_at", { ascending: false })
+      .limit(1);
 
-  if (error) throw error;
+    if (error) throw error;
 
-  const id = data?.[0]?.id as string | undefined;
-  if (!id) return { ped: null, items: [] };
+    const id = data?.[0]?.id as string | undefined;
+    if (!id) return { ped: null, items: [] };
 
-  return this.getPedido(id);
-}
-
+    return this.getPedido(id);
+  }
 
   async listar(estado?: Pedido["estado"]) {
     const base = supabase

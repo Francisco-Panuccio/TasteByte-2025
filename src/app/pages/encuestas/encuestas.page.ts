@@ -72,19 +72,16 @@ export class EncuestasPage implements OnInit {
     }
   };
 
-  constructor(private router: Router, private route: ActivatedRoute) { 
+  constructor(private router: Router, private route: ActivatedRoute) {
     this.route.queryParams.subscribe(params => {
       this.userId = params['userId'] ?? null;
+      this.anonimoId = params['anonimoId'] ?? undefined;
+      this.usuarioId = params['usuarioId'] ? Number(params['usuarioId']) : null;
+      this.clienteId = params['clienteId'] ? Number(params['clienteId']) : null;
     });
   }
 
   async ngOnInit() {
-    const p = this.route.snapshot.queryParamMap;
-    this.anonimoId = p.get('anonimoId') ?? undefined;
-    this.usuarioId = p.get('usuarioId') ? Number(p.get('usuarioId')) : null;
-    this.clienteId = p.get('clienteId') ? Number(p.get('clienteId')) : null;
-    
-
     await this.evaluarPermisoEncuesta();
     await this.cargarRespuestas();
     this.armarGraficos();
@@ -123,7 +120,6 @@ export class EncuestasPage implements OnInit {
     if (orsR.length) qResp = qResp.or(orsR.join(','));
 
     const { data: respUlt } = await qResp.maybeSingle();
-
     this.puedeRealizar = !respUlt || new Date(respUlt.creado_en).getTime() < new Date(ped.created_at).getTime();
   }
 
@@ -171,7 +167,14 @@ export class EncuestasPage implements OnInit {
 
   volver() {
     this.router.navigate(['/encuestas-espera'], {
-      queryParams: { clienteId: this.clienteId, anonimoId: this.anonimoId, tienePermiso: true, qrValido: true, userId: this.userId }
+      queryParams: {
+        clienteId: this.clienteId ?? undefined,
+        anonimoId: this.anonimoId ?? undefined,
+        usuarioId: this.usuarioId ?? undefined,
+        tienePermiso: true,
+        qrValido: true,
+        userId: this.userId ?? undefined
+      }
     });
   }
 }

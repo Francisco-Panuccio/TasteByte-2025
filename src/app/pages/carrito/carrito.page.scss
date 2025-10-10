@@ -1,0 +1,103 @@
+ion-label,
+ion-note,
+small {
+  font-weight: 600;
+  font-size: 16px;
+  color: #554738;
+  --background: #e6dacd;
+}
+
+ion-note,
+small {
+  font-size: 14px;
+}
+
+ion-item {
+  border-bottom: 2px solid black;
+}
+
+.ion_btns {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.btn_logged {
+  font-size: 20px;
+  font-weight: 1000;
+}
+
+.loading,
+.error {
+  padding: 1rem;
+  text-align: center;
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 10px 0;
+}
+
+.div_total {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: center;
+  align-self: center;
+  background-color: #cfcac4;
+  gap: 5px;
+  text-align: center;
+  padding: 5px 0;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  border-top: 2px solid black;
+
+  p {
+    color: #554738;
+    font-weight: 600;
+    margin: 0;
+    padding: 5px;
+    border: 2px solid black;
+    border-right: none;
+    border-left: none;
+    font-size: 20px;
+  }
+}
+
+.div_btn_recibido {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+
+  .btn_recibido {
+    width: 100%;
+    font-size: 17px;
+  }
+}
+
+.div_img {
+  width: 300px;
+  height: 400px;
+  margin: 0 auto;
+  border-radius: 12px;
+  box-shadow: 5px 5px 15px 5px #FF8080, -9px 5px 15px 5px #FFE488, -7px -5px 15px 5px #8CFF85, 12px -5px 15px 5px #80C7FF, 12px 10px 15px 7px #E488FF, -10px 10px 15px 7px #FF616B, -10px -7px 27px 1px #8E5CFF, 5px 5px 15px 5px rgba(0, 0, 0, 0);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+    border-radius: 12px;
+  }
+}
+
+.vacio {
+  text-align: center;
+  color: #554738;
+  font-size: 22px;
+  font-weight: 600;
+  color: #554738;
+  background-color: #e6dacd;
+  border-radius: 10px;
+  margin: 10px 20px 40px 20px;
+  padding: 20px;
+}

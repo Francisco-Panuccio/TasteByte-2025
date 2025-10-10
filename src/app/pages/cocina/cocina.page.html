@@ -14,7 +14,7 @@
       <div class="div_container">
         <div class="div_pedidos" *ngFor="let p of pedidos">
           <div class="div_data_pedido">
-            <p><strong>Mesa {{ p.mesa_numero }}</strong></p>
+            <p class="p_mesa"><strong class="strong_mesa">Mesa {{ p.mesa_numero }}</strong></p>
             <p>Hora: {{ formatearHora(p.creado_en) }}</p>
             
             <div class="items-container">
@@ -47,6 +47,9 @@
     <ng-template #empty>
       <div class="vacio">
         No hay pedidos pendientes en cocina
+      </div>
+      <div class="div_img">
+        <img src="assets/images/cocina.jpg" alt="Cocina">
       </div>
     </ng-template>
   </ion-content>
