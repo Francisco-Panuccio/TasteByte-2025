@@ -5,6 +5,7 @@ import { Capacitor } from '@capacitor/core';
 import { Plato } from 'src/app/interfaces/plato';
 import { Platos } from 'src/app/services/platos/platos';
 import { b64ToBlob } from '../../functions';
+import { ToastController } from '@ionic/angular';
 
 type PendingFoto = { blob: Blob; ext: string; previewUrl: string };
 
@@ -17,12 +18,10 @@ type PendingFoto = { blob: Blob; ext: string; previewUrl: string };
 export class AltaPlatoPage {
   private fb = inject(FormBuilder)
   private platos = inject(Platos);
+  private toast = inject(ToastController);
   private readonly platform = Capacitor.getPlatform();
 
   loading: boolean = true;
-  ok = false;
-  err: string | null = null;
-
   private pending: Array<PendingFoto | null> = [null, null, null];
 
   formAltaPlato = this.fb.group({
@@ -66,7 +65,6 @@ export class AltaPlatoPage {
   }
 
   async elegirFoto(slot: number, source?: "cam" | "gal") {
-    this.err = null;
     try {
       const onWeb = this.platform === "web";
       if (!onWeb) {
@@ -75,7 +73,7 @@ export class AltaPlatoPage {
         if (perm.camera !== "granted" || (needPhotos && perm.photos !== "granted")) {
           const req = await Camera.requestPermissions({ permissions: needPhotos ? ["camera", "photos"] : ["camera"] });
           if (req.camera !== "granted" || (needPhotos && req.photos !== "granted")) {
-            this.err = "Permisos de cámara/galería denegados";
+            await this.mostrarToast("Permisos de cámara/galería denegados", "Error");
             return;
           }
         }
@@ -111,14 +109,16 @@ export class AltaPlatoPage {
       this.fotosFA.at(slot).setValue(previewUrl);
       this.fotosFA.updateValueAndValidity();
     } catch (e) {
-      console.error("elegirFoto:", e);
-      this.err = "Error al cargar la foto";
+      await this.mostrarToast("Error al cargar la foto", "Error");
     }
   }
 
   async enviar() {
-    this.err = null; this.ok = false;
-    if (this.formAltaPlato.invalid) { this.formAltaPlato.markAllAsTouched(); return; }
+    if (this.formAltaPlato.invalid) {
+      this.formAltaPlato.markAllAsTouched();
+      await this.mostrarToast("Completá los campos obligatorios", "Error");
+      return;
+    }
 
     this.loading = true;
     try {
@@ -135,7 +135,11 @@ export class AltaPlatoPage {
 
       const nombre = String(this.f["nombre"].value).trim();
       const exists = await this.platos.existsByNombre(nombre);
-      if (exists) { this.err = "El plato ya existe en la carta"; this.loading = false; return; }
+      if (exists) {
+        await this.mostrarToast("El plato ya existe en la carta", "Error");
+        this.loading = false;
+        return;
+      }
 
       const payload: Plato = {
         nombre,
@@ -147,7 +151,6 @@ export class AltaPlatoPage {
       };
 
       await this.platos.create(payload);
-      this.ok = true;
 
       for (let i = 0; i < this.pending.length; i++) {
         if (this.pending[i]?.previewUrl) URL.revokeObjectURL(this.pending[i]!.previewUrl);
@@ -162,7 +165,24 @@ export class AltaPlatoPage {
         fotos: ["", "", ""],
         esPostre: false
       });
-    } catch { this.err = "No se pudo guardar el plato"; }
-    finally { this.loading = false; }
+
+      await this.mostrarToast("Plato creado", "Éxito");
+    } catch {
+      await this.mostrarToast("No se pudo guardar el plato", "Error");
+    }
+    finally {
+      this.loading = false;
+    }
+  }
+
+  private async mostrarToast(message: string, header = "Aviso"): Promise<void> {
+    const t = await this.toast.create({
+      header,
+      message,
+      duration: 1500,
+      cssClass: "toast",
+      position: "top"
+    });
+    await t.present();
   }
 }

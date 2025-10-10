@@ -8,6 +8,7 @@ import { Perfil } from "src/app/interfaces/perfil";
 import { supabase } from "../../../supabase.client";
 import { AuthService } from "src/app/services/auth/auth";
 import { b64ToBlob } from "../../functions";
+import { ToastController } from "@ionic/angular";
 
 type PendingFoto = { blob: Blob; ext: string; previewUrl: string };
 
@@ -21,11 +22,10 @@ export class AltaBebidaPage implements OnInit {
   private fb = inject(FormBuilder);
   private bebidas = inject(Bebidas);
   private auth = inject(AuthService);
+  private toast = inject(ToastController);
   private readonly platform = Capacitor.getPlatform();
 
   loading = true;
-  ok = false;
-  err: string | null = null;
 
   private pending: Array<PendingFoto | null> = [null, null, null];
 
@@ -70,7 +70,7 @@ export class AltaBebidaPage implements OnInit {
   private async exigeBartender(): Promise<boolean> {
     const p = await this.getPerfilActual();
     const ok = p === "bartender";
-    if (!ok) this.err = "Acceso restringido: solo bartender.";
+    if (!ok) await this.mostrarToast("Acceso restringido: solo bartender.", "Error");
     return ok;
   }
 
@@ -92,7 +92,7 @@ export class AltaBebidaPage implements OnInit {
       const v = ctrl.value;
       if (v == null || v === "") return null;
       const regex = new RegExp(`^\\d+(\\.\\d{1,${maxDecimales}})?$`);
-      return regex.test(v) ? null : { decimales: true };
+      return regex.test(String(v)) ? null : { decimales: true };
     };
   }
 
@@ -106,7 +106,6 @@ export class AltaBebidaPage implements OnInit {
   }
 
   async elegirFoto(slot: number, source?: "cam" | "gal") {
-    this.err = null;
     if (!(await this.exigeBartender())) return;
 
     try {
@@ -117,7 +116,7 @@ export class AltaBebidaPage implements OnInit {
         if (perm.camera !== "granted" || (needPhotos && perm.photos !== "granted")) {
           const req = await Camera.requestPermissions({ permissions: needPhotos ? ["camera", "photos"] : ["camera"] });
           if (req.camera !== "granted" || (needPhotos && req.photos !== "granted")) {
-            this.err = "Permisos de cámara/galería denegados";
+            await this.mostrarToast("Permisos de cámara/galería denegados", "Error");
             return;
           }
         }
@@ -154,16 +153,15 @@ export class AltaBebidaPage implements OnInit {
       this.fotosFA.updateValueAndValidity();
     } catch (e) {
       console.error("elegirFoto:", e);
-      this.err = "Error al cargar la foto";
+      await this.mostrarToast("Error al cargar la foto", "Error");
     }
   }
 
   async enviar() {
-    this.err = null;
-    this.ok = false;
     if (!(await this.exigeBartender())) return;
     if (this.formAltaBebida.invalid) {
       this.formAltaBebida.markAllAsTouched();
+      await this.mostrarToast("Completá los campos obligatorios", "Error");
       return;
     }
 
@@ -183,7 +181,7 @@ export class AltaBebidaPage implements OnInit {
       const nombre = String(this.f["nombre"].value).trim();
       const exists = await this.bebidas.existsByNombre(nombre);
       if (exists) {
-        this.err = "La bebida ya existe en la carta";
+        await this.mostrarToast("La bebida ya existe en la carta", "Error");
         this.loading = false;
         return;
       }
@@ -197,7 +195,6 @@ export class AltaBebidaPage implements OnInit {
       };
 
       await this.bebidas.create(payload);
-      this.ok = true;
 
       for (let i = 0; i < this.pending.length; i++) {
         if (this.pending[i]?.previewUrl) URL.revokeObjectURL(this.pending[i]!.previewUrl);
@@ -211,10 +208,23 @@ export class AltaBebidaPage implements OnInit {
         precio: null,
         fotos: ["", "", ""]
       });
+
+      await this.mostrarToast("Bebida creada", "Éxito");
     } catch {
-      this.err = "No se pudo guardar la bebida";
+      await this.mostrarToast("No se pudo guardar la bebida", "Error");
     } finally {
       this.loading = false;
     }
+  }
+
+  private async mostrarToast(message: string, header = "Aviso"): Promise<void> {
+    const t = await this.toast.create({
+      header,
+      message,
+      duration: 1500,
+      cssClass: "toast",
+      position: "top"
+    });
+    await t.present();
   }
 }

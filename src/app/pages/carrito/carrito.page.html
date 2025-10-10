@@ -1,0 +1,54 @@
+@if(loading) {
+  <app-loading/>
+} @else {
+  <header>
+    <title>Carrito</title>
+  </header>
+
+  <ion-content class="ion-padding">
+    @if (items.length === 0) {
+      <div class="vacio">
+        Carrito Vacío
+      </div>
+      <div class="div_img">
+        <img src="assets/images/carrito.jpg" alt="Bar">
+      </div>
+    } @else {
+      <ion-list class="lista">
+        @for (it of items; track it.id ?? it.producto_id ?? $index) {
+          <ion-item lines="inset">
+            <ion-thumbnail slot="start">
+              <img [src]="getFoto(it)" (error)="onImgError($event)" alt="foto"/>
+            </ion-thumbnail>
+
+            <ion-label>
+              <h3>{{ getNombre(it) }}</h3>
+              <p>
+                Cant: {{ getCantidad(it) }} •
+                Precio: {{ getPrecio(it) | currency:"ARS":"symbol-narrow":"0.0-0" }} •
+                Subtotal: {{ subtotal(it) | currency:"ARS":"symbol-narrow":"0.0-0" }}
+              </p>
+            </ion-label>
+          </ion-item>
+        }
+      </ion-list>
+
+      <div class="resumen">
+        <div>Total: {{ totalCalculado() | currency:"ARS":"symbol-narrow":"0.0-0" }}</div>
+        @if (ped?.totalConDescuento != null) {
+          <div class="desc">
+            Con descuento: {{ ped.totalConDescuento | currency:"ARS":"symbol-narrow":"0.0-0" }}
+          </div>
+        }
+      </div>
+    }
+  </ion-content>
+
+  <footer>
+    <ion-toolbar>
+      <ion-buttons class="ion_btns">
+        <ion-button class="btn_logged" (click)="cerrar()">Cerrar</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </footer>
+}

@@ -112,7 +112,6 @@ export class BarPage implements OnInit, OnDestroy {
     this.mostrarExito('Pedido marcado como terminado');
   }
 
-  // Método para formatear solo la hora
   formatearHora(fecha: string): string {
     return new Date(fecha).toLocaleTimeString('es-AR', {
       hour: '2-digit',

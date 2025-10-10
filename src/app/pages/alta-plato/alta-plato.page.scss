@@ -70,18 +70,18 @@ ion-checkbox.chk-postre[aria-checked="true"]::part(mark) {
 
 .fotos {
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   margin: 10px 0;
 }
 
 .slot {
   display: grid;
-  place-items: center;
+  align-items: start;
+  justify-content: start;
   border: 2px solid black;
-  padding: 5px;
+  padding: 2px;
   border-radius: 12px;
   background-color: #d3a87c;
   gap: 8px;
@@ -94,12 +94,34 @@ ion-checkbox.chk-postre[aria-checked="true"]::part(mark) {
 
 .btn_slot_cam {
   --background: #554738;
+  width: 50px;
+  height: 40px;
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+
+  .img_icon {
+    width: 30px;
+    height: 30px;
+  }
 }
 
 .btn_slot_pho {
   --background: white;
   color: #554738;
   --border-color: white;
+  width: 45px;
+  height: 40px;
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+
+  .img_icon {
+    width: 30px;
+    height: 30px;
+  }
 }
 
 ion-button {
@@ -124,14 +146,6 @@ ion-button {
   aspect-ratio: 1;
   object-fit: cover;
   border-radius: 8px
-}
-
-.ion-error,
-.ion-success {
-  font-weight: 600;
-  --background: transparent;
-  color: white;
-  text-align: center;
 }
 
 .ion-success {
