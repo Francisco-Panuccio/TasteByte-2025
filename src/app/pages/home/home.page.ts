@@ -111,41 +111,9 @@ export class HomePage implements OnInit {
     this.router.navigateByUrl("/login", { replaceUrl: true });
   }
 
-  private async mostrarToast(mensaje: string, color: string = "primary") {
-    const t = await this.toast.create({
-      message: mensaje,
-      duration: 2500,
-      color,
-      cssClass: "toast2",
-      position: "bottom",
-      buttons: [{ text: "OK", role: "cancel" }]
-    });
-    await t.present();
-  }
-
   async escanearQrEntrada() {
     this.router.navigate(['/encuestas-espera'], {
-        queryParams: { clienteId: this.clienteId, tienePermiso : true, yaRegistrado: true, qrValido : true, userId : this.userId}
-      });
-    }
-  //   const qr = await this.qr.scanQr();
-  //   if (!qr) return;
-
-  //   const res = await this.qr.procesarQrCliente(
-  //     qr,
-  //     this.clienteId ?? undefined
-  //   );
-
-  //   if (res.error) {
-  //     this.mostrarToast(res.error, 'danger');
-  //     return;
-  //   }
-
-  //   if (res.permiso && qr.startsWith('INGRESO')) {
-
-  //     this.router.navigate(['/encuestas-espera'], {
-  //       queryParams: { clienteId: this.clienteId, tienePermiso : true, yaRegistrado: !!res.yaRegistrado, qrValido : true, userId : this.userId}
-  //     });
-  //   }
-  // }
+      queryParams: { clienteId: this.clienteId, tienePermiso: true, yaRegistrado: true, qrValido: true, userId: this.userId }
+    });
+  }
 }
