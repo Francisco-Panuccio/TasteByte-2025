@@ -513,14 +513,11 @@ private hhmm(d: Date): string {
 private async ensureChatAndSubscribe(): Promise<void> {
   if (!this.mesaAsignadaId) return;
 
-  // Crear o recuperar el chat
   const chat = await this.chatSvc.getOrCreateForMesa(this.mesaAsignadaId, "cliente");
   this.chatId = chat.id;
 
-  // Asociar token push
   await this.chatSvc.bindMyPushToken(this.chatId, this.anonimoId);
 
-  // Cargar mensajes existentes
   const msgs = await this.chatSvc.loadMessages(chat.id, 200);
   this.seenIds.clear();
   this.messages = msgs.map((m: any) => {
@@ -532,14 +529,13 @@ private async ensureChatAndSubscribe(): Promise<void> {
 
   this.scrollToBottomAfterRender();
 
-  // Suscribirse a nuevos mensajes
   this.chatSvc.subscribeToMessages(chat.id, async (m: ChatMessage) => {
-    // 🔹 Ignorar si ya lo tengo
+
     if (this.seenIds.has(m.id)) return;
 
     const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
 
-    // 🔹 Si el mensaje lo envié yo, no lo dupliques
+
     if (vm.from === "yo") {
       this.seenIds.add(m.id);
       return;
@@ -549,7 +545,7 @@ private async ensureChatAndSubscribe(): Promise<void> {
     this.messages.push({ ...vm, role });
     this.seenIds.add(m.id);
 
-    // 🔹 Mostrar notificación si el chat está cerrado
+
     if (!this.chatOpen) {
       (await this.toast.create({
         message: `Mozo: ${vm.text}`,
@@ -590,17 +586,14 @@ async sendMessage() {
   const tempId = "temp-" + Date.now();
   const now = new Date();
 
-  // Agregar mensaje temporal como cliente
   this.messages.push({ id: tempId, from: "yo", role: "cliente", text: txt, time: this.hhmm(now) });
   this.scrollToBottomAfterRender();
   this.newMsg = "";
 
-  // Enviar a Supabase
   const saved = await this.chatSvc.sendMessage(this.chatId, txt, this.anonimoId);
   const vm = this.chatSvc.toViewMessage(saved, this.myUserId!);
   const role: "mozo" | "cliente" = "cliente";
 
-  // Reemplazar el temporal
   const idx = this.messages.findIndex(m => m.id === tempId);
   if (idx >= 0) {
     this.messages[idx] = { id: vm.id, from: vm.from, role, text: vm.text, time: vm.time };
