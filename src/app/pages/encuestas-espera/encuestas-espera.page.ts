@@ -498,9 +498,8 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       message: mensaje,
       duration: 2500,
       color,
-      cssClass: 'toast2',
-      position: 'top',
-      buttons: [{ text: 'OK', role: 'cancel' }],
+      cssClass: 'toast',
+      position: 'top'
     });
     await t.present();
   }

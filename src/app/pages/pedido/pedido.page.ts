@@ -52,7 +52,7 @@ export class PedidoPage implements OnInit {
         if (this.ped) {
           await this.verificarDescuento(this.ped.id);
         } else {
-          await this.mostrarToast("⚠ No hay pedido activo");
+          await this.mostrarToast("No hay pedido activo");
         }
         this.loading = false;
         return;
@@ -66,13 +66,13 @@ export class PedidoPage implements OnInit {
           this.items = items;
           if (this.ped) await this.verificarDescuento(this.ped.id);
         } else {
-          await this.mostrarToast("⚠ No hay pedido asociado a la mesa");
+          await this.mostrarToast("No hay pedido asociado a la mesa");
         }
         this.loading = false;
         return;
       }
 
-      await this.mostrarToast("⚠ Falta id o mesa");
+      await this.mostrarToast("Falta id o mesa");
       this.loading = false;
       return;
     }
@@ -82,7 +82,7 @@ export class PedidoPage implements OnInit {
     this.items = items;
 
     if (!this.ped) {
-      await this.mostrarToast("⚠ Pedido no encontrado en la BD");
+      await this.mostrarToast("Pedido no encontrado en la BD");
     } else {
       await this.verificarDescuento(this.ped.id);
     }
@@ -98,7 +98,7 @@ export class PedidoPage implements OnInit {
       .maybeSingle();
 
     if (descError) {
-      await this.mostrarToast(`❌ Error cargando descuento: ${descError.message}`, "Error");
+      await this.mostrarToast(`Error cargando descuento: ${descError.message}`, "Error");
       return;
     }
 
@@ -147,7 +147,7 @@ export class PedidoPage implements OnInit {
 
   async confirmarRecibido(): Promise<void> {
     if (!this.ped?.id) {
-      await this.mostrarToast("❌ Pedido no cargado", "Error");
+      await this.mostrarToast("Pedido no cargado", "Error");
       return;
     }
 
@@ -192,21 +192,21 @@ export class PedidoPage implements OnInit {
           .eq("id", pedidoId);
 
         if (error) {
-          await this.mostrarToast(`❌ No se pudo marcar como terminado: ${error.message}`, "Error");
+          await this.mostrarToast(`No se pudo marcar como terminado: ${error.message}`, "Error");
           return;
         }
 
         this.ped.estado = "terminado";
-        await this.mostrarToast("✅ Pedido marcado como Terminado", "Éxito");
+        await this.mostrarToast("Pedido marcado como Terminado", "Éxito");
       } else {
         const faltan = [
           hayBar && !barOk ? "bar" : null,
           hayCocina && !cocinaOk ? "cocina" : null
         ].filter(Boolean).join(" y ");
-        await this.mostrarToast(`⏳ Aún en preparación (${faltan})`, "Aviso");
+        await this.mostrarToast(`Aún en preparación (${faltan})`, "Aviso");
       }
     } catch (e: any) {
-      await this.mostrarToast(`❌ Error verificando estados: ${e.message ?? e}`, "Error");
+      await this.mostrarToast(`Error verificando estados: ${e.message ?? e}`, "Error");
     } finally {
       this.verificando = false;
     }
@@ -218,8 +218,7 @@ export class PedidoPage implements OnInit {
       message,
       duration,
       position: "top",
-      cssClass: "toast",
-      buttons: [{ text: "OK", role: "cancel" }]
+      cssClass: "toast"
     });
     await t.present();
   }

@@ -164,7 +164,7 @@ export class PedidosMozoPage implements OnInit {
       if (!validacion.valido) {
         const toast = await this.toast.create({
           message: validacion.mensaje,
-          duration: 3000,
+          duration: 2000,
           position: 'top',
           cssClass: 'toast'
         });

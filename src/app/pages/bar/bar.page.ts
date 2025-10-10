@@ -63,8 +63,7 @@ export class BarPage implements OnInit, OnDestroy {
       this.pedidos = (data ?? []) as any[];
 
     } catch (error) {
-      console.error('Error cargando pedidos:', error);
-      this.mostrarError('Error al cargar los pedidos');
+      this.mostrarToast('Error al cargar los pedidos');
     }
   }
 
@@ -92,8 +91,7 @@ export class BarPage implements OnInit, OnDestroy {
       await alert.present();
 
     } catch (error) {
-      console.error('Error al terminar pedido:', error);
-      this.mostrarError('Error al terminar el pedido');
+      this.mostrarToast('Error al terminar el pedido');
     }
   }
 
@@ -109,7 +107,7 @@ export class BarPage implements OnInit, OnDestroy {
     if (error) throw error;
 
     this.cargar();
-    this.mostrarExito('Pedido marcado como terminado');
+    this.mostrarToast('Pedido marcado como terminado');
   }
 
   formatearHora(fecha: string): string {
@@ -119,17 +117,7 @@ export class BarPage implements OnInit, OnDestroy {
     });
   }
 
-  private async mostrarError(mensaje: string) {
-    const toast = await this.toast.create({
-      message: mensaje,
-      duration: 3000,
-      color: 'danger',
-      position: 'top'
-    });
-    toast.present();
-  }
-
-  private async mostrarExito(mensaje: string) {
+  private async mostrarToast(mensaje: string) {
     const toast = await this.toast.create({
       message: mensaje,
       duration: 2000,
