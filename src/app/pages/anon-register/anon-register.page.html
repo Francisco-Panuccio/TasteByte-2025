@@ -22,6 +22,11 @@
       <ion-button class="btn_continuar" expand="block" (click)="registrarAnonimo()" [disabled]="formAnon.invalid || loading">
         Continuar
       </ion-button>
+
+      <div class="placeholder-img" *ngIf="!formAnon.value.foto">
+      <img src="/assets/images/anonimo.png" alt="placeholder anónimo">
+      </div>
+
     </form>
 
     <ion-text color="danger" *ngIf="err">{{ err }}</ion-text>

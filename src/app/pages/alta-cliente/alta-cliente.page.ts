@@ -164,7 +164,7 @@ export class AltaClientePage implements OnInit {
           dni: Number(String(this.f["dni"].value).trim()),
           email,
           perfil: "cliente_registrado",
-          cuil: null
+          cuil: null,
         };
 
         const usuarioDB: Usuario = await this.usuarios.createFromUser(usuarioLike, String(this.f["foto"].value));

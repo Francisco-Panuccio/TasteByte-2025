@@ -147,3 +147,24 @@ ion-text[color="success"] {
     border-radius: 10px;
   }
 }
+
+.placeholder-img {
+  display: flex;
+  justify-content: center;
+  margin-top: 25px;
+
+  img {
+    width: 250px;      
+    max-width: 80%;    
+    height: auto;
+    border-radius: 12px;
+    opacity: 0.9;
+    transition: transform 0.3s ease;
+
+    &:hover {
+      transform: scale(1.05);
+    }
+  }
+}
+
+

@@ -1,109 +1,181 @@
 @if(loading) {
-<app-loading />
+  <app-loading />
 } @else {
-<header>
-  <title>Bienvenido {{ nombreCliente }}</title>
-</header>
+  <header>
+    <title>Bienvenido {{ nombreCliente }}</title>
+  </header>
 
-@if(tienePermiso) {
-<ion-content class="ion-padding">
-  <ion-card>
-    <ion-card-header> Opciones Disponibles </ion-card-header>
-    <ion-card-content>
-      <ion-button
-        expand="block"
-        routerLink="/lista-espera"
-        [queryParams]="{ anonimoId: anonimoId, userId: usuarioId }"
-        color="tertiary"
-      >
-        Ver Lista de Espera
-      </ion-button>
+  @if(tienePermiso) {
+  <ion-content class="ion-padding">
+    <ion-card>
+      <ion-card-header> Opciones Disponibles </ion-card-header>
+      <ion-card-content>
 
-      <ion-button
-        expand="block"
-        color="medium"
-        [disabled]="yaRegistrado"
-        (click)="registrarseListaEspera()"
-      >
-        Unirse a la Lista de Espera
-      </ion-button>
+        <div *ngIf="!tieneMesa">
+          <ion-button
+            expand="block"
+            routerLink="/lista-espera"
+            [queryParams]="{ anonimoId: anonimoId, userId: usuarioId }"
+            color="tertiary"
+          >
+            Ver Lista de Espera
+          </ion-button>
 
-      <ion-button
-        expand="block"
-        class="btn_encuesta"
-        [routerLink]="['/encuestas']"
-        [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId, userId : userUid}"
-      >
-        Encuestas de Clientes
-      </ion-button>
+          <ion-button
+            expand="block"
+            color="medium"
+            [disabled]="yaRegistrado"
+            (click)="registrarseListaEspera()"
+          >
+            Unirse a la Lista de Espera
+          </ion-button>
+        </div>
 
-      @if(mostrarJuegosPedido) {
-      <ion-button
-        expand="block"
-        class="btn_pedido"
-        [routerLink]="['/pedido']"
-        [queryParams]="{ id: pedidoId || undefined, mesaId: mesaAsignadaId || undefined, anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId }"
-      >
-        Pedido
-      </ion-button>
+        <ion-button
+          expand="block"
+          class="btn_encuesta"
+          [routerLink]="['/encuestas']"
+          [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId, userId : userUid}"
+        >
+          Encuestas de Clientes
+        </ion-button>
 
-      <ion-button
-        expand="block"
-        class="btn_juegos"
-        [routerLink]="['/juegos']"
-        [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId, userId : userUid , mesaId : mesaAsignadaId}"
-      >
-        Juegos
-      </ion-button>
-      } @if(mostrarCuenta && tieneMesa && estadoPedido !== 'impagado') {
-      <ion-button
-        expand="block"
-        class="btn_cuenta"
-        (click)="pedirCuenta()"
-        [routerLink]="['/cuenta']"
-        [queryParams]="{ pedidoId: pedidoId, anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId, userId : userUid }"
-      >
-        Pedir Cuenta
-      </ion-button>
-      }
-    </ion-card-content>
-  </ion-card>
-</ion-content>
-} @else {
-<ion-content class="ion-padding">
-  <ion-button expand="block" color="primary" (click)="escanearQr()">
-    Escanear QR de Ingreso
-  </ion-button>
-</ion-content>
-}
+        @if(mostrarJuegosPedido) {
+        <ion-button
+          expand="block"
+          class="btn_pedido"
+          [routerLink]="['/pedido']"
+          [queryParams]="{ id: pedidoId || undefined, mesaId: mesaAsignadaId || undefined, anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId }"
+        >
+          Pedido
+        </ion-button>
 
-<div *ngIf="tieneMesa; else esperando" class="estado-mesa">
-  <ion-card class="card-success">
-    <ion-card-header>Mesa Asignada</ion-card-header>
-    <div class="div_mesa">
-      Ya puede tomar asiento en la mesa <b>#{{ mesaAsignadaId }}</b>
-    </div>
-  </ion-card>
+        <ion-button
+          expand="block"
+          class="btn_juegos"
+          [routerLink]="['/juegos']"
+          [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId, userId : userUid , mesaId : mesaAsignadaId}"
+        >
+          Juegos
+        </ion-button>
+        }
 
-  <ion-button expand="block" class="btns_main" (click)="escanearQrMesa()">
-    Escanear QR de mi mesa
-  </ion-button>
-</div>
+        @if(mostrarCuenta && tieneMesa && estadoPedido !== 'impagado') {
+        <ion-button
+          expand="block"
+          class="btn_cuenta"
+          (click)="pedirCuenta()"
+          [routerLink]="['/cuenta']"
+          [queryParams]="{ pedidoId: pedidoId, anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId, userId : userUid }"
+        >
+          Pedir Cuenta
+        </ion-button>
+        }
 
-<ng-template #esperando>
-  <ion-card class="card-pending">
-    <ion-card-content>
-      Aún no se le ha asignado una mesa. <br />
-      <span class="resalta">Por favor, espere al maître.</span>
-    </ion-card-content>
-  </ion-card>
-</ng-template>
+        <!-- 🔹 Mostrar el botón de chat solo si el cliente tiene mesa asignada -->
+        <ion-button
+          *ngIf="tieneMesa"
+          expand="block"
+          color="primary"
+          (click)="openChat()"
+        >
+          Consultar al Mozo
+        </ion-button>
 
-<footer>
-  <ion-toolbar>
-    <ion-buttons class="ion_btns">
-      <ion-button class="btn_logged" (click)="salir()">Cerrar Sesión</ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</footer>
+      </ion-card-content>
+    </ion-card>
+  </ion-content>
+  } @else {
+  <ion-content class="ion-padding">
+    <ion-button expand="block" color="primary" (click)="escanearQr()">
+      Escanear QR de Ingreso
+    </ion-button>
+  </ion-content>
+  }
+
+  <div *ngIf="tieneMesa; else esperando" class="estado-mesa">
+    <ion-card class="card-success">
+      <ion-card-header>Mesa Asignada</ion-card-header>
+      <div class="div_mesa">
+        Ya puede tomar asiento en la mesa <b>#{{ mesaAsignadaId }}</b>
+      </div>
+    </ion-card>
+
+    <ion-button expand="block" class="btns_main" (click)="escanearQrMesa()">
+      Escanear QR de mi mesa
+    </ion-button>
+  </div>
+
+  <ng-template #esperando>
+    <ion-card class="card-pending">
+      <ion-card-content>
+        Aún no se le ha asignado una mesa. <br />
+        <span class="resalta">Por favor, espere al maître.</span>
+      </ion-card-content>
+    </ion-card>
+  </ng-template>
+
+  <!-- 🔹 Modal del chat con el mozo -->
+  <ion-modal
+    #chatModal
+    [isOpen]="chatOpen"
+    [breakpoints]="[1]"
+    [initialBreakpoint]="1"
+    backdropDismiss="false"
+    handle="false"
+    (didDismiss)="chatOpen=false">
+    <ng-template>
+      <header style="margin-top: 0 !important; padding: 10px !important;">
+        <ion-toolbar>
+          <title style="font-size: 25px;">Chat Mozo</title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeChat()" class="btn_close">Cerrar</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </header>
+
+      <ion-content #chatContent class="ion-content-chat">
+        <div class="chat">
+          <div class="msg"
+               [class.mine]="m.from==='yo'"
+               [class.mozo-msg]="m.role==='mozo'"
+               [class.cliente-msg]="m.role==='cliente'"
+               *ngFor="let m of messages; trackBy: trackMsg;">
+            <div class="bubble">
+              <div class="body">{{ m.text }}</div>
+              <div [class.mozo-meta]="m.role==='mozo'"
+                   [class.cliente-meta]="m.role==='cliente'">
+                {{ m.role==='mozo' ? 'Mozo' : 'Cliente' }} • {{ m.time }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <ion-item class="composer" lines="none" slot="fixed">
+          <ion-input
+            type="text"
+            placeholder="Escribe tu mensaje…"
+            [(ngModel)]="newMsg"
+            [disabled]="!chatReady"
+            (keyup.enter)="sendMessage();">
+          </ion-input>
+          <ion-button
+            slot="end"
+            [disabled]="!chatReady || !newMsg.trim()"
+            (click)="sendMessage();"
+            style="color: white; --background: #554738;">
+            Enviar
+          </ion-button>
+        </ion-item>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <footer>
+    <ion-toolbar>
+      <ion-buttons class="ion_btns">
+        <ion-button class="btn_logged" (click)="salir()">Cerrar Sesión</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </footer>
 }
