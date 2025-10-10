@@ -111,18 +111,6 @@ export class HomePage implements OnInit {
     this.router.navigateByUrl("/login", { replaceUrl: true });
   }
 
-  private async mostrarToast(mensaje: string, color: string = "primary") {
-    const t = await this.toast.create({
-      message: mensaje,
-      duration: 2500,
-      color,
-      cssClass: "toast2",
-      position: "bottom",
-      buttons: [{ text: "OK", role: "cancel" }]
-    });
-    await t.present();
-  }
-
   async escanearQrEntrada() {
     const qr = await this.qr.scanQr();
     if (!qr) return;
@@ -131,11 +119,6 @@ export class HomePage implements OnInit {
       qr,
       this.clienteId ?? undefined
     );
-
-    if (res.error) {
-      this.mostrarToast(res.error, 'danger');
-      return;
-    }
 
     if (res.permiso && qr.startsWith('INGRESO')) {
 
