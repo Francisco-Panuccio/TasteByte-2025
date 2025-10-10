@@ -61,7 +61,7 @@ export class PedidosMozoPage implements OnInit {
   async ngOnInit() {
     await this.ensureMozo();
     this.myUserId = await this.chatSvc.getMyUserId();
-    await this.cargar();
+    this.setFiltro("pendiente", true);
     this.sub = this.pedidosSrv.subscribeCambios(() => this.cargar());
     await this.push.init(undefined, "mozo");
     await this.push.ready();
@@ -88,6 +88,13 @@ export class PedidosMozoPage implements OnInit {
   private async ensureMozo() {
     const { data } = await supabase.auth.getUser();
     if (!data.user) throw new Error("Auth requerida");
+  }
+
+  setFiltro(v: Filtro, force = false): void {
+    if (this.busy) return;
+    const changed = v !== this.filtro;
+    this.filtro = v;
+    if (changed || force) this.cargar();
   }
 
   async cargar() {

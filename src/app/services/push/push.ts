@@ -55,7 +55,15 @@ export class Push {
       const body = n.body || (data.body as string) || "";
       const id = Math.floor(Date.now() % 2147483647);
       await LocalNotifications.schedule({
-        notifications: [{ id, title, body, channelId: "orders", sound: "default", extra: data }]
+        notifications: [{
+          id,
+          title,
+          body,
+          channelId: "orders",
+          sound: "default",
+          extra: data,
+          smallIcon: "ic_stat_orders" // <-- icono Android
+        }]
       });
     });
 
