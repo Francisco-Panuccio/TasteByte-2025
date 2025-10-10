@@ -34,10 +34,10 @@ export class EncuestaNuevaPage implements OnInit {
     this.anonimoId = p.get("anonimoId") ?? undefined;
     this.usuarioId = p.get("usuarioId") ? Number(p.get("usuarioId")) : null;
     this.clienteId = p.get("clienteId") ? Number(p.get("clienteId")) : null;
+
     const puede = await this.encuestas.puedeRealizar();
     if (!puede) {
-      const t = await this.toast.create({ message: "Aún no puedes realizar la encuesta.", duration: 2000, position: "top" });
-      await t.present();
+      await this.mostrarToast("Aún no podés realizar la encuesta.", "Aviso");
       this.volver();
       return;
     }
@@ -46,21 +46,41 @@ export class EncuestaNuevaPage implements OnInit {
 
   async enviar() {
     if (this.calificacionGeneral == null || !this.calidadComida || !this.tiempoEspera) return;
-    await this.encuestas.enviarRespuesta({
-      calificacion_general: this.calificacionGeneral,
-      calidad_comida: this.calidadComida,
-      tiempo_espera: this.tiempoEspera,
-      opinion: this.opinion ?? null
-    });
-    const t = await this.toast.create({ message: "¡Gracias por tu Encuesta!", duration: 1000, position: "top", cssClass: "toast" });
-    await t.present();
-    await t.onDidDismiss();
 
-    const url = this.router.serializeUrl(this.router.createUrlTree(["/encuestas"], { queryParams: { anonimoId: this.anonimoId, usuarioId: this.usuarioId, clienteId: this.clienteId } }));
-    window.location.replace(url);
+    try {
+      await this.encuestas.enviarRespuesta({
+        calificacion_general: this.calificacionGeneral,
+        calidad_comida: this.calidadComida,
+        tiempo_espera: this.tiempoEspera,
+        opinion: this.opinion ?? null
+      });
+
+      await this.mostrarToast("Encuesta realizada con éxito", "Éxito");
+      const url = this.router.serializeUrl(
+        this.router.createUrlTree(["/encuestas"], {
+          queryParams: { anonimoId: this.anonimoId, usuarioId: this.usuarioId, clienteId: this.clienteId }
+        })
+      );
+      window.location.replace(url);
+    } catch {
+      await this.mostrarToast("Error al realizar la encuesta", "Error");
+    }
   }
 
   volver() {
-    this.router.navigate(["/encuestas"], { queryParams: { anonimoId: this.anonimoId, usuarioId: this.usuarioId, clienteId: this.clienteId } });
+    this.router.navigate(["/encuestas"], {
+      queryParams: { anonimoId: this.anonimoId, usuarioId: this.usuarioId, clienteId: this.clienteId }
+    });
+  }
+
+  private async mostrarToast(message: string, header = "Aviso"): Promise<void> {
+    const t = await this.toast.create({
+      header,
+      message,
+      duration: 1500,
+      cssClass: "toast",
+      position: "top"
+    });
+    await t.present();
   }
 }

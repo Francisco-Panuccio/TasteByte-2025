@@ -6,6 +6,7 @@ import { Mesa, TipoMesa } from "src/app/interfaces/mesa";
 import { Mesas } from "src/app/services/mesas/mesas";
 import { b64ToBlob } from "../../functions";
 import { Qr } from "src/app/services/qr/qr";
+import { ToastController } from "@ionic/angular";
 
 @Component({
   selector: "app-alta-mesa",
@@ -17,10 +18,10 @@ export class AltaMesaPage implements OnInit {
   private fb = inject(FormBuilder);
   private mesasSvc = inject(Mesas);
   private qr = inject(Qr);
+  private toast = inject(ToastController);
+
   qrValue: string | undefined;
   loading = true;
-  ok = false;
-  err: string | null = null;
 
   readonly tipos = [
     { label: "VIP", value: "VIP" },
@@ -51,7 +52,6 @@ export class AltaMesaPage implements OnInit {
   }
 
   async elegirFoto(source?: "cam" | "gal") {
-    this.err = null;
     try {
       const onWeb = this.platform === "web";
       if (!onWeb) {
@@ -60,7 +60,7 @@ export class AltaMesaPage implements OnInit {
         if (perm.camera !== "granted" || (needPhotos && perm.photos !== "granted")) {
           const req = await Camera.requestPermissions({ permissions: needPhotos ? ["camera", "photos"] : ["camera"] });
           if (req.camera !== "granted" || (needPhotos && req.photos !== "granted")) {
-            this.err = "Permisos de cámara/galería denegados";
+            await this.mostrarToast("Permisos de cámara/galería denegados", "Error");
             return;
           }
         }
@@ -95,15 +95,14 @@ export class AltaMesaPage implements OnInit {
       this.previewUrl = URL.createObjectURL(blob);
       this.formAltaMesa.get("foto_url")!.setValue(this.previewUrl);
     } catch {
-      this.err = "Error al cargar la foto";
+      await this.mostrarToast("Error al cargar la foto", "Error");
     }
   }
 
   async enviar() {
-    this.err = null;
-    this.ok = false;
     if (this.formAltaMesa.invalid) {
       this.formAltaMesa.markAllAsTouched();
+      await this.mostrarToast("Completá los campos obligatorios", "Error");
       return;
     }
 
@@ -118,7 +117,7 @@ export class AltaMesaPage implements OnInit {
       const numero = Number(this.f["numero"].value);
       const existe = await this.mesasSvc.existsByNumero(numero);
       if (existe) {
-        this.err = "Mesa Existente";
+        await this.mostrarToast("Mesa existente", "Error");
         this.loading = false;
         return;
       }
@@ -133,16 +132,28 @@ export class AltaMesaPage implements OnInit {
       const creada = await this.mesasSvc.create(payload);
       await this.mesasSvc.setQr(creada.id!, creada.numero);
       this.qrValue = await this.qr.getQrMesa(creada.id!);
-      this.ok = true;
 
       if (this.previewUrl) URL.revokeObjectURL(this.previewUrl);
       this.previewUrl = null;
       this.pendingFoto = null;
       this.formAltaMesa.reset({ numero: null, capacidad: null, tipo: null, foto_url: "" });
+
+      await this.mostrarToast("Mesa creada", "Éxito");
     } catch {
-      this.err = "No se pudo guardar la mesa";
+      await this.mostrarToast("No se pudo guardar la mesa", "Error");
     } finally {
       this.loading = false;
     }
+  }
+
+  private async mostrarToast(message: string, header = "Aviso"): Promise<void> {
+    const t = await this.toast.create({
+      header,
+      message,
+      duration: 1500,
+      cssClass: "toast",
+      position: "top"
+    });
+    await t.present();
   }
 }
