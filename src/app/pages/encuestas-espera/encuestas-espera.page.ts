@@ -1,9 +1,11 @@
-import { Component, inject, OnInit, OnDestroy, NgZone } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, NgZone, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { ToastController } from '@ionic/angular';
+import { IonContent, IonModal, ToastController } from '@ionic/angular';
 import { Qr } from 'src/app/services/qr/qr';
 import { supabase } from 'src/supabase.client';
 import { Push } from 'src/app/services/push/push';
+import { Chat } from 'src/app/services/chat/chat';
+import { ChatMessage } from 'src/app/interfaces/chat-message';
 
 type EstadoAsignacion =
   | 'pendiente'
@@ -26,9 +28,20 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   private qr = inject(Qr);
   private push = inject(Push);
   private zone = inject(NgZone);
+  private chatSvc = inject(Chat);
   private subscription: any;
   private pedidoSub: any;
   private listaEsperaSub: any;
+
+  chatOpen = false;
+  chatReady = false;
+  chatId?: string;
+  myUserId?: string;
+  messages: { id: string; from: "yo" | "mozo"; role: "mozo" | "cliente"; text: string; time: string }[] = [];
+  newMsg = "";
+  @ViewChild("chatContent") chatContent?: IonContent;
+  @ViewChild("chatModal", { read: IonModal }) chatModal?: IonModal;
+  private seenIds = new Set<string>();
 
 
   nombreCliente: string | undefined;
@@ -65,7 +78,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       this.tienePermiso = params['tienePermiso'];
       this.userUid = params['userId'];
       this.mostrarCuenta = params['mostrarCuenta'];
-
+      
       if (!this.clienteId && !this.anonimoId && !this.usuarioId) {
         this.router.navigate(['/login'], { replaceUrl: true });
         return;
@@ -194,6 +207,12 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
 
 
       setTimeout(() => (this.loading = false), 2000);
+      
+      
+      this.myUserId = this.anonimoId
+      ? `anon-${this.anonimoId}`
+      : au.user?.id ?? undefined;
+      await this.ensureChatAndSubscribe();
     });
     
   }
@@ -485,4 +504,121 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     });
     await t.present();
   }
+
+private hhmm(d: Date): string {
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  return `${hh}:${mm}`;
+}
+
+private async ensureChatAndSubscribe(): Promise<void> {
+  if (!this.mesaAsignadaId) return;
+
+  // Crear o recuperar el chat
+  const chat = await this.chatSvc.getOrCreateForMesa(this.mesaAsignadaId, "cliente");
+  this.chatId = chat.id;
+
+  // Asociar token push
+  await this.chatSvc.bindMyPushToken(this.chatId, this.anonimoId);
+
+  // Cargar mensajes existentes
+  const msgs = await this.chatSvc.loadMessages(chat.id, 200);
+  this.seenIds.clear();
+  this.messages = msgs.map((m: any) => {
+    this.seenIds.add(m.id);
+    const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
+    const role = vm.from === "yo" ? "cliente" : "mozo";
+    return { ...vm, role };
+  });
+
+  this.scrollToBottomAfterRender();
+
+  // Suscribirse a nuevos mensajes
+  this.chatSvc.subscribeToMessages(chat.id, async (m: ChatMessage) => {
+    // 🔹 Ignorar si ya lo tengo
+    if (this.seenIds.has(m.id)) return;
+
+    const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
+
+    // 🔹 Si el mensaje lo envié yo, no lo dupliques
+    if (vm.from === "yo") {
+      this.seenIds.add(m.id);
+      return;
+    }
+
+    const role: "mozo" | "cliente" = "mozo";
+    this.messages.push({ ...vm, role });
+    this.seenIds.add(m.id);
+
+    // 🔹 Mostrar notificación si el chat está cerrado
+    if (!this.chatOpen) {
+      (await this.toast.create({
+        message: `Mozo: ${vm.text}`,
+        duration: 3000,
+        position: "top",
+        cssClass: "toast",
+        buttons: [{ text: "Abrir", handler: () => this.openChat() }],
+      })).present();
+    } else {
+      this.scrollToBottom();
+    }
+  });
+}
+
+
+async openChat() {
+  if (!this.chatId && this.mesaAsignadaId) {
+    const chat = await this.chatSvc.getOrCreateForMesa(this.mesaAsignadaId, "cliente");
+    this.chatId = chat.id;
+    await this.chatSvc.bindMyPushToken(this.chatId, this.anonimoId);
+  }
+  this.chatOpen = true;
+  this.chatReady = true;
+  this.scrollToBottomAfterRender();
+}
+
+async closeChat() {
+  await this.chatModal?.dismiss();
+  this.chatOpen = false;
+  this.chatReady = false;
+}
+
+async sendMessage() {
+  if (!this.chatReady || !this.chatId) return;
+  const txt = this.newMsg.trim();
+  if (!txt) return;
+
+  const tempId = "temp-" + Date.now();
+  const now = new Date();
+
+  // Agregar mensaje temporal como cliente
+  this.messages.push({ id: tempId, from: "yo", role: "cliente", text: txt, time: this.hhmm(now) });
+  this.scrollToBottomAfterRender();
+  this.newMsg = "";
+
+  // Enviar a Supabase
+  const saved = await this.chatSvc.sendMessage(this.chatId, txt, this.anonimoId);
+  const vm = this.chatSvc.toViewMessage(saved, this.myUserId!);
+  const role: "mozo" | "cliente" = "cliente";
+
+  // Reemplazar el temporal
+  const idx = this.messages.findIndex(m => m.id === tempId);
+  if (idx >= 0) {
+    this.messages[idx] = { id: vm.id, from: vm.from, role, text: vm.text, time: vm.time };
+  } else if (!this.seenIds.has(saved.id)) {
+    this.messages.push({ id: vm.id, from: vm.from, role, text: vm.text, time: vm.time });
+  }
+
+  this.seenIds.add(saved.id);
+}
+
+
+trackMsg = (_: number, m: { id: string }) => m.id;
+private scrollToBottom(ms: number = 200) {
+  try { this.chatContent?.scrollToBottom(ms); } catch { }
+}
+private scrollToBottomAfterRender() {
+  requestAnimationFrame(() => setTimeout(() => this.scrollToBottom(200), 0));
+}
+
 }
