@@ -10,19 +10,23 @@
     <ion-text color="success" *ngIf="ok">{{ ok }}</ion-text>
 
     <ion-list *ngIf="!loading && clientes.length > 0">
-      <ion-item *ngFor="let c of clientes">
-        <ion-avatar slot="start">
-          <img [src]="c.usuario.foto_url || 'assets/avatar.png'" alt="foto cliente">
-        </ion-avatar>
-        <ion-label>
-          <h2>{{ c.usuario.apellidos }}, {{ c.usuario.nombres }}</h2>
-          <p>DNI: {{ c.usuario.numero_documento }}</p>
-          <p>Email: {{ c.usuario.correo_electronico }}</p>
-        </ion-label>
-        <ion-buttons slot="end">
-          <button class="btn-success" (click)="aprobar(c.usuario_id)">APROBAR</button>
-          <button class="btn-danger" (click)="rechazar(c.usuario_id)">RECHAZAR</button>
-        </ion-buttons>
+      <ion-item *ngFor="let c of clientes" class="card-item">
+        <div class="item-content">
+          <div class="user-info">
+            <ion-avatar slot="start">
+              <img [src]="c.usuario.foto_url || 'assets/avatar.png'" alt="foto cliente">
+            </ion-avatar>
+            <ion-label>
+              <h2>{{ c.usuario.apellidos }}, {{ c.usuario.nombres }}</h2>
+              <p>DNI: {{ c.usuario.numero_documento }}</p>
+              <p>Email: {{ c.usuario.correo_electronico }}</p>
+            </ion-label>
+          </div>
+          <div class="buttons-row">
+            <button class="btn-success" (click)="aprobar(c.usuario_id)">APROBAR</button>
+            <button class="btn-danger" (click)="rechazar(c.usuario_id)">RECHAZAR</button>
+          </div>
+        </div>
       </ion-item>
     </ion-list>
 

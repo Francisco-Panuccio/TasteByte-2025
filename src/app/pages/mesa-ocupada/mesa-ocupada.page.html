@@ -29,12 +29,14 @@
       <div class="grid">
         @if(tab==="platos"){
           @for(p of platos; track p.id){
-            <article class="card">
-              <div class="imgs">
-                <img *ngIf="p.fotos?.[0]" [src]="p.fotos[0]" alt="{{ p.nombre }}">
-                <img *ngIf="p.fotos?.[1]" [src]="p.fotos[1]" alt="{{ p.nombre }}">
-                <img *ngIf="p.fotos?.[2]" [src]="p.fotos[2]" alt="{{ p.nombre }}">
+          <article class="card">
+            <div class="carousel" aria-label="Fotos {{ p.nombre }}">
+              <div class="track">
+                @for(f of (p.fotos.length ? p.fotos : ['assets/images/no-image.png']); track f){
+                  <img class="slide" [src]="f" [alt]="p.nombre" loading="lazy">
+                }
               </div>
+            </div>
 
               <div class="info">
                 <h3>{{ p.nombre | titlecase }}</h3>
@@ -57,12 +59,14 @@
 
         @if(tab==="bebidas"){
           @for(b of bebidas; track b.id){
-            <article class="card">
-              <div class="imgs">
-                <img *ngIf="b.fotos?.[0]" [src]="b.fotos[0]" alt="{{ b.nombre }}">
-                <img *ngIf="b.fotos?.[1]" [src]="b.fotos[1]" alt="{{ b.nombre }}">
-                <img *ngIf="b.fotos?.[2]" [src]="b.fotos[2]" alt="{{ b.nombre }}">
+          <article class="card">
+            <div class="carousel" aria-label="Fotos {{ b.nombre }}">
+              <div class="track">
+                @for(f of (b.fotos.length ? b.fotos : ['assets/images/no-image.png']); track f){
+                  <img class="slide" [src]="f" [alt]="b.nombre" loading="lazy">
+                }
               </div>
+            </div>
 
               <div class="info">
                 <h3>{{ b.nombre | titlecase }}</h3>
@@ -85,12 +89,14 @@
 
         @if(tab==="postres"){
           @for(pt of postres; track pt.id){
-            <article class="card">
-              <div class="imgs">
-                <img *ngIf="pt.fotos?.[0]" [src]="pt.fotos[0]" alt="{{ pt.nombre }}">
-                <img *ngIf="pt.fotos?.[1]" [src]="pt.fotos[1]" alt="{{ pt.nombre }}">
-                <img *ngIf="pt.fotos?.[2]" [src]="pt.fotos[2]" alt="{{ pt.nombre }}">
+          <article class="card">
+            <div class="carousel" aria-label="Fotos {{ pt.nombre }}">
+              <div class="track">
+                @for(f of (pt.fotos.length ? pt.fotos : ['assets/images/no-image.png']); track f){
+                  <img class="slide" [src]="f" [alt]="pt.nombre" loading="lazy">
+                }
               </div>
+            </div>
 
               <div class="info">
                 <h3>{{ pt.nombre | titlecase }}</h3>

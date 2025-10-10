@@ -47,12 +47,10 @@ ion-content::part(scroll) {
 }
 
 .card {
-  display: grid;
-  grid-template-columns: 150px 1fr;
-  grid-template-areas:
-    "imgs info"
-    "imgs meta"
-    "imgs qty";
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   gap: 12px;
   border: 2px solid #000;
   border-radius: 16px;
@@ -61,44 +59,56 @@ ion-content::part(scroll) {
   height: 420px;
   width: 100%;
   cursor: pointer;
+
+  .carousel {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    aspect-ratio: auto;
+    overflow: hidden;
+    border-radius: 12px;
+
+    .track {
+      display: flex;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      height: 100%;
+    }
+
+    .slide {
+      flex: 0 0 100%;
+      min-width: 100%;
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
+      object-position: center;
+      scroll-snap-align: start;
+    }
+  }
 }
 
-.imgs {
-  grid-area: imgs;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-
-.imgs img {
-  width: 160px;
-  height: 127px;
-  object-fit: cover;
-  border: 1px solid #000;
-  border-radius: 8px;
+.card .carousel .track::-webkit-scrollbar {
+  display: none;
 }
 
 .info {
-  grid-area: info;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
-  gap: 4px;
 }
 
 .meta {
-  grid-area: meta;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
+  margin-top: -20px;
 }
 
 .qty {
-  margin-top: 8px;
   gap: 8px;
   grid-area: qty;
   display: flex;
@@ -113,16 +123,16 @@ ion-content::part(scroll) {
 }
 
 h3 {
-  margin: .25rem 0;
+  margin: 0 0 5px 0;
   font-weight: 700;
 }
 
 .desc {
-  font-size: .9rem;
+  font-size: 18px;
   color: #554738;
   font-weight: 600;
   min-height: 2.5em;
-  margin: 5px 0;
+  margin: 0;
 }
 
 .cliente-meta {
@@ -149,14 +159,14 @@ h3 {
   border: 1px solid #000;
   padding: .1rem .4rem;
   border-radius: 8px;
-  font-size: 18px;
+  font-size: 20px;
   color: #554738;
   background: white;
 }
 
 .tiempo {
   color: #554738;
-  font-size: 18px;
+  font-size: 20px;
 }
 
 footer {
@@ -279,7 +289,10 @@ ion-content.ion-content-chat {
     align-items: center;
     width: 100%;
 
-    .importe,
+    .importe {
+      font-size: 25px;
+    }
+
     .tiempo_espera {
       font-size: 20px;
     }
@@ -304,7 +317,6 @@ ion-button {
   margin: 20px 0 0 0;
   font-weight: 600;
 }
-
 
 .div_btn {
   display: flex;

@@ -6,13 +6,14 @@
   </header>
 
   <ion-content [class.blocked]="busy">
-    <ion-segment [(ngModel)]="filtro" (ionChange)="cargar()" [disabled]="busy">
-      <ion-segment-button value="pendiente">Pendientes</ion-segment-button>
-      <ion-segment-button value="aceptado">Aceptados</ion-segment-button>
-      <ion-segment-button value="recibido">Entregados</ion-segment-button>
-      <ion-segment-button value="terminado">Terminados</ion-segment-button>
-      <ion-segment-button value="impagado">Impagados</ion-segment-button>
-    </ion-segment>
+    <div class="div_btns2" role="tablist" aria-label="Filtros">
+      <button [class.active]="filtro==='pendiente'" (click)="setFiltro('pendiente')" [disabled]="busy">Pendientes</button>
+      <button [class.active]="filtro==='aceptado'"  (click)="setFiltro('aceptado')"  [disabled]="busy">Aceptados</button>
+      <button [class.active]="filtro==='recibido'"  (click)="setFiltro('recibido')"  [disabled]="busy">Entregados</button>
+      <button [class.active]="filtro==='terminado'" (click)="setFiltro('terminado')" [disabled]="busy">Terminados</button>
+      <button [class.active]="filtro==='impagado'"  (click)="setFiltro('impagado')"  [disabled]="busy">Impagados</button>
+      <button [disabled]="busy"></button>
+    </div>
 
     <div class="div_container" *ngIf="pedidos.length">
       <div class="div_pedidos" *ngFor="let p of pedidos">
