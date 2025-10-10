@@ -62,7 +62,8 @@ export class Push {
           channelId: "orders",
           sound: "default",
           extra: data,
-          smallIcon: "ic_stat_orders" // <-- icono Android
+          smallIcon: "ic_stat_orders",
+          largeIcon: "ic_launcher"
         }]
       });
     });
