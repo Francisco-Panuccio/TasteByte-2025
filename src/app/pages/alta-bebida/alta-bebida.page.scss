@@ -136,26 +136,6 @@ ion-button[expand="block"] {
   height: 48px;
 }
 
-/* ------------------ Mensajes ------------------ */
-ion-text {
-  text-align: center;
-}
-
-ion-label[color="danger"] {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #bb2d3b !important;
-  text-align: center;
-}
-
-ion-label[color="success"] {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #2e7d32 !important;
-  margin-top: 5px;
-  text-align: center;
-}
-
 /* ------------------ Botón volver ------------------ */
 .volver {
   --background: #d7b899;

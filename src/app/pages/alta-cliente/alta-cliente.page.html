@@ -87,14 +87,8 @@
         <p *ngIf="f['clave'].errors?.['minlength']">Mínimo 6 caracteres</p>
       </ion-text>
 
-      <ion-item lines="none" class="input-field">
-        <ion-input
-          type="text"
-          placeholder="Foto"
-          formControlName="foto"
-          readonly>
-        </ion-input>
-        <ion-button slot="end" type="button" (click)="sacarFoto()">📸 Tomar foto</ion-button>
+      <ion-item lines="none" class="input-field2">
+        <ion-button class="btn_photo" type="button" (click)="sacarFoto()">📸 Tomar foto</ion-button>
       </ion-item>
 
         <div class="preview-foto" *ngIf="f['foto'].value">
@@ -104,9 +98,6 @@
         <ion-text color="danger" *ngIf="f['foto'].touched && f['foto'].invalid">
           <p>La foto es obligatoria</p>
         </ion-text>
-
-        <ion-text color="danger" *ngIf="err">{{ err }}</ion-text>
-        <ion-text color="success" *ngIf="ok">Cliente registrado correctamente!</ion-text>
 
         <ion-button class="btn_guardar" type="submit" [disabled]="loading">
           {{ loading ? 'Guardando...' : 'Registrar Cliente' }}
@@ -127,9 +118,8 @@
             <p *ngIf="fAnonimo['nombre'].errors?.['minlength']">Mínimo 2 caracteres</p>
           </ion-text>
 
-          <ion-item lines="none" class="input-field">
-            <ion-input type="text" placeholder="Foto" formControlName="foto" readonly></ion-input>
-            <ion-button slot="end" type="button" (click)="sacarFotoAnonimo()">📸 Tomar foto</ion-button>
+          <ion-item lines="none" class="input-field2">
+            <ion-button class="btn_photo" type="button" (click)="sacarFotoAnonimo()">📸 Tomar foto</ion-button>
           </ion-item>
 
           <div class="preview-foto" *ngIf="fAnonimo['foto'].value">
@@ -139,9 +129,6 @@
           <ion-text color="danger" *ngIf="fAnonimo['foto'].touched && fAnonimo['foto'].invalid">
             <p>La foto es obligatoria</p>
           </ion-text>
-
-          <ion-text color="danger" *ngIf="err">{{ err }}</ion-text>
-          <ion-text color="success" *ngIf="ok">Cliente anónimo registrado correctamente!</ion-text>
 
           <ion-button class="btn_guardar" type="submit" [disabled]="loading">
             {{ loading ? 'Guardando...' : 'Registrar Cliente Anónimo' }}

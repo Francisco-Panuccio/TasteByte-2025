@@ -1,4 +1,4 @@
-.ion-content-cocina {
+.ion-content-bar {
   --background: #d7b899;
   --padding-bottom: calc(60px + var(--ion-safe-area-bottom));
 }
@@ -18,7 +18,7 @@
   color: #554738;
   background-color: #e6dacd;
   border-radius: 10px;
-  margin: 20px;
+  margin: 20px 20px 40px 20px;
   padding: 20px;
 }
 
@@ -51,9 +51,15 @@
       padding: 12px 16px;
       flex: 1;
 
+      .p_mesa {
+        .strong_mesa {
+          font-size: 22px;
+        }
+      }
+
       p {
         color: #554738;
-        font-size: 14px;
+        font-size: 18px;
         font-weight: 600;
         align-self: flex-start;
         margin: 0;
@@ -80,14 +86,14 @@
 
           .item-nombre {
             color: #554738;
-            font-size: 13px;
-            font-weight: 500;
+            font-size: 16px;
+            font-weight: 600;
             flex: 1;
           }
 
           .item-cantidad {
             color: #8d6e63;
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 600;
             background-color: #d7b899;
             padding: 2px 6px;
@@ -99,7 +105,7 @@
 
           .item-tiempo {
             color: #8d6e63;
-            font-size: 11px;
+            font-size: 15px;
             font-weight: 600;
             min-width: 40px;
             text-align: right;
@@ -118,13 +124,13 @@
 
         .meta-cantidad {
           color: #8d6e63;
-          font-size: 12px;
+          font-size: 15px;
           font-weight: 600;
         }
 
         .meta-total {
           color: #2e7d32;
-          font-size: 13px;
+          font-size: 18px;
           font-weight: 700;
         }
       }
@@ -132,7 +138,7 @@
       .estado-pedido {
         padding: 4px 8px;
         border-radius: 6px;
-        font-size: 11px;
+        font-size: 15px;
         font-weight: 700;
         text-transform: uppercase;
         margin-top: 6px;
@@ -154,7 +160,7 @@
 
       button {
         color: white;
-        font-size: 12px;
+        font-size: 16px;
         font-weight: 600;
         align-self: center;
         width: 100px;
@@ -172,7 +178,7 @@
 
       .btn_terminar {
         background-color: #554738;
-        
+
         &:hover {
           background-color: #d7b899;
         }
@@ -202,4 +208,19 @@ ion-refresher {
 
 ion-refresher-content {
   --color: #554738;
+}
+
+.div_img {
+  width: 300px;
+  height: 400px;
+  margin: 0 auto;
+  border-radius: 12px;
+  box-shadow: 4px -4px 15px 0px #FF1F1F, 12px -11px 7px 0px #FF9376, 20px -5px 7px 0px #FFE264, 20px 6px 7px 0px #F6FF33, 13px 12px 17px 0px #FF9527, 2px 17px 17px 0px #FF0000, -9px 21px 18px 0px #FFF212, -9px 6px 11px 0px #FF0808, -11px -9px 11px 0px #FFFA17, -11px -9px 11px 0px #FFFA17, 5px 5px 15px 5px rgba(0, 0, 0, 0);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
+  }
 }
