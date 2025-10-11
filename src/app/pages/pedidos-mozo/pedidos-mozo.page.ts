@@ -595,14 +595,14 @@ export class PedidosMozoPage implements OnInit {
         await this.push.sendToRoles(
           ["mozo"],
           "Pedido listo",
-          `Pedido Mesa (${mesaNumero}) listo para entregar`,
+          `Pedido Mesa (${mesaNumero}) entregado`,
           { tipo: "pedido_listo", pedidoId, mesaId: mesaId ?? null, mesa: String(mesaNumero) }
         );
       } catch { }
 
       return {
         valido: true,
-        mensaje: "Pedido listo para entregar"
+        mensaje: "Pedido entregado"
       };
 
     } catch (error) {

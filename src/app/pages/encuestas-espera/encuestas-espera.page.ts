@@ -331,7 +331,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   private actualizarFlags() {
     if (this.estadoPedido === "aceptado") { this.mostrarJuegosPedido = true; this.mostrarCuenta = false; }
     else if (this.estadoPedido === "recibido") { this.mostrarCuenta = false; this.mostrarJuegosPedido = true; }
-    else if (this.estadoPedido === "terminado") { this.mostrarCuenta = true; this.mostrarJuegosPedido = false; }
+    else if (this.estadoPedido === "terminado") { this.mostrarCuenta = true; this.mostrarJuegosPedido = true; }
     else if (this.estadoPedido === "impagado") { this.mostrarCuenta = false; this.mostrarJuegosPedido = false; }
     else if (this.estadoPedido === "pagado") { this.limpiarIntentosJuegos(); this.resetVista(); }
     else { this.mostrarJuegosPedido = false; this.mostrarCuenta = false; }
