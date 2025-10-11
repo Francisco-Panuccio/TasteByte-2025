@@ -116,11 +116,9 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
 
       this.myUserId = this.anonimoId ? `anon-${this.anonimoId}` : await this.chatSvc.getMyUserId();
 
-      // Init push con id numérico para permisos y registro
       await this.push.init(this.usuarioId ?? null, "cliente");
       await this.push.ready();
 
-      // Upsert del token usando UID/anon para unificar identidad (clave del problema)
       try {
         const tk = this.push.getToken?.();
         const uid = this.anonimoId ? `anon-${this.anonimoId}` : (au.user?.id ?? null);
@@ -613,6 +611,20 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
             this.buildPlatoYBebida();
             this.gotoEncuestasEspera();
           } else if (this.estadoPedido === "rechazado") {
+            // Enviar push al cliente en este dispositivo
+            try {
+              await this.push.ready();
+              const tok = this.push.getToken();
+              if (tok) {
+                await this.push.send(
+                  tok,
+                  "Pedido rechazado",
+                  "Tu pedido fue rechazado. Modifícalo y reenvíalo.",
+                  { tipo: "pedido_rechazado", pedidoId, mesaId: this.mesaId, mesaNumero: this.mesa?.numero ?? null }
+                );
+              }
+            } catch { }
+
             this.pedidoEnCurso = false;
             this.submitting = false;
             (await this.toast.create({
