@@ -8,6 +8,8 @@ import { supabase } from "src/supabase.client";
 import { Qr } from "src/app/services/qr/qr";
 import { ToastController } from "@ionic/angular";
 
+type Role = "mozo" | "cliente" | "dueño" | "supervisor" | "maitre" | "cocinero" | "bartender";
+
 @Component({
   selector: "app-home",
   templateUrl: "home.page.html",
@@ -39,17 +41,25 @@ export class HomePage implements OnInit {
     private toast: ToastController
   ) { }
 
-  private perfilToRole(perfil?: string): string | undefined {
-    const p = (perfil ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+  private perfilToRole(perfil?: string): Role | undefined {
+    const p = (perfil ?? "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim()
+      .toLowerCase();
     if (p === "dueno") return "dueño";
-    if (["supervisor", "maitre", "mozo", "bartender", "cocinero"].includes(p)) return p;
+    if (p === "supervisor") return "supervisor";
+    if (p === "maitre") return "maitre";
+    if (p === "mozo") return "mozo";
+    if (p === "bartender") return "bartender";
+    if (p === "cocinero") return "cocinero";
     if (p === "cliente_registrado" || p === "cliente_anonimo") return "cliente";
     return undefined;
   }
 
   async ngOnInit() {
     try {
-      this.route.queryParams.subscribe(async params => {
+      this.route.queryParams.subscribe(async (params) => {
         const anonimoId = params["anonimoId"];
         if (anonimoId) {
           this.isCliente = true;
@@ -83,22 +93,29 @@ export class HomePage implements OnInit {
           .maybeSingle();
         this.clienteId = cliente?.id ?? null;
 
-        const perfil = usuarioDB.perfil?.toLowerCase();
-        this.isDuenoSupervisor = perfil === "dueno" || perfil === "dueño" || perfil === "supervisor";
-        this.isCocinero = perfil === "cocinero";
-        this.isBartender = perfil === "bartender";
-        this.isMaitre = perfil === "maître" || perfil === "maitre";
-        this.isCliente = perfil === "cliente_registrado" || perfil === "cliente_anonimo" || perfil === "cliente_anónimo";
-        this.isMozo = perfil === "mozo";
+        const p = (usuarioDB.perfil ?? "")
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase()
+          .trim();
+
+        this.isDuenoSupervisor = p === "dueno" || p === "supervisor";
+        this.isCocinero = p === "cocinero";
+        this.isBartender = p === "bartender";
+        this.isMaitre = p === "maitre";
+        this.isCliente = p === "cliente_registrado" || p === "cliente_anonimo";
+        this.isMozo = p === "mozo";
 
         const role = this.perfilToRole(usuarioDB.perfil);
-        await this.push.init(this.usuarioId ?? this.userId, role as any);
+        await this.push.init(this.usuarioId ?? null, role);
         await this.push.ready();
       });
     } catch {
       this.router.navigateByUrl("/login", { replaceUrl: true });
     } finally {
-      setTimeout(() => { this.loading = false; }, 2000);
+      setTimeout(() => {
+        this.loading = false;
+      }, 2000);
     }
   }
 
@@ -107,7 +124,9 @@ export class HomePage implements OnInit {
       const tok = this.push.getToken();
       if (tok) await supabase.from("push_tokens").update({ active: false }).eq("token", tok);
     } catch { }
-    try { await (this.auth as any).signOut(); } catch { }
+    try {
+      await (this.auth as any).signOut();
+    } catch { }
     this.router.navigateByUrl("/login", { replaceUrl: true });
   }
 
@@ -115,15 +134,17 @@ export class HomePage implements OnInit {
     const qr = await this.qr.scanQr();
     if (!qr) return;
 
-    const res = await this.qr.procesarQrCliente(
-      qr,
-      this.clienteId ?? undefined
-    );
+    const res = await this.qr.procesarQrCliente(qr, this.clienteId ?? undefined);
 
-    if (res.permiso && qr.startsWith('INGRESO')) {
-
-      this.router.navigate(['/encuestas-espera'], {
-        queryParams: { clienteId: this.clienteId, tienePermiso : true, yaRegistrado: !!res.yaRegistrado, qrValido : true, userId : this.userId}
+    if (res.permiso && qr.startsWith("INGRESO")) {
+      this.router.navigate(["/encuestas-espera"], {
+        queryParams: {
+          clienteId: this.clienteId,
+          tienePermiso: true,
+          yaRegistrado: !!res.yaRegistrado,
+          qrValido: true,
+          userId: this.userId
+        }
       });
     }
   }

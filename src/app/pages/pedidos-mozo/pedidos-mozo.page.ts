@@ -286,7 +286,7 @@ export class PedidosMozoPage implements OnInit {
         estado === "pagado"
           ? "Pago validado"
           : estado === "rechazado"
-            ? "Pago rechazado"
+            ? "Pedido rechazado"
             : estado === "aceptado"
               ? "Pedido aceptado"
               : estado === "recibido"
