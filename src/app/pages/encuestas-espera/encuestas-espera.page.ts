@@ -8,16 +8,8 @@ import { Chat } from "src/app/services/chat/chat";
 import { ChatMessage } from "src/app/interfaces/chat-message";
 import { Pedidos } from "src/app/services/pedidos/pedidos";
 
-type EstadoAsignacion =
-  | "pendiente"
-  | "asignada"
-  | "sentado"
-  | "liberada"
-  | "cancelada";
-interface AsignacionMesaRow {
-  mesa_id: number;
-  estado: EstadoAsignacion;
-}
+type EstadoAsignacion = "pendiente" | "asignada" | "sentado" | "liberada" | "cancelada";
+interface AsignacionMesaRow { mesa_id: number; estado: EstadoAsignacion; }
 
 @Component({
   selector: "app-encuestas-espera",
@@ -98,7 +90,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
           .eq("id", this.usuarioId)
           .maybeSingle();
         this.nombreCliente = usuario ? `${usuario.nombres} ${usuario.apellidos}` : "Cliente";
-        await this.push.init(this.usuarioId, "cliente" as any);
+        await this.push.init(this.usuarioId, "cliente");
         await this.push.ready();
       } else if (this.anonimoId) {
         const { data: anonimo } = await supabase
@@ -107,7 +99,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
           .eq("id", this.anonimoId)
           .maybeSingle();
         this.nombreCliente = anonimo?.nombre || "Cliente Anónimo";
-        await this.push.init(null, "cliente" as any);
+        await this.push.init(null, "cliente");
         await this.push.ready();
       }
 
@@ -287,11 +279,9 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
           return;
         }
 
-        // >>> NUEVO: chequeo de estados de bar/cocina mientras esté "aceptado"
         if (this.estadoPedido === "aceptado") {
           await this.checkEstadoTrasScan(res.mesaAsignada, this.userUid ?? null, null);
         }
-        // <<<
 
         this.actualizarFlags();
         this.suscribirPedido(this.pedidoId);
@@ -336,7 +326,6 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
         "postgres_changes",
         { event: "DELETE", schema: "public", table: "pedidos", filter: `id=eq.${pedidoId}` },
         async () => {
-          console.log("🗑️ Pedido eliminado → reset vista cliente");
           await this.limpiarIntentosJuegos();
           this.resetVista();
         }
@@ -415,16 +404,15 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     try {
       if (this.userUid) {
         await supabase.from("intentos_juegos").delete().eq("cliente_uid", this.userUid);
-        console.log("🧹 Intentos de juegos eliminados (cliente_Uid).");
       } else if (this.clienteId) {
         await supabase.from("intentos_juegos").delete().eq("cliente_id", this.clienteId);
-        console.log("🧹 Intentos de juegos eliminados (cliente_id).");
       }
     } catch { }
   }
 
   async pedirCuenta(): Promise<void> {
     try {
+      await this.push.ready();
       const { data: mesaRow } = await supabase.from("mesas").select("numero").eq("id", this.mesaAsignadaId).maybeSingle();
       const mesaNumero = mesaRow?.numero ?? this.mesaAsignadaId;
       const title = "Cuenta Solicitada";
@@ -435,23 +423,18 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
         mesaNumero
       });
       this.mostrarToast("Aviso enviado al mozo.");
-    } catch { }
+    } catch (e: any) {
+      this.mostrarToast(e?.message ?? "No se pudo notificar al mozo");
+    }
   }
 
   async salir() {
-    try {
-      await supabase.auth.signOut();
-    } catch { }
+    try { await supabase.auth.signOut(); } catch { }
     this.router.navigate(["/login"], { replaceUrl: true });
   }
 
   private async mostrarToast(mensaje: string) {
-    const t = await this.toast.create({
-      message: mensaje,
-      duration: 1500,
-      cssClass: "toast",
-      position: "top"
-    });
+    const t = await this.toast.create({ message: mensaje, duration: 1500, cssClass: "toast", position: "top" });
     await t.present();
   }
 
@@ -466,7 +449,6 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
 
     const chat = await this.chatSvc.getOrCreateForMesa(this.mesaAsignadaId, "cliente");
     this.chatId = chat.id;
-
     await this.chatSvc.bindMyPushToken(this.chatId, this.anonimoId);
 
     const msgs = await this.chatSvc.loadMessages(chat.id, 200);
@@ -554,12 +536,6 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   }
 
   trackMsg = (_: number, m: { id: string }) => m.id;
-  private scrollToBottom(ms: number = 200) {
-    try {
-      this.chatContent?.scrollToBottom(ms);
-    } catch { }
-  }
-  private scrollToBottomAfterRender() {
-    requestAnimationFrame(() => setTimeout(() => this.scrollToBottom(200), 0));
-  }
+  private scrollToBottom(ms: number = 200) { try { this.chatContent?.scrollToBottom(ms); } catch { } }
+  private scrollToBottomAfterRender() { requestAnimationFrame(() => setTimeout(() => this.scrollToBottom(200), 0)); }
 }

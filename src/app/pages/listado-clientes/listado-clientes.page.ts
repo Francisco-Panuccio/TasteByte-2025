@@ -8,6 +8,8 @@ import { Push } from "src/app/services/push/push";
 import { supabase } from "src/supabase.client";
 import { Subscription } from "rxjs";
 
+type RoleLike = "dueño" | "supervisor";
+
 @Component({
   selector: "app-listado-clientes",
   templateUrl: "./listado-clientes.page.html",
@@ -35,21 +37,30 @@ export class ListadoClientesPage implements OnInit, OnDestroy {
     const { data: auth } = await supabase.auth.getUser();
     const email = auth?.user?.email ?? null;
 
-    let role: "dueño" | "supervisor" | undefined;
+    let role: RoleLike | undefined;
     let usuarioRowId: number | undefined;
+
     if (email) {
       const u = await this.usuariosSvc.getByEmail(email);
       usuarioRowId = u?.id ?? undefined;
-      const p = (u?.perfil ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+      const p = (u?.perfil ?? "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim()
+        .toLowerCase();
       role = p === "dueno" ? "dueño" : p === "supervisor" ? "supervisor" : undefined;
     }
+
     this.isPrivileged = !!role;
 
     await this.push.init(usuarioRowId ?? null, role);
     await this.push.ready();
 
     const tk = this.push.getToken();
-    if (!tk) { this.err = "Sin token FCM. Revisá configuración Firebase/FCM del proyecto Android."; return; }
+    if (!tk) {
+      this.err = "Sin token FCM. Revisá configuración Firebase/FCM del proyecto Android.";
+      return;
+    }
 
     await this.cargarPendientes();
 
@@ -69,12 +80,14 @@ export class ListadoClientesPage implements OnInit, OnDestroy {
           const id = Number(row.id);
           if (this.notifiedIds.has(id)) return;
           this.notifiedIds.add(id);
-          await this.push.sendToRoles(
-            ["dueño", "supervisor"],
-            "Nuevo cliente pendiente",
-            "Hay un registro esperando aprobación",
-            { tipo: "cliente_registrado", cliente_id: row.usuario_id }
-          );
+          try {
+            await this.push.sendToRoles(
+              ["dueño", "supervisor"],
+              "Nuevo cliente pendiente",
+              "Hay un registro esperando aprobación",
+              { tipo: "cliente_registrado", cliente_id: row.usuario_id }
+            );
+          } catch { }
           await this.cargarPendientes();
         }
       )
@@ -101,7 +114,7 @@ export class ListadoClientesPage implements OnInit, OnDestroy {
 
   async aprobar(usuarioId: string) {
     try {
-      const cliente = this.clientes.find(c => c.usuario_id === usuarioId);
+      const cliente = this.clientes.find((c) => c.usuario_id === usuarioId);
       if (!cliente) throw new Error("Cliente no encontrado");
       await this.clientesSvc.aprobar(usuarioId);
       await this.emailSvc.sendEmail(
@@ -119,7 +132,7 @@ export class ListadoClientesPage implements OnInit, OnDestroy {
 
   async rechazar(usuarioId: string) {
     try {
-      const cliente = this.clientes.find(c => c.usuario_id === usuarioId);
+      const cliente = this.clientes.find((c) => c.usuario_id === usuarioId);
       if (!cliente) throw new Error("Cliente no encontrado");
       await this.clientesSvc.rechazar(usuarioId);
       await this.emailSvc.sendEmail(
