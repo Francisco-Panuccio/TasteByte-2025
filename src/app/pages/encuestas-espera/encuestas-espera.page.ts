@@ -252,6 +252,15 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
           await this.checkEstadoTrasScan(res.mesaAsignada, this.userUid ?? null, null);
         }
 
+        if (this.estadoPedido === "recibido") {
+          (await this.toast.create({
+            message: "Pedido Entregado",
+            duration: 1500,
+            position: "top",
+            cssClass: "toast"
+          })).present();
+        }
+
         this.actualizarFlags();
         this.suscribirPedido(this.pedidoId);
         return;
