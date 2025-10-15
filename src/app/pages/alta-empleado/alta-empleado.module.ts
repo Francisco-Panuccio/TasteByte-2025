@@ -8,6 +8,7 @@ import { AltaEmpleadoPageRoutingModule } from './alta-empleado-routing.module';
 
 import { AltaEmpleadoPage } from './alta-empleado.page';
 import { LoadingPage } from '../loading/loading.page';
+import { FormErrorsPage } from '../form-errors/form-errors.page';
 
 @NgModule({
   imports: [
@@ -16,7 +17,8 @@ import { LoadingPage } from '../loading/loading.page';
     IonicModule,
     AltaEmpleadoPageRoutingModule,
     ReactiveFormsModule,
-    LoadingPage
+    LoadingPage,
+    FormErrorsPage
   ],
   declarations: [AltaEmpleadoPage]
 })

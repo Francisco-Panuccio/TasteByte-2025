@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from "@angular/core";
-import { FormBuilder, Validators } from "@angular/forms";
+import { AbstractControl, FormBuilder, ValidationErrors, ValidatorFn, Validators } from "@angular/forms";
 import { Capacitor } from "@capacitor/core";
 import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
 import { BarcodeFormat, BarcodeScanner } from "@capacitor-mlkit/barcode-scanning";
@@ -26,22 +26,61 @@ export class AltaEmpleadoPage implements OnInit {
   loading = true;
   escaneando = false;
   qrPayload: string | null = null;
+  fotoPreview: string | null = null;
 
   isDuenoSupervisor = false;
   perfilActual = "";
 
-  formAltaEmpleado = this.fb.group({
-    nombres: ["", [Validators.required, Validators.minLength(2)]],
-    apellidos: ["", [Validators.required, Validators.minLength(2)]],
-    dni: ["", [Validators.required, Validators.pattern(/^\d{7,10}$/)]],
-    cuil: ["", [Validators.required, Validators.pattern(/^\d{11}$/)]],
-    correo: ["", [Validators.required, Validators.email]],
-    clave: ["", [Validators.required, Validators.minLength(6)]],
-    perfil: ["", [Validators.required]],
-    foto: ["", [Validators.required]]
-  });
+  constructor() {
+    this.formAltaEmpleado = this.fb.group(
+      {
+        nombres: ["", [Validators.required, Validators.minLength(3)]],
+        apellidos: ["", [Validators.required, Validators.minLength(3)]],
+        dni: ["", [Validators.required, this.dniValidator]],
+        cuil: ["", [Validators.required, this.cuilValidator]],
+        correo: ["", [Validators.required, Validators.email]],
+        clave: ["", [Validators.required, Validators.minLength(6)]],
+        confirm: ["", [Validators.required]],
+        perfil: ["", [Validators.required]],
+        foto: ["", [Validators.required]]
+      },
+      { validators: this.passwordsMatch }
+    );
+  }
+
+  formAltaEmpleado: ReturnType<FormBuilder["group"]>;
 
   get f() { return this.formAltaEmpleado.controls; }
+
+  get isFormValid(): boolean {
+    return this.formAltaEmpleado.valid && !!this.fotoPreview;
+  }
+
+  passwordsMatch: ValidatorFn = (group: AbstractControl): ValidationErrors | null => {
+    const pass = group.get("clave")?.value ?? "";
+    const conf = group.get("confirm")?.value ?? "";
+    const confirmCtrl = group.get("confirm");
+    if (!confirmCtrl) return null;
+    const others = { ...(confirmCtrl.errors ?? {}) };
+    delete (others as any)["passwordmatch"];
+    if (conf && pass !== conf) {
+      confirmCtrl.setErrors({ ...others, passwordmatch: true });
+      return { passwordmatch: true };
+    } else {
+      confirmCtrl.setErrors(Object.keys(others).length ? others : null);
+      return null;
+    }
+  };
+
+  dniValidator: ValidatorFn = (c: AbstractControl): ValidationErrors | null => {
+    const v = String(c.value ?? "").replace(/\D/g, "");
+    return v.length === 8 ? null : { dni: true };
+  };
+
+  cuilValidator: ValidatorFn = (c: AbstractControl): ValidationErrors | null => {
+    const v = String(c.value ?? "").replace(/\D/g, "");
+    return v.length === 11 ? null : { cuil: true };
+  };
 
   async ngOnInit() {
     this.resetearFormulario();
@@ -83,6 +122,15 @@ export class AltaEmpleadoPage implements OnInit {
     this.formAltaEmpleado.markAsUntouched();
     this.formAltaEmpleado.markAsPristine();
     this.qrPayload = null;
+    this.fotoPreview = null;
+  }
+
+  private base64ToBlob(b64: string, mime: string): Blob {
+    const byteChars = atob(b64);
+    const byteNumbers = new Array(byteChars.length);
+    for (let i = 0; i < byteChars.length; i++) byteNumbers[i] = byteChars.charCodeAt(i);
+    const byteArray = new Uint8Array(byteNumbers);
+    return new Blob([byteArray], { type: mime });
   }
 
   async escanearDNI() {
@@ -113,30 +161,43 @@ export class AltaEmpleadoPage implements OnInit {
   async sacarFoto() {
     if (!this.isDuenoSupervisor) return;
     try {
-      if (this.platform !== "web") {
-        const status = await Camera.requestPermissions({ permissions: ["camera"] });
-        if (status.camera !== "granted") {
-          await this.mostrarToast("Permiso de cámara denegado.", "Error");
-          return;
+      const isWeb = this.platform === "web";
+      if (!isWeb) {
+        const perm = await Camera.checkPermissions();
+        if (perm.camera !== "granted") {
+          const status = await Camera.requestPermissions({ permissions: ["camera"] });
+          if (status.camera !== "granted") {
+            await this.mostrarToast("Permiso de cámara denegado.", "Error");
+            return;
+          }
         }
       }
+
       const photo = await Camera.getPhoto({
-        resultType: CameraResultType.Uri,
+        resultType: CameraResultType.Base64,
         quality: 85,
         source: CameraSource.Camera,
         allowEditing: false
       });
-      const response = await fetch(photo.webPath!);
-      const blob = await response.blob();
-      const ext = blob.type.includes("png") ? "png" : "jpg";
+
+      if (!photo.base64String) throw new Error("No se pudo obtener la imagen.");
+
+      const mime = photo.format === "png" ? "image/png" : "image/jpeg";
+      const ext = photo.format === "png" ? "png" : "jpg";
+      this.fotoPreview = `data:${mime};base64,${photo.base64String}`;
+
+      const blob = this.base64ToBlob(photo.base64String, mime);
       const fileName = `empleado_${Date.now()}.${ext}`;
       const filePath = `empleados/${fileName}`;
-      const up = await supabase.storage.from("empleados").upload(filePath, blob, { contentType: blob.type, upsert: true });
+      const up = await supabase.storage.from("empleados").upload(filePath, blob, { contentType: mime, upsert: true });
       if (up.error) throw up.error;
+
       const { data } = supabase.storage.from("empleados").getPublicUrl(filePath);
       this.formAltaEmpleado.patchValue({ foto: data.publicUrl });
+
       await this.mostrarToast("Foto cargada.", "Éxito");
     } catch (e: any) {
+      this.fotoPreview = null;
       await this.mostrarToast(`Error al tomar la foto: ${e?.message || e}`, "Error");
     }
   }
@@ -145,7 +206,7 @@ export class AltaEmpleadoPage implements OnInit {
     if (!this.isDuenoSupervisor) return;
     if (this.formAltaEmpleado.invalid) {
       this.formAltaEmpleado.markAllAsTouched();
-      await this.mostrarToast("Completá los campos obligatorios.", "Error");
+      await this.mostrarToast("Complete los campos obligatorios.", "Error");
       return;
     }
 

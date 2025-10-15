@@ -2,87 +2,122 @@
   <app-loading />
 } @else {
   <header>
+    <img src="assets/icon/cubiertos.png">
     <title>Alta Empleado</title>
+    <img src="assets/icon/cubiertos.png">
   </header>
 
   <ion-content class="ion-padding">
     <form [formGroup]="formAltaEmpleado" (ngSubmit)="enviar()">
       <ion-item lines="none" class="input-field">
-        <ion-input type="text" placeholder="Nombre" formControlName="nombres"></ion-input>
+        <ion-input class="input" type="text" placeholder="Nombre" formControlName="nombres"></ion-input>
       </ion-item>
-      <ion-text color="danger" *ngIf="f['nombres'].touched && f['nombres'].invalid">
-        <p *ngIf="f['nombres'].errors?.['required']">El nombre es obligatorio</p>
-        <p *ngIf="f['nombres'].errors?.['minlength']">Mínimo 2 caracteres</p>
-      </ion-text>
+      <div class="error">
+        @if((formAltaEmpleado.get("nombres")?.hasError("minlength") ||
+        formAltaEmpleado.get("nombres")?.hasError("required")) &&
+        formAltaEmpleado.get("nombres")?.touched) {
+          <app-form-errors [control]="formAltaEmpleado.get('nombres')" />
+        }
+      </div>
 
       <ion-item lines="none" class="input-field">
-        <ion-input type="text" placeholder="Apellido" formControlName="apellidos"></ion-input>
+        <ion-input class="input" type="text" placeholder="Apellido" formControlName="apellidos"></ion-input>
       </ion-item>
-      <ion-text color="danger" *ngIf="f['apellidos'].touched && f['apellidos'].invalid">
-        <p *ngIf="f['apellidos'].errors?.['required']">El apellido es obligatorio</p>
-        <p *ngIf="f['apellidos'].errors?.['minlength']">Mínimo 2 caracteres</p>
-      </ion-text>
+      <div class="error">
+        @if((formAltaEmpleado.get("apellidos")?.hasError("minlength") ||
+        formAltaEmpleado.get("apellidos")?.hasError("required")) &&
+        formAltaEmpleado.get("apellidos")?.touched) {
+          <app-form-errors [control]="formAltaEmpleado.get('apellidos')" />
+        }
+      </div>
+
 
       <ion-item lines="none" class="input-field">
-        <ion-input type="text" placeholder="DNI" formControlName="dni"></ion-input>
-        <ion-button slot="end" (click)="escanearDNI()" type="button">📷 Escanear QR</ion-button>
+        <ion-input class="input" type="text" placeholder="DNI" formControlName="dni"></ion-input>
+        <button (click)="escanearDNI()" class="btn_scan" type="button"><span>📷</span></button>
       </ion-item>
-      <ion-text color="danger" *ngIf="f['dni'].touched && f['dni'].invalid">
-        <p *ngIf="f['dni'].errors?.['required']">El DNI es obligatorio</p>
-        <p *ngIf="f['dni'].errors?.['pattern']">DNI inválido</p>
-      </ion-text>
+      <div class="error">
+        @if((formAltaEmpleado.get("dni")?.hasError("dni") ||
+        formAltaEmpleado.get("dni")?.hasError("required")) &&
+        formAltaEmpleado.get("dni")?.touched) {
+          <app-form-errors [control]="formAltaEmpleado.get('dni')"/>
+        }
+      </div>
 
       <ion-item lines="none" class="input-field">
-        <ion-input type="text" placeholder="CUIL (11 dígitos)" formControlName="cuil"></ion-input>
+        <ion-input class="input" type="text" placeholder="CUIL (11 dígitos)" formControlName="cuil"></ion-input>
       </ion-item>
-      <ion-text color="danger" *ngIf="f['cuil'].touched && f['cuil'].invalid">
-        <p *ngIf="f['cuil'].errors?.['required']">El CUIL es obligatorio</p>
-        <p *ngIf="f['cuil'].errors?.['pattern']">CUIL inválido (debe tener 11 dígitos)</p>
-      </ion-text>
+      <div class="error">
+        @if((formAltaEmpleado.get("cuil")?.hasError("cuil") ||
+        formAltaEmpleado.get("cuil")?.hasError("required")) &&
+        formAltaEmpleado.get("cuil")?.touched) {
+          <app-form-errors [control]="formAltaEmpleado.get('cuil')"/>
+        }
+      </div>
 
       <ion-item lines="none" class="input-field">
-        <ion-input type="email" placeholder="Correo Electrónico" formControlName="correo"></ion-input>
+        <ion-input class="input" type="email" placeholder="Correo Electrónico" formControlName="correo"></ion-input>
       </ion-item>
-      <ion-text color="danger" *ngIf="f['correo'].touched && f['correo'].invalid">
-        <p *ngIf="f['correo'].errors?.['required']">El correo es obligatorio</p>
-        <p *ngIf="f['correo'].errors?.['email']">Correo inválido</p>
-      </ion-text>
+      <div class="error">
+        @if((formAltaEmpleado.get("correo")?.hasError("email") ||
+        formAltaEmpleado.get("correo")?.hasError("required")) &&
+        formAltaEmpleado.get("correo")?.touched) {
+          <app-form-errors [control]="formAltaEmpleado.get('correo')" />
+        }
+      </div>
 
       <ion-item lines="none" class="input-field">
-        <ion-input type="password" placeholder="Contraseña" formControlName="clave"></ion-input>
+        <ion-input class="input" type="password" placeholder="Contraseña" formControlName="clave"></ion-input>
       </ion-item>
-      <ion-text color="danger" *ngIf="f['clave'].touched && f['clave'].invalid">
-        <p *ngIf="f['clave'].errors?.['required']">La contraseña es obligatoria</p>
-        <p *ngIf="f['clave'].errors?.['minlength']">Mínimo 6 caracteres</p>
-      </ion-text>
+      <div class="error">
+        @if((formAltaEmpleado.get("clave")?.hasError("minlength") ||
+        formAltaEmpleado.get("clave")?.hasError("required")) &&
+        formAltaEmpleado.get("clave")?.touched) {
+          <app-form-errors [control]="formAltaEmpleado.get('clave')" />
+        }
+      </div>
 
       <ion-item lines="none" class="input-field">
-        <ion-select interface="popover" placeholder="Seleccioná perfil" formControlName="perfil">
+        <ion-input class="input" type="password"  placeholder="Repetir Contraseña" formControlName="confirm"></ion-input>
+      </ion-item>
+      <div class="error">
+        @if((formAltaEmpleado.get("confirm")?.hasError("passwordmatch") ||
+        formAltaEmpleado.get("confirm")?.hasError("required")) &&
+        formAltaEmpleado.get("confirm")?.touched) {
+          <app-form-errors [control]="formAltaEmpleado.get('confirm')" />
+        }
+      </div>
+
+      <ion-item lines="none" class="input-field">
+        <ion-select class="input" interface="action-sheet" placeholder="Seleccioná perfil" formControlName="perfil" [interfaceOptions]="{ cssClass: 'action-sheet-form' }">
           <ion-select-option value="maitre">Maître</ion-select-option>
           <ion-select-option value="mozo">Mozo</ion-select-option>
           <ion-select-option value="cocinero">Cocinero</ion-select-option>
           <ion-select-option value="bartender">Bartender</ion-select-option>
         </ion-select>
       </ion-item>
-      <ion-text color="danger" *ngIf="f['perfil'].touched && f['perfil'].invalid">
-        <p>El perfil es obligatorio</p>
-      </ion-text>
-
-      <ion-item lines="none" class="input-field2">
-        <ion-button class="btn_photo" type="button" (click)="sacarFoto()">📸 Tomar foto</ion-button>
-      </ion-item>
-      <div class="preview-foto" *ngIf="f['foto'].value">
-        <ion-img [src]="f['foto'].value" alt="Foto empleado"></ion-img>
+      <div class="error">
+        @if((formAltaEmpleado.get("perfil")?.hasError("required")) &&
+        formAltaEmpleado.get("profileperfil")?.touched) {
+          <app-form-errors [control]="formAltaEmpleado.get('perfil')"/>
+        }
       </div>
-      <ion-text color="danger" *ngIf="f['foto'].touched && f['foto'].invalid">
-        <p>La foto es obligatoria</p>
-      </ion-text>
 
-      <ion-button expand="block" type="submit" [disabled]="loading" class="btn_registrar">
-        {{ loading ? 'Guardando...' : 'Registrar Empleado' }}
+      <div class="foto-section">
+        <ion-button class="btn_photo" (click)="sacarFoto()">Tomar Foto</ion-button>
+        <div class="preview" *ngIf="fotoPreview">
+          <img [src]="f['foto'].value" alt="Foto previa"/>
+        </div>
+        <div class="error2" *ngIf="!fotoPreview && formAltaEmpleado.touched">
+          <span>Foto requerida</span>
+        </div>
+      </div>
+
+      <ion-button expand="block" type="submit" [disabled]="!isFormValid" class="btn-primary" >
+        Registrar Empleado
       </ion-button>
 
-      <ion-button class="volver" expand="block" href="/home" type="button">Volver</ion-button>
+      <ion-button class="btn-tertiary" href="/home" type="button">Volver</ion-button>
     </form>
   </ion-content>
 }
