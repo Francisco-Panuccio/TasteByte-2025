@@ -2,23 +2,25 @@
   <app-loading/>
 } @else {
   <header>
+    <img src="assets/icon/cubiertos.png">
     <title>TasteByte</title>
+    <img src="assets/icon/cubiertos.png">
   </header>
 
   @if(isDuenoSupervisor) {
     <div class="div_main">
       <div class="div_data">
         <div>
-          <p style="margin: 50px 0 20px 0;">Bienvenido</p>
-          <span>{{fullname}}</span>
+          <p>Bienvenido</p>
+          <span>✉️ {{email}}</span>
           <div><span class="span_profile">{{profile | titlecase}}</span></div>
         </div>
       </div>
 
       <div id="container">
-        <p routerLink="/alta-empleado">-Alta Empleado-</p>
-        <p routerLink="/alta-mesa">-Alta Mesas-</p>
-        <p routerLink="/listado-clientes">-Clientes Pendientes-</p>
+        <p routerLink="/alta-empleado">Alta Empleado</p>
+        <p routerLink="/alta-mesa">Alta <br> Mesas</p>
+        <p routerLink="/listado-clientes">Clientes Pendientes</p>
       </div>
     </div>
   } @else if(isCocinero) {
@@ -26,14 +28,14 @@
       <div class="div_data">
         <div>
           <p style="margin: 50px 0 20px 0;">Bienvenido</p>
-          <span>{{fullname}}</span>
+          <span>✉️ {{email}}</span>
           <div><span class="span_profile">{{profile | titlecase}}</span></div>
         </div>
       </div>
 
       <div id="container">
-        <p routerLink="/alta-plato">-Alta Platos-</p>
-        <p routerLink="/cocina">-Cocina-</p>
+        <p routerLink="/alta-plato">Alta <br> Platos</p>
+        <p routerLink="/cocina">Cocina</p>
       </div>
     </div>
   } @else if(isBartender) {
@@ -41,14 +43,14 @@
       <div class="div_data">
         <div>
           <p style="margin: 50px 0 20px 0;">Bienvenido</p>
-          <span>{{fullname}}</span>
+          <span>✉️ {{email}}</span>
           <div><span class="span_profile">{{profile | titlecase}}</span></div>
         </div>
       </div>
 
       <div id="container">
-        <p routerLink="/alta-bebida">-Alta Bebidas-</p>
-        <p routerLink="/bar">-Bar-</p>
+        <p routerLink="/alta-bebida">Alta <br> Bebidas</p>
+        <p routerLink="/bar">Bar</p>
       </div>
     </div>
   } @else if(isMaitre) {
@@ -56,13 +58,13 @@
       <div class="div_data">
         <div>
           <p style="margin: 50px 0 20px 0;">Bienvenido</p>
-          <span>{{fullname}}</span>
+          <span>✉️ {{email}}</span>
           <div><span class="span_profile">{{profile | titlecase}}</span></div>
         </div>
       </div>
       <div id="container">
-        <p routerLink="/alta-cliente">-Alta Clientes-</p>
-        <p routerLink="/lista-espera">-Lista De Espera-</p>
+        <p routerLink="/alta-cliente">Alta <br> Clientes</p>
+        <p routerLink="/lista-espera">Lista <br> De <br> Espera</p>
       </div>
     </div>
   } @else if(isCliente) {
@@ -70,12 +72,12 @@
       <div class="div_data">
         <div>
           <p style="margin: 20px 0;">Bienvenido</p>
-          <span>{{fullname}}</span>
+          <span>✉️ {{email}}</span>
           <div><span class="span_profile">{{ (profile || "").split("_").join(" ") | titlecase }}</span></div>
         </div>
       </div>
       <div id="container">
-        <p class="qr-button" (click)="escanearQrEntrada()">-Escanear QR de Entrada-</p>
+        <p class="qr-button" (click)="escanearQrEntrada()">Escanear <br> QR de <br> Entrada</p>
       </div>
     </div>
   } @else {
@@ -83,22 +85,22 @@
       <div class="div_data">
         <div>
           <p style="margin: 50px 0 20px 0;">Bienvenido</p>
-          <span>{{fullname}}</span>
+          <span>✉️ {{email}}</span>
           <div><span class="span_profile">{{profile | titlecase}}</span></div>
         </div>
       </div>
 
       <div id="container">
-        <p routerLink="/pedidos-mozo">-Pedidos-</p>
+        <p routerLink="/pedidos-mozo">Pedidos</p>
       </div>
     </div>
   }
 
   <footer>
-    <ion-toolbar>
-      <ion-buttons class="ion_btns">
-        <ion-button class="btn_logged" (click)="logOut()">Salir</ion-button>
-      </ion-buttons>
-    </ion-toolbar>
+    <hr>
+    <button class="btn_footer" (click)="logOut()">
+      Salir
+    </button>
+    <hr>
   </footer>
 }

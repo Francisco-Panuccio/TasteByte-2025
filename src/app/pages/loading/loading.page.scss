@@ -4,16 +4,17 @@ div {
   justify-content: center;
   align-items: center;
   height: 100dvh;
-  background-color: #bb714e;
+  background-color: var(--color-background);
 }
 
 img {
-  width: 200px;
-  height: 200px;
+  width: 300px;
+  height: 300px;
 }
 
 p {
-  font-size: 30px;
-  color: white;
-  font-weight: 600;
+  font-size: 40px;
+  color: var(--color-text);
+  opacity: 1;
+  font-weight: 800;
 }

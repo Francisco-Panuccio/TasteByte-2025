@@ -28,7 +28,7 @@ export class HomePage implements OnInit {
   userId = "";
   clienteId: number | null = null;
   usuarioId: number | null = null;
-  fullname = "";
+  email = "";
   profile = "";
 
   constructor(
@@ -64,7 +64,7 @@ export class HomePage implements OnInit {
         if (anonimoId) {
           this.isCliente = true;
           this.profile = "cliente_anonimo";
-          this.fullname = "Cliente Anónimo";
+          this.email = " ☠︎ anonymous ☠︎";
           this.loading = false;
           return;
         }
@@ -82,7 +82,7 @@ export class HomePage implements OnInit {
           return;
         }
 
-        this.fullname = `${usuarioDB.nombres} ${usuarioDB.apellidos}`.trim();
+        this.email = `${usuarioDB.correo_electronico}`.trim();
         this.profile = usuarioDB.perfil;
         this.usuarioId = usuarioDB.id ?? null;
 

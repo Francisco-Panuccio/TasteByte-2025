@@ -10,23 +10,15 @@
 @import "@ionic/angular/css/flex-utils.css";
 
 :root {
-  --ion-color-primary: #554738;
-  --ion-color-secondary: #d3a87c;
-  --ion-color-tertiary: #7b5e40;
-  --ion-color-light: #e6d5c3;
-  --ion-color-medium: #9b8a78;
-  --ion-color-dark: #3b2d20;
-}
-
-ion-card {
-  border-radius: 12px;
-  --background: #f9f4ef;
-  --color: #554738;
-}
-
-ion-header {
-  margin: 50px 0 0 0;
-  text-align: center;
+  --color-btn-primary: #254F50;
+  --color-btn-secondary: #6E4B7A;
+  --color-btn-tertiary: #2E6F4C;
+  --color-background: #636469;
+  --color-container: #4A2C21;
+  --color-input: #8A6D5F;
+  --color-text: #e6dacd;
+  --color-black: #000000;
+  --color-error: #ab3737;
 }
 
 ion-title {
@@ -37,71 +29,125 @@ ion-title {
   align-items: center;
 }
 
+ion-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  --background: var(--color-background);
+}
+
 header {
   display: flex;
   justify-content: center;
   align-items: center;
+  gap: 20px;
   margin: 50px 0 0 0;
   padding: 25px 0;
-  background-color: #e6dacd;
-  border-bottom: 2px solid black;
+  background-color: var(--color-container);
+  border-bottom: 2px solid var(--color-text);
   text-align: center;
+
+  img {
+    width: 50px;
+    height: 50px;
+  }
 }
 
 title {
   font-weight: 800;
   font-size: 30px;
-  color: black;
+  color: var(--color-text);
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.input {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--color-input);
+  --color: var(--color-text);
+  --placeholder-color: var(--color-text);
+  --placeholder-opacity: 1;
+  border-radius: 12px;
+  padding: 0.75rem 1rem !important;
+  border: 1px solid var(--color-text);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+  font-size: 18px;
+  height: 50px;
+}
+
+.btn-primary {
+  --background: var(--color-btn-primary) !important;
+  --color: var(--color-text);
+  --border-radius: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--color-text);
+  font-weight: 800;
+  height: 48px;
+}
+
+.btn-secondary {
+  --background: var(--color-btn-secondary) !important;
+  --border-radius: 12px;
+  border-radius: 12px;
+  font-weight: 800;
+}
+
+.btn-tertiary {
+  background-color: var(--color-btn-tertiary) !important;
+  color: var(--color-text);
 }
 
 footer {
-  margin: 0 0 50px 0;
-  border-top: 2px solid black;
-  color: black;
-  background-color: #e6dacd;
-  padding: 10px 0;
-}
-
-ion-toolbar {
-  --background: #e6dacd;
-}
-
-ion-content {
   display: flex;
   justify-content: center;
   align-items: center;
-  --background: #bb714e;
+  border-top: 3px solid #d6b680;
+  background: #6b4b2a;
+  padding: 15px 0;
+  margin: 0 0 50px 0;
+
+  hr {
+    width: 100%;
+    height: 10px;
+    background-color: var(--color-error);
+  }
+
+  .btn_footer {
+    font-size: 30px;
+    font-weight: 1000;
+    color: var(--color-text);
+    background-color: var(--color-error);
+    padding: 10px 20px;
+    border-radius: 20px;
+  }
+}
+
+footer:active {
+  transform: translateY(1px);
 }
 
 .profile-select {
   width: 100%;
   border-radius: 12px;
   padding: 0.75rem 1rem;
-  border: 1px solid #d7b899;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
-  font-size: 1rem;
-  color: #554738;
-  background-color: transparent;
+  font-size: 18px;
+  color: var(--color-text);
+  background-color: var(--color-input);
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
   cursor: pointer;
-  height: 44px;
-}
-
-.profile-select:focus {
-  outline: none;
-  background-color: #554738;
-  color: white;
-  border-color: #c5a076;
+  height: 50px;
+  border: 1px solid var(--color-text);
 }
 
 .profile-select option {
-  color: #554738;
-  background-color: rgba(255, 255, 255, 0.883);
+  color: var(--color-text);
+  background-color: var(--color-btn-tertiary);
 }
 
 .toast,
@@ -114,6 +160,34 @@ ion-content {
   margin-top: 50px;
   padding: 10px 0;
   text-align: center;
+}
+
+ion-select::part(icon) {
+  color: var(--color-text);
+}
+
+ion-popover.dni-popover ion-list {
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  padding: 0;
+  margin: 0;
+}
+
+ion-popover.dni-popover ion-item.select-interface-option {
+  --background: var(--color-btn-primary);
+  --color: var(--color-text);
+  border-bottom: 2px solid var(--color-text);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-weight: 600;
+
+  &:nth-child(2) {
+    border: none;
+  }
 }
 
 .toast2 {
@@ -134,28 +208,4 @@ ion-toast.toast2::part(header) {
   font-weight: 600;
   text-align: center;
   color: #554738;
-}
-
-.toasty {
-  --background: #bb714e;
-  --color: black;
-  font-weight: 800;
-  font-size: 16px;
-  --border-color: black;
-  --border-style: solid;
-  --border-width: 2px;
-  --border-radius: 12px;
-  text-align: start;
-  margin-top: 50px;
-  padding: 0;
-}
-
-ion-toast.toasty::part(button) {
-  color: white;
-  font-weight: 600;
-  background-color: #554738;
-  text-align: center;
-  margin: 0 5px;
-  border: 2px solid white;
-  border-radius: 12px;
 }
