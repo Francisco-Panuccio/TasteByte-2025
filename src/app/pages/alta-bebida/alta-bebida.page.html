@@ -2,13 +2,16 @@
   <app-loading/>
 } @else {
   <header>
-    <title>Agregar Bebida</title>
+    <img src="assets/icon/cubiertos.png">
+    <title>Alta Bebida</title>
+    <img src="assets/icon/cubiertos.png">
   </header>
 
   <ion-content class="ion-padding">
     <form [formGroup]="formAltaBebida" novalidate>
       <ion-item lines="none" class="input-field">
         <ion-input 
+          class="input"
           placeholder="Nombre"
           formControlName="nombre"
           autocomplete="off">
@@ -28,9 +31,10 @@
 
       <ion-item lines="none" class="input-field">
         <ion-input 
+          class="input"
           type="number" 
           inputmode="numeric"
-          placeholder="Tiempo (min)" 
+          placeholder="Tiempo (minutos)" 
           formControlName="tiempo_elaboracion_min"
           autocomplete="off">
         </ion-input>
@@ -39,6 +43,7 @@
 
       <ion-item lines="none" class="input-field">
         <ion-input 
+          class="input"
           type="number" 
           inputmode="decimal"
           placeholder="Precio" 
@@ -49,25 +54,31 @@
       <app-form-errors *ngIf="f.precio.touched && f.precio.invalid" [control]="f.precio"></app-form-errors>
 
       <div class="fotos">
-        <div class="slot-contenedor" *ngFor="let c of fotosFA.controls; let i = index">
-          <ion-card class="slot">
-            <ion-card-content>
-              <ion-img *ngIf="c.value" [src]="c.value" alt="Foto {{i + 1}}"></ion-img>
-            </ion-card-content>
-          </ion-card>
-
-          <div class="acciones">
-            <ion-button (click)="elegirFoto(i,'cam')">Cámara</ion-button>
-            <ion-button (click)="elegirFoto(i,'gal')">Galería</ion-button>
-          </div>
-        </div>
+          @for (c of fotosFA.controls; track $index; let i = $index) {
+            <div class="each">
+              <div class="slot">
+                <img [src]="c.value || placeholderUrl" alt="foto {{ i + 1 }}"> 
+              </div>
+              <div class="span" type="button" (click)="eliminarFoto(i)">
+                <span>Eliminar</span>
+              </div>
+            </div>
+          }
       </div>
 
-      <ion-button class="btn_guardar" expand="block" [disabled]="formAltaBebida.invalid" (click)="enviar()">
+      @if(faltanFotos > 0) { 
+        <div class="error">
+          <span class="fotos-hint">Faltan {{ faltanFotos }} foto(s) <br> Se necesitan 3 fotos</span>
+        </div>
+      }
+
+      <ion-button class="btn-secondary" type="button" (click)="elegirFotos()">Tomar Fotos</ion-button>
+
+      <ion-button class="btn-primary" [disabled]="formAltaBebida.invalid" (click)="enviar()">
         Guardar
       </ion-button>
 
-      <ion-button class="volver" expand="block" href="/home">
+      <ion-button class="btn-tertiary" href="/home">
         Volver
       </ion-button>
       </form>
