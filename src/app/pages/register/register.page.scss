@@ -37,11 +37,16 @@ form {
   text-decoration: underline;
 }
 
-.error {
+.error,
+.error2 {
   text-align: center;
   color: var(--color-error);
   font-weight: 800;
   text-shadow: -1px 3px var(--color-black);
+}
+
+.error2 {
+  margin-top: -10px;
 }
 
 .div_error {
@@ -155,6 +160,7 @@ ion-select {
 
 .foto-section {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   gap: 20px;
@@ -165,8 +171,8 @@ ion-select {
     align-items: center;
 
     img {
-      width: 100px;
-      height: 100px;
+      width: 200px;
+      height: 200px;
       border-radius: 10px;
       margin-bottom: 10px;
       border: 1px solid var(--color-text);

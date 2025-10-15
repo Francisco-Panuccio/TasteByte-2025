@@ -190,6 +190,50 @@ ion-popover.dni-popover ion-item.select-interface-option {
   }
 }
 
+ion-action-sheet.action-sheet-form
+  .action-sheet-group:not(.action-sheet-group-cancel) .action-sheet-button{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-weight: 600;
+  border-bottom: 2px solid var(--color-text);
+  padding: 5px;
+
+    &:first-child {
+    border-top: 2px solid var(--color-text);
+  }
+}
+
+ion-action-sheet.action-sheet-form {
+  --background: var(--color-btn-primary);
+  --button-background: var(--color-btn-primary);
+  --button-color: var(--color-text);
+  --backdrop-opacity: .35;
+}
+
+ion-action-sheet.action-sheet-form .action-sheet-group{
+  padding: 0;
+  margin: 0;
+}
+
+ion-action-sheet.action-sheet-form .action-sheet-group.action-sheet-group-cancel {
+  padding: 0;
+}
+
+ion-action-sheet.action-sheet-form .action-sheet-group.action-sheet-group-cancel .action-sheet-button,
+ion-action-sheet.action-sheet-form .action-sheet-cancel {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-weight: 700;
+  padding: 5px;
+  background: var(--color-btn-primary);
+  color: var(--color-text);
+  border-bottom: none;
+}
+
 .toast2 {
   margin-top: 0;
 }
