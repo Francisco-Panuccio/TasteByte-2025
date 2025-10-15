@@ -8,7 +8,7 @@ import { Perfil } from "src/app/interfaces/perfil";
 import { supabase } from "../../../supabase.client";
 import { AuthService } from "src/app/services/auth/auth";
 import { b64ToBlob } from "../../functions";
-import { ToastController } from "@ionic/angular";
+import { ActionSheetController, AlertController, ToastController } from "@ionic/angular";
 
 type PendingFoto = { blob: Blob; ext: string; previewUrl: string };
 
@@ -23,10 +23,13 @@ export class AltaBebidaPage implements OnInit {
   private bebidas = inject(Bebidas);
   private auth = inject(AuthService);
   private toast = inject(ToastController);
+  private actionSheet = inject(ActionSheetController);
+  private alertCtrl = inject(AlertController);
   private readonly platform = Capacitor.getPlatform();
 
   loading = true;
 
+  placeholderUrl = "assets/icon/signo.png";
   private pending: Array<PendingFoto | null> = [null, null, null];
 
   formAltaBebida = this.fb.group({
@@ -48,6 +51,11 @@ export class AltaBebidaPage implements OnInit {
 
   get f() { return this.formAltaBebida.controls; }
   get fotosFA(): FormArray { return this.formAltaBebida.get("fotos") as FormArray; }
+
+  get faltanFotos(): number {
+    const arr = (this.fotosFA.value as string[]) ?? [];
+    return 3 - arr.filter(u => typeof u === "string" && u.trim().length > 0).length;
+  }
 
   async ngOnInit() {
     setTimeout(() => (this.loading = false), 2000);
@@ -105,56 +113,162 @@ export class AltaBebidaPage implements OnInit {
     };
   }
 
-  async elegirFoto(slot: number, source?: "cam" | "gal") {
-    if (!(await this.exigeBartender())) return;
+  private nextEmptyIndex(): number {
+    const arr = (this.fotosFA.value as string[]) || [];
+    for (let i = 0; i < 3; i++) {
+      const v = arr[i];
+      if (!v || String(v).trim() === "") return i;
+    }
+    return -1;
+  }
 
+  private async setPhotoAt(index: number, blob: Blob): Promise<void> {
+    const ext = blob.type.includes("png") ? "png" : "jpg";
+    if (this.pending[index]?.previewUrl) URL.revokeObjectURL(this.pending[index]!.previewUrl);
+    const previewUrl = URL.createObjectURL(blob);
+    this.pending[index] = { blob, ext, previewUrl };
+    this.fotosFA.at(index).setValue(previewUrl);
+  }
+
+  async elegirFotos(): Promise<void> {
+    if (!(await this.exigeBartender())) return;
+    const sheet = await this.actionSheet.create({
+      cssClass: "action-sheet-form",
+      buttons: [
+        { text: "Cámara", handler: () => this.capturarSecuencial() },
+        { text: "Galería", handler: () => this.seleccionarDesdeGaleria() },
+        { text: "Cancelar", role: "cancel" }
+      ]
+    });
+    await sheet.present();
+  }
+
+  private async seleccionarDesdeGaleria(): Promise<void> {
     try {
       const onWeb = this.platform === "web";
       if (!onWeb) {
-        const needPhotos = source === "gal";
         const perm = await Camera.checkPermissions();
-        if (perm.camera !== "granted" || (needPhotos && perm.photos !== "granted")) {
-          const req = await Camera.requestPermissions({ permissions: needPhotos ? ["camera", "photos"] : ["camera"] });
-          if (req.camera !== "granted" || (needPhotos && req.photos !== "granted")) {
-            await this.mostrarToast("Permisos de cámara/galería denegados", "Error");
+        if (perm.photos !== "granted") {
+          const req = await Camera.requestPermissions({ permissions: ["photos"] });
+          if (req.photos !== "granted") {
+            await this.mostrarToast("Permisos de galería denegados", "Error");
             return;
           }
         }
       }
 
-      const photo = await Camera.getPhoto({
-        resultType: onWeb ? CameraResultType.Uri : CameraResultType.Base64,
-        quality: 85,
-        source: source ? (source === "cam" ? CameraSource.Camera : CameraSource.Photos) : CameraSource.Prompt,
-        allowEditing: false
-      });
-
-      let blob: Blob;
-      let ext = "jpg";
-
-      if (onWeb && photo.webPath) {
-        const res = await fetch(photo.webPath);
-        blob = await res.blob();
-        ext = blob.type.includes("png") ? "png" : "jpg";
-      } else if (photo.base64String) {
-        blob = b64ToBlob(photo.base64String, "image/jpeg");
-      } else {
-        throw new Error("No se pudo obtener la imagen");
+      const libres = Math.max(0, this.faltanFotos);
+      if (libres === 0) {
+        await this.mostrarToast("Ya cargaste 3 fotos", "Aviso");
+        return;
       }
 
-      if (this.pending[slot]?.previewUrl) {
-        URL.revokeObjectURL(this.pending[slot]!.previewUrl);
+      const result: any = await (Camera as any).pickImages({ quality: 85, limit: libres });
+      const photos = Array.isArray(result?.photos) ? result.photos : [];
+      if (photos.length === 0) {
+        this.fotosFA.markAsTouched();
+        return;
       }
 
-      const previewUrl = URL.createObjectURL(blob);
-      this.pending[slot] = { blob, ext, previewUrl };
+      for (const ph of photos) {
+        const idx = this.nextEmptyIndex();
+        if (idx === -1) break;
 
-      this.fotosFA.at(slot).setValue(previewUrl);
+        let blob: Blob | null = null;
+        const webPath: string | undefined = ph.webPath ?? ph.path;
+        if (webPath) {
+          const res = await fetch(webPath);
+          blob = await res.blob();
+        } else if (ph.base64String) {
+          blob = b64ToBlob(ph.base64String, "image/jpeg");
+        }
+        if (!blob) continue;
+
+        await this.setPhotoAt(idx, blob);
+      }
+
+      this.fotosFA.markAsTouched();
       this.fotosFA.updateValueAndValidity();
-    } catch (e) {
-      console.error("elegirFoto:", e);
-      await this.mostrarToast("Error al cargar la foto", "Error");
+    } catch {
+      await this.mostrarToast("Error al seleccionar fotos", "Error");
     }
+  }
+
+  private async capturarSecuencial(): Promise<void> {
+    try {
+      const onWeb = this.platform === "web";
+      if (!onWeb) {
+        const perm = await Camera.checkPermissions();
+        if (perm.camera !== "granted") {
+          const req = await Camera.requestPermissions({ permissions: ["camera"] });
+          if (req.camera !== "granted") {
+            await this.mostrarToast("Permiso de cámara denegado", "Error");
+            return;
+          }
+        }
+      }
+
+      let restantes = this.faltanFotos;
+      if (restantes === 0) {
+        await this.mostrarToast("Ya cargaste 3 fotos", "Aviso");
+        return;
+      }
+
+      while (restantes > 0) {
+        const photo = await Camera.getPhoto({
+          resultType: onWeb ? CameraResultType.Uri : CameraResultType.Base64,
+          quality: 85,
+          source: CameraSource.Camera,
+          allowEditing: false
+        });
+
+        let blob: Blob | null = null;
+        if (onWeb && photo.webPath) {
+          const res = await fetch(photo.webPath);
+          blob = await res.blob();
+        } else if (photo.base64String) {
+          blob = b64ToBlob(photo.base64String, "image/jpeg");
+        }
+        if (!blob) break;
+
+        const idx = this.nextEmptyIndex();
+        if (idx === -1) break;
+        await this.setPhotoAt(idx, blob);
+
+        restantes = this.faltanFotos;
+        if (restantes > 0) {
+          const alert = await this.alertCtrl.create({
+            cssClass: "alert-foto",
+            header: "Foto Guardada",
+            message: `Falta/n ${restantes} foto/s más. ¿Tomar otra?`,
+            buttons: [
+              { text: "No", role: "cancel" },
+              { text: "Si", role: "confirm" }
+            ]
+          });
+          await alert.present();
+          const { role } = await alert.onDidDismiss();
+          if (role !== "confirm") break;
+        }
+      }
+
+      this.fotosFA.markAsTouched();
+      this.fotosFA.updateValueAndValidity();
+    } catch {
+      await this.mostrarToast("Error al tomar foto", "Error");
+    }
+  }
+
+  eliminarFoto(i: number): void {
+    const p = this.pending[i];
+    if (p?.previewUrl) {
+      URL.revokeObjectURL(p.previewUrl);
+    }
+    this.pending[i] = null;
+    this.fotosFA.at(i).setValue("");
+    this.fotosFA.markAsDirty();
+    this.fotosFA.markAsTouched();
+    this.fotosFA.updateValueAndValidity();
   }
 
   async enviar() {

@@ -2,10 +2,12 @@
   <app-loading/>
 } @else {
   <header>
+    <img src="assets/icon/cubiertos.png">
     <title>Cocina</title>
+    <img src="assets/icon/cubiertos.png">
   </header>
 
-  <ion-content class="ion-content-cocina">
+  <ion-content class="ion-padding">
     <ion-refresher slot="fixed" (ionRefresh)="cargar(); $event.target.complete()">
       <ion-refresher-content></ion-refresher-content>
     </ion-refresher>
@@ -55,10 +57,10 @@
   </ion-content>
 
   <footer>
-    <ion-toolbar>
-      <ion-buttons class="ion_btns">
-        <ion-button class="btn_logged" routerLink="/home">Volver</ion-button>
-      </ion-buttons>
-    </ion-toolbar>
+    <hr>
+    <button class="btn_footer" routerLink="/home">
+      Salir
+    </button>
+    <hr>
   </footer>
 }

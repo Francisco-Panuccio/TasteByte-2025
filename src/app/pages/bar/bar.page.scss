@@ -1,24 +1,19 @@
-.ion-content-bar {
-  --background: #d7b899;
-  --padding-bottom: calc(60px + var(--ion-safe-area-bottom));
-}
-
 .loading,
 .error,
 .vacio {
   padding: 1rem;
   text-align: center;
-  color: #554738;
+  color: var(--color-text);
   font-size: 18px;
   font-weight: 600;
   margin: 10px 0;
 }
 
 .vacio {
-  color: #554738;
-  background-color: #e6dacd;
+  color: var(--color-text);
+  background-color: var(--color-input);
   border-radius: 10px;
-  margin: 20px 20px 40px 20px;
+  margin: 0 0 30px 0;
   padding: 20px;
 }
 
@@ -191,17 +186,6 @@
   }
 }
 
-.ion_btns {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.btn_logged {
-  font-size: 20px;
-  font-weight: 1000;
-}
-
 ion-refresher {
   --color: #554738;
 }
@@ -213,7 +197,7 @@ ion-refresher-content {
 .div_img {
   width: 300px;
   height: 400px;
-  margin: 0 auto;
+  margin: 0 auto 20px auto;
   border-radius: 12px;
   box-shadow: 5px 5px 15px 5px #FF8080, -9px 5px 15px 5px #FFE488, -7px -5px 15px 5px #8CFF85, 12px -5px 15px 5px #80C7FF, 12px 10px 15px 7px #E488FF, -10px 10px 15px 7px #FF616B, -10px -7px 27px 1px #8E5CFF, 5px 5px 15px 5px rgba(0, 0, 0, 0);
 

@@ -1,32 +1,15 @@
-/* ------------------ Fondo general ------------------ */
-ion-content {
-  --background: #bb714e;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-}
-
-/* ------------------ Formulario ------------------ */
 form {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   gap: 10px;
-  background: #f8f5f0d2;
-  padding: 1rem;
-  border-radius: 15px;
-  width: 100%;
-  max-width: 480px;
-  box-sizing: border-box;
 }
 
-/* ------------------ Inputs ------------------ */
 .input-field,
 .ion-item-text-area {
-  --background: #d7b899;
-  --border-width: 0px;
+  --background: transparent;
+  --border-width: 0;
   --padding-start: 0;
   --inner-padding-end: 0;
   --highlight-color-focused: transparent;
@@ -38,125 +21,97 @@ form {
   height: 60px;
 }
 
-ion-input,
 ion-textarea {
   display: flex;
   justify-content: center;
   align-items: center;
-  --color: #554738;
-  --placeholder-color: #554738;
+  background-color: var(--color-input);
+  --color: var(--color-text);
+  --placeholder-color: var(--color-text);
+  --placeholder-opacity: 1;
   border-radius: 12px;
   padding: 0.75rem 1rem !important;
-  border: 1px solid #d3a87c;
+  border: 1px solid var(--color-text);
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 20px;
 }
 
 ion-input {
   height: 60px;
+  font-size: 20px;
 }
 
-/* ------------------ Fotos contenedor ------------------ */
-.fotos {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  justify-items: center;
-  gap: 6px;
-  margin: 5px 0;
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
+ion-button {
+  --background: transparent;
+  --background-activated: rgba(215, 184, 153, 0.2);
+  --color: var(--color-text);
+  --border-color: var(--color-text);
+  --border-style: solid;
+  --border-width: 1px;
+  --border-radius: 12px;
+  border-radius: 12px;
+  font-weight: 600;
+  height: 44px;
 }
 
-.slot-contenedor {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  width: 100%;
-  max-width: 120px;
-}
-
-.slot {
-  width: 100%;
-  background: #fffdf9;
-  border: 1px dashed #d3a87c;
-  border-radius: 8px;
+.error {
   text-align: center;
+  color: var(--color-error);
+  font-weight: 800;
+  font-size: 17px;
+  background-color: var(--color-btn-primary);
+  border: 1px solid var(--color-black);
+  padding: 5px 10px;
+  border-radius: 12px;
+}
+
+.fotos {
   display: flex;
   justify-content: center;
   align-items: center;
-  aspect-ratio: 1 / 1;
-  overflow: hidden;
-  box-sizing: border-box;
-}
+  gap: 8px;
+  margin: 10px 0;
 
-.slot img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 5px;
-  border: 1px solid #d3a87c;
-}
+  .each {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 0 0 12px 12px;
+    border: 2px solid var(--color-text);
+  }
 
-.slot ion-card-content {
-  padding: 0;
-  height: 100%;
-  display: flex;
-}
+  .slot {
+    display: grid;
+    align-items: start;
+    justify-content: start;
+    gap: 8px;
+    width: 100px;
+    height: 100px;
 
-/* ------------------ Botones fotos ------------------ */
-.acciones {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  width: 100%;
-}
+    img {
+      width: 100px;
+      height: 100px;
+      aspect-ratio: 1;
+      object-fit: cover;
+    }
+  }
 
-.acciones ion-button {
-  --background: #d7b899;
-  --color: #554738;
-  --border-radius: 4px;
-  --padding-start: 2px;
-  --padding-end: 2px;
-  font-weight: 600;
-  font-size: 1rem;
-  width: 100%;
-  height: 22px;
-  margin: 0 auto;
-}
+  .span {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--color-black);
+    width: 100%;
+    border-radius: 0 0 8px 8px;
+    border-top: 2px solid var(--color-text);
 
-/* ------------------ Botón principal ------------------ */
-ion-button[expand="block"] {
-  --background: #d7b899;
-  --color: #bb714e;
-  --border-radius: 12px;
-  font-weight: 800;
-  height: 48px;
-}
-
-/* ------------------ Botón volver ------------------ */
-.volver {
-  --background: #d7b899;
-  --color: #bb714e;
-  --border-radius: 12px;
-  font-weight: 800;
-  height: 48px;
-  margin-top: 0px;
-}
-
-.btn_guardar {
-  --background: #554738 !important;
-  color: white !important;
-  --border-radius: 12px;
-}
-
-.volver {
-  color: #554738 !important;
-  --background: white !important;
-  border: 2px solid #554738;
-  --border-radius: 12px;
-  border-radius: 12px;
-  font-weight: 800;
+    span {
+      color: var(--color-text);
+      font-size: 18px;
+      font-weight: 600;
+      padding: 5px;
+    }
+  }
 }

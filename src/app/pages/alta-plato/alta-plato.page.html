@@ -2,13 +2,15 @@
   <app-loading/>
 } @else {
   <header>
-    <title>Agregar Plato</title>
+    <img src="assets/icon/cubiertos.png">
+    <title>Alta Plato</title>
+    <img src="assets/icon/cubiertos.png">
   </header>
 
   <ion-content class="ion-padding">
     <form [formGroup]="formAltaPlato" novalidate>
       <ion-item class="ion-item-input">
-        <ion-input placeholder="Nombre" formControlName="nombre"></ion-input>
+        <ion-input class="input" placeholder="Nombre" formControlName="nombre"></ion-input>
       </ion-item>
       @if(f.nombre.touched && f.nombre.invalid) {
         <ng-container>
@@ -26,7 +28,7 @@
       }
 
       <ion-item class="ion-item-input">
-        <ion-input type="number" inputmode="numeric" placeholder="Tiempo (min)" formControlName="tiempo_elaboracion_min"></ion-input>
+        <ion-input class="input" type="number" inputmode="numeric" placeholder="Tiempo (minutos)" formControlName="tiempo_elaboracion_min"></ion-input>
       </ion-item>
       @if(f.tiempo_elaboracion_min.touched && f.tiempo_elaboracion_min.invalid) {
         <ng-container>
@@ -35,7 +37,7 @@
       }
 
       <ion-item class="ion-item-input">
-        <ion-input type="number" inputmode="decimal" placeholder="Precio" formControlName="precio"></ion-input>
+        <ion-input class="input" type="number" inputmode="decimal" placeholder="Precio" formControlName="precio"></ion-input>
       </ion-item>
       @if(f.precio.touched && f.precio.invalid) {
         <ng-container>
@@ -48,26 +50,28 @@
       </ion-item>
 
       <div class="fotos">
-        @for (c of fotosFA.controls; track $index; let i = $index) {
-          <div class="slot">
-            @if(!!c.value) { <img [src]="c.value" alt="foto {{ i + 1 }}"> }
-            <div class="acciones">
-              <ion-button class="btn_slot_cam" size="small" (click)="elegirFoto(i,'cam')">
-                <img class="img_icon" src="assets/icon/camera.png" alt="Cámara">
-              </ion-button>
-              <ion-button class="btn_slot_pho" size="small" (click)="elegirFoto(i,'gal')">
-                <img class="img_icon" src="assets/icon/folder.png" alt="Carpeta">
-              </ion-button>
+          @for (c of fotosFA.controls; track $index; let i = $index) {
+            <div class="each">
+              <div class="slot">
+                <img [src]="c.value || placeholderUrl" alt="foto {{ i + 1 }}"> 
+              </div>
+              <div class="span" type="button" (click)="eliminarFoto(i)">
+                <span>Eliminar</span>
+              </div>
             </div>
-          </div>
-        }
+          }
       </div>
-      @if((!!fotosFA.touched || !!fotosFA.dirty) && !!fotosFA.invalid) {
-        <app-form-errors color="white" [control]="fotosFA"></app-form-errors>
+
+      @if(faltanFotos > 0) { 
+        <div class="error">
+          <span class="fotos-hint">Faltan {{ faltanFotos }} foto(s) <br> Se necesitan 3 fotos</span>
+        </div>
       }
 
-      <ion-button class="btns_main" expand="block" [disabled]="formAltaPlato.invalid" (click)="enviar()">Guardar</ion-button> 
-      <ion-button class="btns_main_back" expand="block" href="/home">Volver</ion-button> 
+      <ion-button class="btn-secondary" type="button" (click)="elegirFotos()">Tomar Fotos</ion-button>
+
+      <ion-button class="btn-primary" [disabled]="formAltaPlato.invalid" (click)="enviar()">Guardar</ion-button> 
+      <ion-button class="btn-tertiary" href="/home">Volver</ion-button> 
     </form>
   </ion-content>
 }
