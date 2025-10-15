@@ -1,5 +1,5 @@
 .splash-container {
-  --background: #bb714e; 
+  --background: var(--color-background);
   position: relative;
   margin: 0;
   padding: 0;
@@ -18,7 +18,7 @@
   justify-content: center;
   align-items: center;
   margin: 0;
-  background: #bb714e; 
+  background: var(--color-background);
 }
 
 .logo-container {

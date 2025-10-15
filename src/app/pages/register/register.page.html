@@ -19,9 +19,8 @@
           <h1 class="title">Registro</h1>
 
           <form [formGroup]="formRegister" (ngSubmit)="onRegister();">
-            <!-- Apellido -->
             <ion-item class="input-field" lines="none">
-              <ion-input placeholder="Apellido" formControlName="lastname"></ion-input>
+              <ion-input class="input" placeholder="Apellido" formControlName="lastname"></ion-input>
             </ion-item>
             <div class="error">
               @if((formRegister.get("lastname")?.hasError("required")) &&
@@ -30,9 +29,8 @@
               }
             </div>
 
-            <!-- Nombre -->
             <ion-item class="input-field" lines="none">
-              <ion-input placeholder="Nombre" formControlName="fullname"></ion-input>
+              <ion-input class="input" placeholder="Nombre" formControlName="fullname"></ion-input>
             </ion-item>
             <div class="error">
               @if((formRegister.get("fullname")?.hasError("required")) &&
@@ -41,9 +39,8 @@
               }
             </div>
 
-            <!-- Email -->
             <ion-item class="input-field" lines="none">
-              <ion-input placeholder="Correo Electrónico" formControlName="email"></ion-input>
+              <ion-input class="input" placeholder="Correo Electrónico" formControlName="email"></ion-input>
             </ion-item>
             <div class="error">
               @if((formRegister.get("email")?.hasError("email") ||
@@ -53,9 +50,8 @@
               }
             </div>
 
-            <!-- Password -->
             <ion-item class="input-field" lines="none">
-              <ion-input placeholder="Contraseña" type="password" formControlName="password"></ion-input>
+              <ion-input class="input" placeholder="Contraseña" type="password" formControlName="password"></ion-input>
             </ion-item>
             <div class="error">
               @if((formRegister.get("password")?.hasError("minlength") ||
@@ -65,9 +61,8 @@
               }
             </div>
 
-            <!-- Confirm Password -->
             <ion-item class="input-field" lines="none">
-              <ion-input placeholder="Repetir Contraseña" type="password" formControlName="confirm"></ion-input>
+              <ion-input class="input" placeholder="Repetir Contraseña" type="password" formControlName="confirm"></ion-input>
             </ion-item>
             <div class="error">
               @if((formRegister.get("confirm")?.hasError("passwordmatch") ||
@@ -77,10 +72,10 @@
               }
             </div>
 
-            <!-- Documento -->
             <div class="div_dni_items">
               <ion-item class="input-field-dni" lines="none">
                 <ion-input
+                  class="input"
                   [placeholder]="formRegister.get('documentType')?.value === 'dni' ? 'Número de DNI' : 'Número de CUIL'"
                   inputmode="numeric"
                   formControlName="documentNumber">
@@ -93,7 +88,7 @@
               </ion-item>
 
               <ion-item class="input-select-dni" lines="none">
-                <ion-select formControlName="documentType" interface="popover" placeholder="Tipo de Documento">
+                <ion-select formControlName="documentType" interface="popover" placeholder="Tipo de Documento" [interfaceOptions]="{ cssClass: 'dni-popover' }">
                   <ion-select-option value="dni">DNI</ion-select-option>
                   <ion-select-option value="cuil">CUIL</ion-select-option>
                 </ion-select>
@@ -108,7 +103,6 @@
               }
             </div>
 
-            <!-- Perfil -->
             <ion-item class="input-field" lines="none">
               <select formControlName="profile" class="profile-select">
                 <option value="" disabled selected>Selecciona un Perfil</option>
@@ -128,7 +122,6 @@
               }
             </div>
 
-            <!-- Foto obligatoria -->
             <div class="foto-section">
               <ion-button class="btn_photo" (click)="tomarFoto()">Tomar Foto</ion-button>
               <div class="preview" *ngIf="fotoPreview">
@@ -139,14 +132,13 @@
               </div>
             </div>
 
-            <!-- Botones -->
             <ion-button expand="block"  
                         type="submit"
                         class="btn-primary" 
                         [disabled]="submitting || !isFormValid">
               Registrarse
             </ion-button>
-            <ion-button expand="block" routerLink="/login" style="--background: #554738; --color: white;">
+            <ion-button expand="block" class="btn-tertiary" routerLink="/login">
               Iniciar Sesión
             </ion-button>
           </form>

@@ -1,8 +1,9 @@
 .span_error {
-  font-size: 14px;
-  color: var(--fe-color, #c2454f);
+  font-size: 17px;
+  color: var(--color-error);
   letter-spacing: 2px;
-  font-weight: 600;
+  font-weight: 800;
   margin: 10px 0;
   text-align: center;
+  text-shadow: -1px 3px var(--color-black);
 }

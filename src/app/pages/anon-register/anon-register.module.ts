@@ -8,6 +8,7 @@ import { AnonRegisterPageRoutingModule } from './anon-register-routing.module';
 
 import { AnonRegisterPage } from './anon-register.page';
 import { LoadingPage } from "../loading/loading.page";
+import { FormErrorsPage } from '../form-errors/form-errors.page';
 
 @NgModule({
   imports: [
@@ -16,7 +17,8 @@ import { LoadingPage } from "../loading/loading.page";
     ReactiveFormsModule,
     IonicModule,
     AnonRegisterPageRoutingModule,
-    LoadingPage
+    LoadingPage,
+    FormErrorsPage
 ],
   declarations: [AnonRegisterPage]
 })
