@@ -2,24 +2,26 @@
   <app-loading/>
 } @else {
   <header>
-    <title>Agregar Mesa</title>
+    <img src="assets/icon/cubiertos.png">
+    <title>Alta Mesa</title>
+    <img src="assets/icon/cubiertos.png">
   </header>
 
   <ion-content class="ion-padding">
     <form [formGroup]="formAltaMesa" novalidate>
       <ion-item class="ion-item-input">
-        <ion-input type="number" placeholder="Número" formControlName="numero"></ion-input>
+        <ion-input class="input" type="number" placeholder="Número" formControlName="numero"></ion-input>
       </ion-item>
       @if(!!f['numero'].touched && !!f['numero'].invalid) { <app-form-errors color="white" [control]="f['numero']"/> }
 
       <ion-item class="ion-item-input">
-        <ion-input type="number" placeholder="Capacidad" formControlName="capacidad"></ion-input>
+        <ion-input class="input" type="number" placeholder="Capacidad" formControlName="capacidad"></ion-input>
       </ion-item>
       @if(!!f['capacidad'].touched && !!f['capacidad'].invalid) { <app-form-errors color="white" [control]="f['capacidad']"/> }
 
       <ion-item class="ion-item-input">
         <select formControlName="tipo" class="profile-select">
-          <option [ngValue]="null" disabled>Seleccionar Tipo de Mesa</option>
+          <option [ngValue]="null" disabled hidden>Seleccionar Tipo de Mesa</option>
           @for (t of tipos; track t.value) {
             <option [value]="t.value">{{ t.label }}</option>
           }
@@ -27,23 +29,16 @@
       </ion-item>
       @if(!!f['tipo'].touched && !!f['tipo'].invalid) { <app-form-errors color="white" [control]="f['tipo']"/> }
 
-      <div class="foto">
-        @if(!!f['foto_url'].value) { <img [src]="f['foto_url'].value" alt="foto mesa"> }
-        <div class="acciones">
-          <ion-button size="small" class="btn_slot_cam" (click)="elegirFoto('cam')">Cámara</ion-button>
-          <ion-button size="small" class="btn_slot_pho" (click)="elegirFoto('gal')">Galería</ion-button>
+      <div class="fotos">
+        <div class="slot">
+          <img [src]="fotoCtrl.value || placeholderUrl" alt="foto mesa">
         </div>
       </div>
-      @if(!!f['foto_url'].touched && !!f['foto_url'].invalid) { 
-        <app-form-errors color="white" [control]="f['foto_url']"></app-form-errors> 
-      }
 
-      <ion-button class="btns_main" expand="block" [disabled]="formAltaMesa.invalid" (click)="enviar()">Guardar</ion-button>
-      <ion-button class="btns_main_back" expand="block" href="/home">Volver</ion-button> 
+      <ion-button class="btn-secondary" type="button" (click)="capturarDesdeCamara()">Tomar Foto</ion-button>
+
+      <ion-button class="btn-primary" expand="block" [disabled]="formAltaMesa.invalid" (click)="enviar()">Guardar</ion-button>
+      <ion-button class="btn-tertiary" expand="block" href="/home">Volver</ion-button> 
     </form>
-
-    <div class="div_img">
-      <img src="assets/icon/logo.png" alt="logo">
-    </div>
   </ion-content>
 }

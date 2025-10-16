@@ -104,8 +104,9 @@
             </div>
 
             <ion-item class="input-field" lines="none">
-              <select formControlName="profile" class="profile-select">
-                <option value="" disabled selected>Selecciona un Perfil</option>
+              <select formControlName="profile" class="profile-select is-placeholder"
+              onChange="this.classList.toggle('is-placeholder', this.value==='');">
+                <option value="" selected hidden>Selecciona un Perfil</option>
                 <option value="dueño">Dueño</option>
                 <option value="supervisor">Supervisor</option>
                 <option value="maître">Maître</option>

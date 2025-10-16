@@ -16,31 +16,27 @@
       <div class="div_container">
         <div class="div_pedidos" *ngFor="let p of pedidos">
           <div class="div_data_pedido">
-            <p class="p_mesa"><strong class="strong_mesa">Mesa {{ p.mesa_numero }}</strong></p>
+            <p class="p_mesa">Mesa {{ p.mesa_numero }}</p>
             <p>Hora: {{ formatearHora(p.creado_en) }}</p>
             
             <div class="items-container">
               <div class="item" *ngFor="let it of p.items">
-                <span class="item-nombre">{{ it.nombre }}</span>
+                <span class="item-nombre">🥤{{ it.nombre }}</span>
                 <span class="item-cantidad">x{{ it.cantidad }}</span>
-                <span class="item-tiempo">{{ it.duracionMin }} min</span>
               </div>
             </div>
 
             <div class="pedido-meta">
-              <span class="meta-cantidad">{{ p.cantidad }} {{ p.cantidad === 1 ? 'ítem' : 'ítems' }}</span>
               <span class="meta-total">{{ p.total | currency:'ARS':'symbol':'1.2-2' }}</span>
             </div>
 
             <div class="estado-pedido">
-              PENDIENTE
+              🕓PENDIENTE🕓
             </div>
           </div>
 
-          <div class="div_btns">
-            <button class="btn_terminar" (click)="terminar(p.id)">
-              Terminar
-            </button>
+          <div class="div_btn">
+            <button class="btn_terminar" (click)="terminar(p.id)">Terminar</button>
           </div>
         </div>
       </div>

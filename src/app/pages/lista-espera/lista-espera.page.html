@@ -2,50 +2,51 @@
   <app-loading/>
 } @else {
   <header>
+    <img src="assets/icon/cubiertos.png">
     <title>Lista de Espera</title>
+    <img src="assets/icon/cubiertos.png">
   </header>
 
   <ion-content>
-    <ion-list *ngIf="clientes.length > 0; else vacio">
-      <ion-item *ngFor="let c of clientes; let i = index">
-        <ion-avatar slot="start">
-          <img [src]="c.foto_url || 'assets/img/default-user.png'" />
-        </ion-avatar>
-
-        <ion-label>
-          <h2>{{ c.nombre }}</h2>
-          <p>Estado: {{ c.estado }}</p>
-          <p>Ingresó: {{ c.creado_en | date:'short' }}</p>
-          @if(esCliente && (c.cliente_anonimo_id === anonimoId || c.cliente_id === usuarioId)) {
-            <p><strong>Posición en la fila: {{ i + 1 }}</strong></p>
+    @if(clientes.length > 0) {
+      <div class="div_list">
+        <div class="item" *ngFor="let c of clientes; let i = index">
+          <div class="item-first-part">
+            <div class="item-img">
+              <img [src]="c.foto_url || 'assets/img/default-user.png'" />
+            </div>
+  
+            <div class="item-data">
+              <p class="name">{{ c.nombre | titlecase}}</p>
+              <p><span>⚪Ingresó:</span> {{ c.creado_en | date:'short' }}</p>
+              <p><span>🟡Estado:</span> {{ c.estado | titlecase}}</p>
+              @if(esCliente && (c.cliente_anonimo_id === anonimoId || c.cliente_id === usuarioId)) {
+                <p><strong>Posición en la fila: {{ i + 1 }}</strong></p>
+              }
+            </div>
+          </div>
+          
+          @if(esMaitre) {
+            <div class="item-btns">
+              <button class="aprove" (click)="aprobar(c)">Aprobar</button>
+              <button class="quit" (click)="quitar(c)">Quitar</button>
+            </div>
           }
-        </ion-label>
-
-        @if(esMaitre) {
-          <ion-buttons slot="end">
-            <ion-button (click)="aprobar(c)" fill="solid" shape="round">
-              Aprobar
-            </ion-button>
-            <ion-button color="danger" (click)="quitar(c)" fill="outline" shape="round">
-              Quitar
-            </ion-button>
-          </ion-buttons>
-        }
-      </ion-item>
-    </ion-list>
-
-    <ng-template #vacio>
-      <ion-text color="medium">
-        <p class="ion-padding p_clientes">No hay Clientes en Espera.</p>
-      </ion-text>
-    </ng-template>
+        </div>
+      </div>
+    } @else {
+      <div #vacio class="empty">
+        <p class="p_clientes">No hay Clientes en Espera</p>
+        <img src="assets/images/espera.png">
+      </div>
+    }
   </ion-content>
 
   <footer>
-    <ion-toolbar>
-      <ion-buttons class="ion_btns">
-        <ion-button class="btn_logged" (click)="volver()">Volver</ion-button>
-      </ion-buttons>
-    </ion-toolbar>
+    <hr>
+    <button class="btn_footer" (click)="volver()">
+      Volver
+    </button>
+    <hr>
   </footer>
 }

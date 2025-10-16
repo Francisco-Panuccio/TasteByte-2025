@@ -153,6 +153,11 @@ footer:active {
   background-color: var(--color-btn-tertiary);
 }
 
+.profile-select.is-placeholder {
+  color: var(--color-text);
+  background-color: var(--color-btn-tertiary);
+}
+
 ion-select::part(icon) {
   color: var(--color-text);
 }
@@ -257,7 +262,8 @@ ion-toast.toast2::part(header) {
 }
 
 
-ion-alert.alert-foto {
+ion-alert.alert-foto,
+ion-alert.alert-cocina {
   --background: var(--color-btn-secondary);
   --backdrop-opacity: .35;
   --box-shadow: 0 10px 30px rgba(0, 0, 0, .4);
@@ -265,15 +271,18 @@ ion-alert.alert-foto {
   --max-width: 92vw;
 }
 
-.alert-foto .alert-wrapper {
+.alert-foto .alert-wrapper,
+.alert-cocina .alert-wrapper {
   border-radius: 16px;
 }
 
-.alert-foto .alert-head {
+.alert-foto .alert-head,
+.alert-cocina .alert-head {
   padding: 14px 16px 8px;
 }
 
-.alert-foto .alert-title {
+.alert-foto .alert-title,
+.alert-cocina .alert-title {
   font-weight: 700;
   letter-spacing: 1px;
   color: var(--color-text);
@@ -282,7 +291,8 @@ ion-alert.alert-foto {
   margin-bottom: 5px;
 }
 
-.alert-foto .alert-message {
+.alert-foto .alert-message,
+.alert-cocina .alert-message {
   font-weight: 600;
   padding: 0 16px 8px;
   font-size: 18px;
@@ -291,7 +301,8 @@ ion-alert.alert-foto {
   margin-bottom: 15px;
 }
 
-.alert-foto .alert-button-group {
+.alert-foto .alert-button-group,
+.alert-cocina .alert-button-group {
   display: flex;
   justify-content: end;
   align-items: center;
@@ -303,7 +314,8 @@ ion-alert.alert-foto {
   background-color: var(--color-text);
 }
 
-.alert-foto .alert-button {
+.alert-foto .alert-button,
+.alert-cocina .alert-button {
   text-align: center;
   font-weight: 800;
   font-size: 16px;
@@ -313,10 +325,15 @@ ion-alert.alert-foto {
   padding: 0;
 }
 
-.alert-foto .alert-button-inner {
+.alert-foto .alert-button-inner,
+.alert-cocina .alert-button-inner {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
   line-height: 1;
+}
+
+.alert-cocina .alert-button {
+  width: 120px;
 }

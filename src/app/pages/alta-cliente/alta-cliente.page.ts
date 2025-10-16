@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from "@angular/core";
-import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from "@angular/forms";
 import { Capacitor } from "@capacitor/core";
 import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
 import { BarcodeFormat, BarcodeScanner } from "@capacitor-mlkit/barcode-scanning";
@@ -26,32 +26,66 @@ export class AltaClientePage implements OnInit {
   private readonly platform = Capacitor.getPlatform();
 
   formAnonimo!: FormGroup;
-  fotoPreview: string | null = null;
-  fotoUrl: string | null = null;
-  cargando = false;
+  placeholderUrl = "assets/images/anonimo.png";
+  fotoPreviewReg: string | null = null;
+  fotoPreviewAnon: string | null = null;
+  fotoUrlReg: string | null = null;
+  fotoUrlAnon: string | null = null;
+
   mensaje: string | null = null;
 
   loading = true;
   escaneando = false;
   qrPayload: string | null = null;
 
-  constructor(private router: Router) { }
+  constructor(private router: Router) {
+    this.formAltaCliente = this.fb.group(
+      {
+        nombres: ["", [Validators.required, Validators.minLength(3)]],
+        apellidos: ["", [Validators.required, Validators.minLength(3)]],
+        dni: ["", [Validators.required, this.dniValidator]],
+        correo: ["", [Validators.required, Validators.email]],
+        clave: ["", [Validators.required, Validators.minLength(6)]],
+        confirm: ["", [Validators.required]],
+        foto: ["", [Validators.required]]
+      },
+      { validators: this.passwordsMatch }
+    );
+  }
 
-  formAltaCliente = this.fb.group({
-    nombres: ["", [Validators.required, Validators.minLength(2)]],
-    apellidos: ["", [Validators.required, Validators.minLength(2)]],
-    dni: ["", [Validators.required, Validators.pattern(/^\d{7,10}$/)]],
-    correo: ["", [Validators.required, Validators.email]],
-    clave: ["", [Validators.required, Validators.minLength(6)]],
-    foto: ["", [Validators.required]]
-  });
+  formAltaCliente: ReturnType<FormBuilder["group"]>;
 
   get f() { return this.formAltaCliente.controls; }
+
+  get isFormValid(): boolean {
+    return this.formAltaCliente.valid && !!this.fotoPreviewReg;
+  }
+
+  passwordsMatch: ValidatorFn = (group: AbstractControl): ValidationErrors | null => {
+    const pass = group.get("clave")?.value ?? "";
+    const conf = group.get("confirm")?.value ?? "";
+    const confirmCtrl = group.get("confirm");
+    if (!confirmCtrl) return null;
+    const others = { ...(confirmCtrl.errors ?? {}) };
+    delete (others as any)["passwordmatch"];
+    if (conf && pass !== conf) {
+      confirmCtrl.setErrors({ ...others, passwordmatch: true });
+      return { passwordmatch: true };
+    } else {
+      confirmCtrl.setErrors(Object.keys(others).length ? others : null);
+      return null;
+    }
+  };
+
+  dniValidator: ValidatorFn = (c: AbstractControl): ValidationErrors | null => {
+    const v = String(c.value ?? "").replace(/\D/g, "");
+    return v.length === 8 ? null : { dni: true };
+  };
 
   tipoCliente: "registrado" | "anonimo" = "registrado";
 
   formAltaAnonimo = this.fb.group({
-    nombre: ["", [Validators.required, Validators.minLength(2)]],
+    nombre: ["", [Validators.required, Validators.minLength(3)]],
     foto: ["", [Validators.required]]
   });
 
@@ -68,10 +102,33 @@ export class AltaClientePage implements OnInit {
       message,
       duration,
       cssClass: "toast",
-      position: "top",
-      buttons: [{ text: "OK", role: "cancel" }]
+      position: "top"
     });
     await t.present();
+  }
+
+  private base64ToBlob(base64: string, type = "application/octet-stream") {
+    const byteCharacters = atob(base64);
+    const bytes = new Uint8Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) bytes[i] = byteCharacters.charCodeAt(i);
+    return new Blob([bytes], { type });
+  }
+
+  private resetearFormularios() {
+    this.formAltaCliente.reset();
+    this.formAltaCliente.markAsPristine();
+    this.formAltaCliente.markAsUntouched();
+
+    this.formAltaAnonimo.reset();
+    this.formAltaAnonimo.markAsPristine();
+    this.formAltaAnonimo.markAsUntouched();
+
+    this.qrPayload = null;
+
+    this.fotoPreviewReg = null;
+    this.fotoUrlReg = null;
+    this.fotoPreviewAnon = null;
+    this.fotoUrlAnon = null;
   }
 
   async escanearDNI() {
@@ -100,33 +157,84 @@ export class AltaClientePage implements OnInit {
 
   async sacarFoto() {
     try {
-      if (this.platform !== "web") {
-        const status = await Camera.requestPermissions({ permissions: ["camera"] });
-        if (status.camera !== "granted") { await this.mostrarToast("Permiso de cámara denegado", "Error"); return; }
+      const isWeb = this.platform === "web";
+      if (!isWeb) {
+        const perm = await Camera.checkPermissions();
+        if (perm.camera !== "granted") {
+          const status = await Camera.requestPermissions({ permissions: ["camera"] });
+          if (status.camera !== "granted") { await this.mostrarToast("Permiso de cámara denegado", "Error"); return; }
+        }
       }
-      const photo = await Camera.getPhoto({ resultType: CameraResultType.Uri, quality: 85, source: CameraSource.Camera, allowEditing: false });
-      let blob: Blob; let ext = "jpg";
-      if (photo.webPath) { const resp = await fetch(photo.webPath); blob = await resp.blob(); ext = blob.type.includes("png") ? "png" : "jpg"; }
-      else if (photo.base64String) { blob = this.base64ToBlob(photo.base64String, "image/jpeg"); }
-      else { throw new Error("No se pudo obtener la imagen"); }
 
+      const photo = await Camera.getPhoto({
+        resultType: CameraResultType.Base64,
+        quality: 85,
+        source: CameraSource.Camera,
+        allowEditing: false
+      });
+
+      if (!photo.base64String) throw new Error("No se pudo obtener la imagen.");
+      const mime = photo.format === "png" ? "image/png" : "image/jpeg";
+      const ext = photo.format === "png" ? "png" : "jpg";
+
+      this.fotoPreviewReg = `data:${mime};base64,${photo.base64String}`;
+
+      const blob = this.base64ToBlob(photo.base64String, mime);
       const fileName = `cliente_${Date.now()}.${ext}`;
       const filePath = `cliente/${fileName}`;
-      const up = await supabase.storage.from("clientes").upload(filePath, blob, { contentType: blob.type, upsert: true });
+      const up = await supabase.storage.from("clientes").upload(filePath, blob, { contentType: mime, upsert: true });
       if (up.error) throw up.error;
+
       const { data } = supabase.storage.from("clientes").getPublicUrl(filePath);
+      this.fotoUrlReg = data.publicUrl;
       this.formAltaCliente.patchValue({ foto: data.publicUrl });
+
       await this.mostrarToast("Foto cargada.", "Éxito");
     } catch (e: any) {
+      this.fotoPreviewReg = null;
       await this.mostrarToast(`Error al tomar la foto: ${e?.message || e}`, "Error");
     }
   }
 
-  private base64ToBlob(base64: string, type = "application/octet-stream") {
-    const byteCharacters = atob(base64);
-    const bytes = new Uint8Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) bytes[i] = byteCharacters.charCodeAt(i);
-    return new Blob([bytes], { type });
+  async sacarFotoAnonimo() {
+    try {
+      const isWeb = this.platform === "web";
+      if (!isWeb) {
+        const perm = await Camera.checkPermissions();
+        if (perm.camera !== "granted") {
+          const status = await Camera.requestPermissions({ permissions: ["camera"] });
+          if (status.camera !== "granted") { await this.mostrarToast("Permiso de cámara denegado", "Error"); return; }
+        }
+      }
+
+      const photo = await Camera.getPhoto({
+        resultType: CameraResultType.Base64,
+        quality: 85,
+        source: CameraSource.Camera,
+        allowEditing: false
+      });
+
+      if (!photo.base64String) throw new Error("No se pudo obtener la imagen.");
+      const mime = photo.format === "png" ? "image/png" : "image/jpeg";
+      const ext = photo.format === "png" ? "png" : "jpg";
+
+      this.fotoPreviewAnon = `data:${mime};base64,${photo.base64String}`;
+
+      const blob = this.base64ToBlob(photo.base64String, mime);
+      const fileName = `anonimo_${Date.now()}.${ext}`;
+      const filePath = `clientes_anonimos/${fileName}`;
+      const up = await supabase.storage.from("clientes").upload(filePath, blob, { contentType: mime, upsert: true });
+      if (up.error) throw up.error;
+
+      const { data } = supabase.storage.from("clientes").getPublicUrl(filePath);
+      this.fotoUrlAnon = data.publicUrl;
+      this.formAltaAnonimo.patchValue({ foto: data.publicUrl });
+
+      await this.mostrarToast("Foto cargada.", "Éxito");
+    } catch (e: any) {
+      this.fotoPreviewAnon = null;
+      await this.mostrarToast(`Error al tomar la foto: ${e?.message || e}`, "Error");
+    }
   }
 
   async enviar(tipo: string) {
@@ -164,7 +272,7 @@ export class AltaClientePage implements OnInit {
           dni: Number(String(this.f["dni"].value).trim()),
           email,
           perfil: "cliente_registrado",
-          cuil: null,
+          cuil: null
         };
 
         const usuarioDB: Usuario = await this.usuarios.createFromUser(usuarioLike, String(this.f["foto"].value));
@@ -212,12 +320,10 @@ export class AltaClientePage implements OnInit {
             this.router.navigateByUrl("/login", { replaceUrl: true });
             return;
           }
-          this.formAltaCliente.reset();
-          this.qrPayload = null;
+          this.resetearFormularios();
           await this.mostrarToast("Cliente registrado.", "Éxito");
         } else {
-          this.formAltaCliente.reset();
-          this.qrPayload = null;
+          this.resetearFormularios();
           await this.mostrarToast("Cliente registrado.", "Éxito");
         }
       } else if (tipo === "anonimo") {
@@ -227,7 +333,8 @@ export class AltaClientePage implements OnInit {
         const { error: insAnonErr } = await supabase.from("clientes_anonimos").insert({ nombre, foto_url });
         if (insAnonErr) throw insAnonErr;
 
-        this.formAltaAnonimo.reset();
+        this.resetearFormularios();
+
         if (!esEmpleado) {
           this.router.navigate(["/encuestas-espera"]);
         } else {
@@ -245,30 +352,6 @@ export class AltaClientePage implements OnInit {
       }
     } finally {
       this.loading = false;
-    }
-  }
-
-  async sacarFotoAnonimo() {
-    try {
-      if (this.platform !== "web") {
-        const status = await Camera.requestPermissions({ permissions: ["camera"] });
-        if (status.camera !== "granted") { await this.mostrarToast("Permiso de cámara denegado", "Error"); return; }
-      }
-      const photo = await Camera.getPhoto({ resultType: CameraResultType.Uri, quality: 85, source: CameraSource.Camera, allowEditing: false });
-      let blob: Blob; let ext = "jpg";
-      if (photo.webPath) { const response = await fetch(photo.webPath); blob = await response.blob(); ext = blob.type.includes("png") ? "png" : "jpg"; }
-      else if (photo.base64String) { blob = this.base64ToBlob(photo.base64String, "image/jpeg"); }
-      else { throw new Error("No se pudo obtener la imagen"); }
-
-      const fileName = `anonimo_${Date.now()}.${ext}`;
-      const filePath = `clientes_anonimos/${fileName}`;
-      const up = await supabase.storage.from("clientes").upload(filePath, blob, { contentType: blob.type, upsert: true });
-      if (up.error) throw up.error;
-      const { data } = supabase.storage.from("clientes").getPublicUrl(filePath);
-      this.formAltaAnonimo.patchValue({ foto: data.publicUrl });
-      await this.mostrarToast("Foto cargada.", "Éxito");
-    } catch (e: any) {
-      await this.mostrarToast(`Error al tomar la foto: ${e?.message || e}`, "Error");
     }
   }
 }

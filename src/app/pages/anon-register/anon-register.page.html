@@ -33,7 +33,7 @@
         <img [src]="formAnon.value.foto">
       </div>
 
-      <ion-button class="btn-primary" expand="block" (click)="registrarAnonimo()" [disabled]="formAnon.invalid || loading">
+      <ion-button class="btn-primary" (click)="registrarAnonimo()" [disabled]="formAnon.invalid || loading">
         Continuar
       </ion-button>
 
