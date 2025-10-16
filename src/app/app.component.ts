@@ -7,6 +7,7 @@ import { App } from "@capacitor/app";
 import { Media, MediaObject } from "@awesome-cordova-plugins/media/ngx";
 import { Push } from "src/app/services/push/push";
 import { supabase } from "src/supabase.client";
+import { SesionPushService } from "./services/sesionPushService/sesion-push-service";
 
 @Component({
   selector: "app-root",
@@ -25,8 +26,9 @@ export class AppComponent implements OnInit, OnDestroy {
     private router: Router,
     private animationCtrl: AnimationController,
     private media: Media,
-    private push: Push
-  ) { }
+    private push: Push,
+    private sesionPush: SesionPushService
+  ) { this.sesionPush.init();}
 
   private perfilToRole(perfil?: string): string | undefined {
     const p = (perfil ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
@@ -59,6 +61,27 @@ export class AppComponent implements OnInit, OnDestroy {
         await this.push.init(dbUserId as any, role as any);
         if (role === "mozo") this.push.initMozoHandlers();
         await this.push.ready();
+
+        if (role === 'mozo') {
+        console.log('🧠 Registrando canal Realtime global push_eventos...');
+        this.push.listenPedidosListosMozo(async (data: any) => {
+          console.log("📦 Realtime global: pedido listo recibido →", data);
+
+          await this.push.sendLocal(
+          "Pedido listo para entregar",
+          data.mensaje || `Mesa ${data.mesa_id ?? ''}: el pedido está listo 🍽️`
+        );
+          const pedidoId = String(data.pedido_id || data.pedidoId || '');
+          if (!pedidoId || pedidoId === this.push['lastPedidoIdNotificado']) return;
+          this.push['lastPedidoIdNotificado'] = pedidoId;
+
+
+          if (window.location.href.includes("/pedidos-mozo")) {
+            window.dispatchEvent(new CustomEvent("refrescarPedidosMozo"));
+          }
+        });
+}
+
       }
     } catch { }
 
