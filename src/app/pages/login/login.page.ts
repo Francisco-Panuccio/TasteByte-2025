@@ -107,6 +107,8 @@ export class LoginPage implements OnInit {
             this.errorMsg = true;
             return;
           }
+
+
         }
 
         const role = this.perfilToRole(perfil);
