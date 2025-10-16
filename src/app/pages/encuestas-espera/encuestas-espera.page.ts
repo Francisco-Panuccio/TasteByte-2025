@@ -110,6 +110,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
                 this.mesaAsignadaId = payload.new.mesa_id;
                 this.yaRegistrado = true;
                 this.tieneMesa = true;
+                await this.ensureChatAndSubscribe();
               }
             } else if (payload.eventType === "DELETE") {
               await this.limpiarIntentosJuegos();
@@ -162,6 +163,8 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     if (this.subscription) supabase.removeChannel(this.subscription);
     if (this.pedidoSub) supabase.removeChannel(this.pedidoSub);
     if (this.listaEsperaSub) supabase.removeChannel(this.listaEsperaSub);
+
+    try { this.chatSvc.unsubscribe?.(); } catch {}
   }
 
   async escanearQr() {
@@ -208,6 +211,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       this.mesaAsignadaId = asignacion.mesa_id;
       this.yaRegistrado = true;
       this.tieneMesa = true;
+      await this.ensureChatAndSubscribe();
       return;
     }
 
@@ -307,17 +311,42 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   }
 
   async registrarseListaEspera() {
-    if (this.yaRegistrado) return;
-    const payload: any = { estado: "pendiente" };
-    const tk = this.push.getToken();
-    if (tk) payload.push_token = tk;
-    if (this.clienteId) payload.cliente_id = this.clienteId;
-    else if (this.anonimoId) payload.cliente_anonimo_id = this.anonimoId;
-    else { this.mostrarToast("Error: no se detectó cliente"); return; }
-    const { error } = await supabase.from("lista_espera").insert(payload);
-    if (error) { this.mostrarToast("Error al registrarse en la lista de espera"); return; }
-    this.yaRegistrado = true;
+  if (this.yaRegistrado) return;
+  const payload: any = { estado: "pendiente" };
+  const tk = this.push.getToken();
+  if (tk) payload.push_token = tk;
+  if (this.clienteId) payload.cliente_id = this.clienteId;
+  else if (this.anonimoId) payload.cliente_anonimo_id = this.anonimoId;
+  else {
+    this.mostrarToast("Error: no se detectó cliente");
+    return;
   }
+
+  const { data, error } = await supabase.from("lista_espera").insert(payload).select().single();
+  if (error) {
+    this.mostrarToast("Error al registrarse en la lista de espera");
+    return;
+  }
+
+  try {
+    await this.push.sendToRoles(
+      ["maitre"],
+      "Nuevo cliente en lista de espera",
+      "Se ha agregado un nuevo cliente a la lista de espera.",
+      {
+        tipo: "lista_espera",
+        screen: "lista-espera",
+        lista_espera_id: data.id
+      }
+    );
+  } catch (e) {
+    console.error("[push][lista_espera][sendToRoles]", e);
+  }
+
+  this.yaRegistrado = true;
+  this.mostrarToast("Te registraste correctamente en la lista de espera");
+}
+
 
   async registrarEncuesta(encuestaId: string) {
     await supabase.from("respuestas_encuestas").insert({
@@ -393,14 +422,16 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   private async ensureChatAndSubscribe(): Promise<void> {
     if (!this.mesaAsignadaId) return;
     if (!this.myUserId) {
-      const { data: au } = await supabase.auth.getUser();
-      this.myUserId = this.anonimoId ? `anon-${this.anonimoId}` : au.user?.id ?? undefined;
-    }
+  const { data: au } = await supabase.auth.getUser();
+  this.myUserId = this.anonimoId ? `anon-${this.anonimoId}` : au.user?.id ?? undefined;
+}
 
-    const chat = await this.chatSvc.getOrCreateForMesa(this.mesaAsignadaId, "cliente");
+
+    const chat = await this.chatSvc.getOrCreateForMesa(this.mesaAsignadaId, "cliente", this.anonimoId);
+
     this.chatId = chat.id;
 
-    await this.chatSvc.bindMyPushToken(this.chatId, this.myUserId);
+    await this.chatSvc.bindMyPushToken(this.chatId, this.anonimoId);
 
     const msgs = await this.chatSvc.loadMessages(chat.id, 200);
     this.seenIds.clear();
@@ -420,8 +451,11 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       if (vm.from === "yo") { this.seenIds.add(m.id); return; }
 
       const role: "mozo" | "cliente" = "mozo";
+      this.zone.run(() => {
       this.messages.push({ ...vm, role });
       this.seenIds.add(m.id);
+    });
+
 
       if (!this.chatOpen) {
         (await this.toast.create({
@@ -439,9 +473,10 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
 
   async openChat() {
     if (!this.chatId && this.mesaAsignadaId) {
-      const chat = await this.chatSvc.getOrCreateForMesa(this.mesaAsignadaId, "cliente");
+      const chat = await this.chatSvc.getOrCreateForMesa(this.mesaAsignadaId, "cliente", this.anonimoId);
+
       this.chatId = chat.id;
-      await this.chatSvc.bindMyPushToken(this.chatId, this.myUserId); // usar myUserId
+      await this.chatSvc.bindMyPushToken(this.chatId, this.anonimoId);
     }
     this.chatOpen = true;
     this.chatReady = true;
@@ -466,7 +501,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     this.scrollToBottomAfterRender();
     this.newMsg = "";
 
-    const saved = await this.chatSvc.sendMessage(this.chatId, txt, this.myUserId);
+    const saved = await this.chatSvc.sendMessage(this.chatId, txt, this.anonimoId);
     const vm = this.chatSvc.toViewMessage(saved, this.myUserId!);
     const role: "mozo" | "cliente" = "cliente";
 

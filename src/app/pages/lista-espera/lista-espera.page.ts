@@ -71,27 +71,37 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
     await this.cargarLista();
 
     this.rtChannel = supabase
-      .channel('rt-lista-espera')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'lista_espera' },
-        async (payload) => {
-          const row: any = payload.new;
-          if (!row || row.estado !== 'pendiente') return;
-          const id = String(row.id);
-          if (this.seenWaitIds.has(id)) return;
-          this.seenWaitIds.add(id);
-          if (this.esMaitre) {
-            await this.push.sendToRoles(['maitre'], 'Nuevo cliente en lista de espera', '', {
-              tipo: 'lista_espera',
-              screen: 'lista-espera',
-              lista_espera_id: row.id
-            });
+  .channel('rt-lista-espera')
+  .on(
+    'postgres_changes',
+    { event: 'INSERT', schema: 'public', table: 'lista_espera' },
+    async (payload) => {
+      const row: any = payload.new;
+      if (!row || row.estado !== 'pendiente') return;
+
+      const id = String(row.id);
+      if (this.seenWaitIds.has(id)) return;
+      this.seenWaitIds.add(id);
+
+      try {
+        await this.push.sendToMaitre(
+          'Nuevo cliente en lista de espera',
+          `Se agregó un nuevo cliente a la lista de espera.`,
+          {
+            tipo: 'lista_espera',
+            screen: 'lista-espera',
+            lista_espera_id: row.id,
           }
-          await this.cargarLista();
-        }
-      )
-      .subscribe();
+        );
+      } catch (e) {
+        console.error('[push][lista_espera][sendToMaitre]', e);
+      }
+
+      await this.cargarLista();
+    }
+  )
+  .subscribe();
+
   }
 
   ngOnDestroy(): void {
@@ -124,40 +134,52 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
   }
 
   async aprobar(cliente: any) {
-    const modal = await this.modalCtrl.create({ component: ListadoMesasPage });
-    await modal.present();
-    const { data: mesaSeleccionada } = await modal.onDidDismiss();
-    if (!mesaSeleccionada) return;
+  const modal = await this.modalCtrl.create({ component: ListadoMesasPage });
+  await modal.present();
+  const { data: mesaSeleccionada } = await modal.onDidDismiss();
+  if (!mesaSeleccionada) return;
 
-    const { error: errorLista } = await supabase
-      .from('lista_espera')
-      .update({ estado: 'aprobado', mesa_id: mesaSeleccionada.id })
-      .eq('id', cliente.id);
-    if (errorLista) return;
+  const { error: errorLista } = await supabase
+    .from('lista_espera')
+    .update({ estado: 'aprobado', mesa_id: mesaSeleccionada.id })
+    .eq('id', cliente.id);
+  if (errorLista) return;
 
-    const { data: le } = await supabase
-      .from('lista_espera')
-      .select('cliente_id, cliente_anonimo_id, push_token')
-      .eq('id', cliente.id)
-      .maybeSingle();
+  const { data: le } = await supabase
+    .from('lista_espera')
+    .select('cliente_id, cliente_anonimo_id, push_token')
+    .eq('id', cliente.id)
+    .maybeSingle();
 
-    const payload: any = { mesa_id: mesaSeleccionada.id, estado: 'asignada' };
-    if (le?.cliente_id) payload.cliente_id = le.cliente_id;
-    if (le?.cliente_anonimo_id) payload.cliente_anonimo_id = le.cliente_anonimo_id;
+  const payload: any = { mesa_id: mesaSeleccionada.id, estado: 'asignada' };
+  if (le?.cliente_id) payload.cliente_id = le.cliente_id;
+  if (le?.cliente_anonimo_id) payload.cliente_anonimo_id = le.cliente_anonimo_id;
 
-    await supabase.from('asignaciones_mesa').insert(payload);
+  await supabase.from('asignaciones_mesa').insert(payload);
 
+  try {
     const tok = le?.push_token as string | undefined;
     if (tok) {
-      await this.push.send(tok, `Mesa ${mesaSeleccionada.numero} Asignada`, '', {
-        tipo: 'mesa_asignada',
-        mesa_id: mesaSeleccionada.id,
-        mesa_numero: mesaSeleccionada.numero
-      });
+      await this.push.send(
+        tok,
+        'Mesa asignada',
+        `Se te acaba de asignar la mesa ${mesaSeleccionada.numero}.`,
+        {
+          tipo: 'mesa_asignada',
+          mesa_id: mesaSeleccionada.id,
+          mesa_numero: mesaSeleccionada.numero,
+          screen: 'mi-mesa'
+        }
+      );
+    } else {
+      console.warn('[push][mesa_asignada] cliente sin token');
     }
-
-    this.clientes = this.clientes.filter((c) => c.id !== cliente.id);
+  } catch (e) {
+    console.error('[push][mesa_asignada][error]', e);
   }
+  this.clientes = this.clientes.filter((c) => c.id !== cliente.id);
+}
+
 
   async quitar(cliente: any) {
     const { error } = await supabase.from('lista_espera').delete().eq('id', cliente.id);

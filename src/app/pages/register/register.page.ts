@@ -189,7 +189,7 @@ export class RegisterPage implements OnInit {
           const { data: rows, error: tkErr } = await supabase
             .from("push_tokens")
             .select("token")
-            .in("role", ["dueño", "supervisor"])
+            .in("role", ["dueno", "supervisor"])
             .eq("active", true)
             .eq("revoked", false);
           if (!tkErr) {

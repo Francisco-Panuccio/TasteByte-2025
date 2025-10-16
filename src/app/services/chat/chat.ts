@@ -24,18 +24,52 @@ export class Chat {
   }
 
   private async getMyDisplayName(anonimoId?: string): Promise<string> {
+  try {
+    // 🟢 Caso cliente anónimo
     if (anonimoId) {
-      const { data } = await supabase.from("clientes_anonimos").select("nombre").eq("id", anonimoId).single();
-      return data?.nombre || "Cliente Anónimo";
+      const { data, error } = await supabase
+        .from("clientes_anonimos")
+        .select("nombre")
+        .eq("id", anonimoId)
+        .maybeSingle();
+
+      if (error) {
+        console.warn("[ChatService] getMyDisplayName clientes_anonimos error:", error.message);
+      }
+
+      return data?.nombre?.trim() || "Cliente Anónimo";
     }
-    const { data: au } = await supabase.auth.getUser();
-    const email = au.user?.email ?? null;
+
+    // 🟢 Caso usuario autenticado
+    const { data: au, error: errAuth } = await supabase.auth.getUser();
+    if (errAuth || !au?.user) {
+      console.warn("[ChatService] getMyDisplayName auth error:", errAuth?.message);
+      return "Usuario";
+    }
+
+    const email = au.user.email ?? null;
     if (!email) return "Usuario";
-    const { data } = await supabase.from("usuarios").select("nombres, apellidos").eq("correo_electronico", email).maybeSingle();
+
+    const { data, error } = await supabase
+      .from("usuarios")
+      .select("nombres, apellidos")
+      .eq("correo_electronico", email)
+      .maybeSingle();
+
+    if (error) {
+      console.warn("[ChatService] getMyDisplayName usuarios error:", error.message);
+    }
+
     const n = (data?.nombres ?? "").trim();
     const a = (data?.apellidos ?? "").trim();
     return (n || a) ? `${n} ${a}`.trim() : "Usuario";
+
+  } catch (err) {
+    console.error("[ChatService] getMyDisplayName unexpected error:", err);
+    return "Usuario";
   }
+}
+
 
   private async getMyRoleInChat(chatId: string, anonimoId?: string): Promise<Role> {
     if (anonimoId) return "cliente";
@@ -51,19 +85,26 @@ export class Chat {
     await supabase.from("chat_participants").update({ push_token: tk }).eq("chat_id", chatId).eq("user_id", uid);
   }
 
-  async getOrCreateForMesa(mesaId: number, role: Role = "cliente"): Promise<Chat> {
-    let { data: chats } = await supabase.from("chats").select("*").eq("mesa_id", mesaId).limit(1);
-    let chat: Chat | null = chats?.[0] ?? null;
-    if (!chat) {
-      const ins = await supabase.from("chats").insert({ mesa_id: mesaId }).select("*").single();
-      if (ins.error) throw ins.error;
-      chat = ins.data as Chat;
-    }
-    const userId = await this.getMyUserId();
-    const part = await supabase.from("chat_participants").select("chat_id").eq("chat_id", chat.id).eq("user_id", userId).limit(1);
-    if (!part.data?.length) await supabase.from("chat_participants").insert({ chat_id: chat.id, user_id: userId, role });
-    return chat;
+  async getOrCreateForMesa(mesaId: number, role: Role = "cliente", anonimoId?: string): Promise<Chat> {
+  let { data: chats } = await supabase.from("chats").select("*").eq("mesa_id", mesaId).limit(1);
+  let chat: Chat | null = chats?.[0] ?? null;
+
+  if (!chat) {
+    const ins = await supabase.from("chats").insert({ mesa_id: mesaId }).select("*").single();
+    if (ins.error) throw ins.error;
+    chat = ins.data as Chat;
   }
+
+  const userId = await this.getMyUserId(anonimoId);
+  const { data: existing } = await supabase.from("chat_participants").select("chat_id").eq("chat_id", chat.id).eq("user_id", userId).limit(1);
+
+  if (!existing?.length) {
+    await supabase.from("chat_participants").insert({ chat_id: chat.id, user_id: userId, role });
+  }
+
+  return chat;
+}
+
 
   async listByClient(userId?: string): Promise<Chat[]> {
     const uid = userId || (await this.getMyUserId());
@@ -106,9 +147,11 @@ export class Chat {
 
   async sendMessage(chatId: string, text: string, anonimoId?: string): Promise<ChatMessage> {
     const userId = await this.getMyUserId(anonimoId);
+    console.log("[DEBUG sendMessage]", { chatId, text, userId, anonimoId });
     const role = await this.getMyRoleInChat(chatId, anonimoId);
     const fromName = await this.getMyDisplayName(anonimoId);
     const ins = await supabase.from("chat_messages").insert({ chat_id: chatId, user_id: userId, body: text }).select("*").single();
+    console.log("[DEBUG insert result]", ins);
     if (ins.error) throw ins.error;
     const { data: chat } = await supabase.from("chats").select("mesa_id").eq("id", chatId).single();
     const mesaId = chat?.mesa_id as number;

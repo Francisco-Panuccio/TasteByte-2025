@@ -471,184 +471,209 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     this.bebidaObj = { titulo: `Bebidas • Mesa ${mesaNumero}`, total: b.total, cantidad: b.cantidad, items: b.items };
   }
 
-  private async enviarAProduccion(pedidoId: string): Promise<void> {
-    if (!this.mesaId || this.despachados.has(pedidoId)) { return; }
-    await this.push.ready();
+  // private async enviarAProduccion(pedidoId: string): Promise<void> {
+  //   if (!this.mesaId || this.despachados.has(pedidoId)) { return; }
+  //   await this.push.ready();
 
-    const mesaNumero = this.mesa?.numero ?? 0;
-    const ahora = new Date().toISOString();
+  //   const mesaNumero = this.mesa?.numero ?? 0;
+  //   const ahora = new Date().toISOString();
 
-    const cocinaItems = this.itemsSel
-      .filter(i => i.tipo === "plato" || i.tipo === "postre")
-      .map(i => ({ nombre: i.nombre, cantidad: i.cantidad, precioUnit: i.precioUnit, duracionMin: i.duracionMin, subtotal: Number((i.precioUnit * i.cantidad).toFixed(2)) }));
+  //   const cocinaItems = this.itemsSel
+  //     .filter(i => i.tipo === "plato" || i.tipo === "postre")
+  //     .map(i => ({ nombre: i.nombre, cantidad: i.cantidad, precioUnit: i.precioUnit, duracionMin: i.duracionMin, subtotal: Number((i.precioUnit * i.cantidad).toFixed(2)) }));
 
-    const barItems = this.itemsSel
-      .filter(i => i.tipo === "bebida")
-      .map(i => ({ nombre: i.nombre, cantidad: i.cantidad, precioUnit: i.precioUnit, duracionMin: i.duracionMin, subtotal: Number((i.precioUnit * i.cantidad).toFixed(2)) }));
+  //   const barItems = this.itemsSel
+  //     .filter(i => i.tipo === "bebida")
+  //     .map(i => ({ nombre: i.nombre, cantidad: i.cantidad, precioUnit: i.precioUnit, duracionMin: i.duracionMin, subtotal: Number((i.precioUnit * i.cantidad).toFixed(2)) }));
 
-    const cocinaTotal = Number(cocinaItems.reduce((a, b) => a + b.subtotal, 0).toFixed(2));
-    const barTotal = Number(barItems.reduce((a, b) => a + b.subtotal, 0).toFixed(2));
-    const cocinaCant = cocinaItems.reduce((a, b) => a + b.cantidad, 0);
-    const barCant = barItems.reduce((a, b) => a + b.cantidad, 0);
+  //   const cocinaTotal = Number(cocinaItems.reduce((a, b) => a + b.subtotal, 0).toFixed(2));
+  //   const barTotal = Number(barItems.reduce((a, b) => a + b.subtotal, 0).toFixed(2));
+  //   const cocinaCant = cocinaItems.reduce((a, b) => a + b.cantidad, 0);
+  //   const barCant = barItems.reduce((a, b) => a + b.cantidad, 0);
 
-    try {
-      if (cocinaItems.length) {
-        await supabase.from("cocina_pedidos").insert({
-          pedido_id: pedidoId,
-          mesa_id: this.mesaId,
-          mesa_numero: mesaNumero,
-          creado_en: ahora,
-          total: cocinaTotal,
-          cantidad: cocinaCant,
-          items: cocinaItems,
-          estado: "pendiente"
-        });
-        await this.push.sendToCocina("Nuevo pedido", `Nuevo Pedido de la Mesa ${mesaNumero}`, {
-          tipo: "cocina_pedido", pedidoId, mesaId: this.mesaId, mesaNumero
-        });
-      }
-      if (barItems.length) {
-        await supabase.from("bar_pedidos").insert({
-          pedido_id: pedidoId,
-          mesa_id: this.mesaId,
-          mesa_numero: mesaNumero,
-          creado_en: ahora,
-          total: barTotal,
-          cantidad: barCant,
-          items: barItems,
-          estado: "pendiente"
-        });
-        await this.push.sendToBar("Nuevo pedido", `Nuevo Pedido de la Mesa ${mesaNumero}`, {
-          tipo: "bar_pedido", pedidoId, mesaId: this.mesaId, mesaNumero
-        });
-      }
-      this.despachados.add(pedidoId);
-    } catch (e: any) {
-      (await this.toast.create({
-        message: `Error al notificar: ${e?.message ?? e}`, duration: 2500, position: "top"
-      })).present();
-    }
-  }
+  //   try {
+  //     if (cocinaItems.length) {
+  //       await supabase.from("cocina_pedidos").insert({
+  //         pedido_id: pedidoId,
+  //         mesa_id: this.mesaId,
+  //         mesa_numero: mesaNumero,
+  //         creado_en: ahora,
+  //         total: cocinaTotal,
+  //         cantidad: cocinaCant,
+  //         items: cocinaItems,
+  //         estado: "pendiente"
+  //       });
+  //       await this.push.sendToCocina("Nuevo pedido", `Nuevo Pedido de la Mesa ${mesaNumero}`, {
+  //         tipo: "cocina_pedido", pedidoId, mesaId: this.mesaId, mesaNumero
+  //       });
+  //     }
+  //     if (barItems.length) {
+  //       await supabase.from("bar_pedidos").insert({
+  //         pedido_id: pedidoId,
+  //         mesa_id: this.mesaId,
+  //         mesa_numero: mesaNumero,
+  //         creado_en: ahora,
+  //         total: barTotal,
+  //         cantidad: barCant,
+  //         items: barItems,
+  //         estado: "pendiente"
+  //       });
+  //       await this.push.sendToBar("Nuevo pedido", `Nuevo Pedido de la Mesa ${mesaNumero}`, {
+  //         tipo: "bar_pedido", pedidoId, mesaId: this.mesaId, mesaNumero
+  //       });
+  //     }
+  //     this.despachados.add(pedidoId);
+  //   } catch (e: any) {
+  //     (await this.toast.create({
+  //       message: `Error al notificar: ${e?.message ?? e}`, duration: 2500, position: "top"
+  //     })).present();
+  //   }
+  // }
 
   async terminarPedido() {
-    try {
-      if (!this.itemsSel.length) { return; }
-      if (!this.mesaId) { throw new Error("Mesa inválida."); }
-      if (this.pedidoBloqueado) { this.updateBanner(); return; }
-      this.submitting = true;
+  try {
+    if (!this.itemsSel.length) { return; }
+    if (!this.mesaId) { throw new Error("Mesa inválida."); }
+    if (this.pedidoBloqueado) { this.updateBanner(); return; }
+    this.submitting = true;
 
-      if (!this.userUid && !this.clienteEmail) {
-        const { data } = await supabase.auth.getUser();
-        this.clienteEmail = data.user?.email ?? null;
-        this.userUid = this.anonimoId ? "" : (data.user?.id ?? "");
+    // Obtener o refrescar identidad del cliente
+    if (!this.userUid && !this.clienteEmail) {
+      const { data } = await supabase.auth.getUser();
+      this.clienteEmail = data.user?.email ?? null;
+      this.userUid = this.anonimoId ? "" : (data.user?.id ?? "");
+    }
+
+    let existente = await this.buscarPedidoActivoDb();
+
+    if (!existente && this.clienteEmail) {
+      try {
+        const svc = await this.pedidos.getPedidoActivo({
+          mesaId: this.mesaId,
+          clienteUid: undefined,
+          clienteEmail: this.clienteEmail
+        });
+        if (svc) {
+          existente = {
+            id: svc.id as string,
+            estado: (svc as any).estado,
+            mesa_id: this.mesaId
+          } as PedidoRow;
+        }
+      } catch { }
+    }
+
+    let pedidoId: string | undefined;
+
+    // Reutilizar o crear nuevo pedido
+    if (existente) {
+      if (existente.estado !== "rechazado") {
+        this.pedidoEnCurso = true;
+        this.pedidoActualId = existente.id;
+        this.applyEstado(existente.estado);
+        return;
+      } else {
+        await this.pedidos.reemplazarItems(existente.id, this.itemsSel, this.total, this.etaMin, "pendiente");
+        pedidoId = existente.id;
       }
-
-      let existente = await this.buscarPedidoActivoDb();
-
-      if (!existente && this.clienteEmail) {
+    } else {
+      const rej = await this.buscarUltimoRechazadoDb();
+      if (rej?.id) {
+        await this.pedidos.reemplazarItems(rej.id, this.itemsSel, this.total, this.etaMin, "pendiente");
+        pedidoId = rej.id;
+      } else {
+        pedidoId = await this.pedidos.crearPedido(
+          this.mesaId,
+          this.anonimoId ? "" : this.userUid,
+          this.clienteEmail,
+          this.itemsSel,
+          this.total,
+          this.etaMin
+        );
         try {
-          const svc = await this.pedidos.getPedidoActivo({ mesaId: this.mesaId, clienteUid: undefined, clienteEmail: this.clienteEmail });
-          if (svc) { existente = { id: svc.id as string, estado: (svc as any).estado, mesa_id: this.mesaId } as PedidoRow; }
+          const upd: any = {};
+          if (this.anonimoId) { upd.anonimo_id = this.anonimoId; }
+          if (this.usuarioId !== null) { upd.usuario_id = this.usuarioId; }
+          if (this.clienteId !== null) { upd.cliente_id = this.clienteId; }
+          if (Object.keys(upd).length) {
+            await supabase.from("pedidos").update(upd).eq("id", pedidoId);
+          }
         } catch { }
       }
+    }
 
-      let pedidoId: string | undefined;
+    // Marcar pedido en curso
+    this.pedidoEnCurso = true;
+    this.applyEstado("pendiente");
+    this.pedidoActualId = pedidoId!;
 
-      if (existente) {
-        if (existente.estado !== "rechazado") {
-          this.pedidoEnCurso = true;
-          this.pedidoActualId = existente.id;
-          this.applyEstado(existente.estado);
-          return;
-        } else {
-          await this.pedidos.reemplazarItems(existente.id, this.itemsSel, this.total, this.etaMin, "pendiente");
-          pedidoId = existente.id;
-        }
-      } else {
-        const rej = await this.buscarUltimoRechazadoDb();
-        if (rej?.id) {
-          await this.pedidos.reemplazarItems(rej.id, this.itemsSel, this.total, this.etaMin, "pendiente");
-          pedidoId = rej.id;
-        } else {
-          pedidoId = await this.pedidos.crearPedido(
-            this.mesaId,
-            this.anonimoId ? "" : this.userUid,
-            this.clienteEmail,
-            this.itemsSel,
-            this.total,
-            this.etaMin
-          );
+    // 🔔 Notificar a mozos del nuevo pedido
+    const mesaNumero = this.mesa?.numero ?? "NN";
+    await this.chatSvc
+      .notifyMozosNuevoPedido(mesaNumero as any, this.formatARS(this.total), pedidoId!, this.mesaId)
+      .catch(async e => (await this.toast.create({
+        message: `No se notificó a mozos: ${e?.message ?? e}`,
+        duration: 2500,
+        position: "top"
+      })).present());
+
+    // 🔄 Suscribirse a cambios de estado del pedido
+    this.unsubEstado?.();
+    this.unsubEstado = this.pedidos.onEstadoPedido(pedidoId!, async (estado: any) => {
+      this.zone.run(async () => {
+        this.applyEstado(estado);
+
+        if (this.estadoPedido === "aceptado") {
+          // 🚫 Ya no llamamos enviarAProduccion()
+          // Los triggers en la base se encargan de generar bar_pedidos y cocina_pedidos
+          this.buildPlatoYBebida();
+          this.gotoEncuestasEspera();
+        } 
+        else if (this.estadoPedido === "rechazado") {
+          // Enviar push al cliente en este dispositivo
           try {
-            const upd: any = {};
-            if (this.anonimoId) { upd.anonimo_id = this.anonimoId; }
-            if (this.usuarioId !== null) { upd.usuario_id = this.usuarioId; }
-            if (this.clienteId !== null) { upd.cliente_id = this.clienteId; }
-            if (Object.keys(upd).length) {
-              await supabase.from("pedidos").update(upd).eq("id", pedidoId);
+            await this.push.ready();
+            const tok = this.push.getToken();
+            if (tok) {
+              await this.push.send(
+                tok,
+                "Pedido rechazado",
+                "Tu pedido fue rechazado. Modifícalo y reenvíalo.",
+                { tipo: "pedido_rechazado", pedidoId, mesaId: this.mesaId, mesaNumero: this.mesa?.numero ?? null }
+              );
             }
           } catch { }
+
+          this.pedidoEnCurso = false;
+          this.submitting = false;
+          (await this.toast.create({
+            message: "Su pedido fue rechazado, por favor modifíquelo correctamente y reenvíelo.",
+            position: "top",
+            cssClass: "toasty",
+            duration: undefined,
+            buttons: [{ text: "Cerrar", role: "cancel" }]
+          })).present();
         }
-      }
-
-      this.pedidoEnCurso = true;
-      this.applyEstado("pendiente");
-      this.pedidoActualId = pedidoId!;
-      const mesaNumero = this.mesa?.numero ?? "NN";
-      await this.chatSvc
-        .notifyMozosNuevoPedido(mesaNumero as any, this.formatARS(this.total), pedidoId!, this.mesaId)
-        .catch(async e => (await this.toast.create({
-          message: `No se notificó a mozos: ${e?.message ?? e}`,
-          duration: 2500,
-          position: "top"
-        })).present());
-
-      this.unsubEstado?.();
-      this.unsubEstado = this.pedidos.onEstadoPedido(pedidoId!, async (estado: any) => {
-        this.zone.run(async () => {
-          this.applyEstado(estado);
-          if (this.estadoPedido === "aceptado") {
-            await this.enviarAProduccion(pedidoId!);
-            this.buildPlatoYBebida();
-            this.gotoEncuestasEspera();
-          } else if (this.estadoPedido === "rechazado") {
-            // Enviar push al cliente en este dispositivo
-            try {
-              await this.push.ready();
-              const tok = this.push.getToken();
-              if (tok) {
-                await this.push.send(
-                  tok,
-                  "Pedido rechazado",
-                  "Tu pedido fue rechazado. Modifícalo y reenvíalo.",
-                  { tipo: "pedido_rechazado", pedidoId, mesaId: this.mesaId, mesaNumero: this.mesa?.numero ?? null }
-                );
-              }
-            } catch { }
-
-            this.pedidoEnCurso = false;
-            this.submitting = false;
-            (await this.toast.create({
-              message: "Su pedido fue rechazado, por favor modifíquelo correctamente y reenvíelo.",
-              position: "top",
-              cssClass: "toasty",
-              duration: undefined,
-              buttons: [{ text: "Cerrar", role: "cancel" }]
-            })).present();
-          }
-        });
       });
+    });
 
-      (await this.toast.create({
-        message: "Pedido enviado. Esperando confirmación del mozo.",
-        duration: 2000,
-        position: "top",
-        cssClass: "toast"
-      })).present();
-    } catch (e: any) {
-      (await this.toast.create({ message: e?.message ?? "Error al enviar pedido", duration: 1800, position: "top" })).present();
-      this.submitting = false;
-    }
+    // Mensaje de confirmación al cliente
+    (await this.toast.create({
+      message: "Pedido enviado. Esperando confirmación del mozo.",
+      duration: 2000,
+      position: "top",
+      cssClass: "toast"
+    })).present();
+  } catch (e: any) {
+    (await this.toast.create({
+      message: e?.message ?? "Error al enviar pedido",
+      duration: 1800,
+      position: "top"
+    })).present();
+    this.submitting = false;
   }
+}
+
 
   private buildEncuestaQuery(): any {
     const q: any = {};
