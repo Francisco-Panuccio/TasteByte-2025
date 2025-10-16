@@ -26,10 +26,17 @@
   } @else if(isCocinero) {
     <div class="div_main">
       <div class="div_data">
-        <div>
-          <p style="margin: 50px 0 20px 0;">Bienvenido</p>
+        <div class="two-items">
+          <p>Bienvenido</p>
           <span>✉️ {{email}}</span>
           <div><span class="span_profile">{{profile | titlecase}}</span></div>
+        </div>
+        <div class="div_container_photo">
+          <hr>
+          <div class="div_photo">
+            <img [src]="this.empleadoFoto">
+          </div>
+          <hr>
         </div>
       </div>
 
@@ -41,10 +48,17 @@
   } @else if(isBartender) {
     <div class="div_main">
       <div class="div_data">
-        <div>
-          <p style="margin: 50px 0 20px 0;">Bienvenido</p>
+        <div class="two-items">
+          <p>Bienvenido</p>
           <span>✉️ {{email}}</span>
           <div><span class="span_profile">{{profile | titlecase}}</span></div>
+        </div>
+        <div class="div_container_photo">
+          <hr>
+          <div class="div_photo">
+            <img [src]="this.empleadoFoto">
+          </div>
+          <hr>
         </div>
       </div>
 
@@ -56,10 +70,17 @@
   } @else if(isMaitre) {
     <div class="div_main">
       <div class="div_data">
-        <div>
-          <p style="margin: 50px 0 20px 0;">Bienvenido</p>
+        <div class="two-items">
+          <p>Bienvenido</p>
           <span>✉️ {{email}}</span>
           <div><span class="span_profile">{{profile | titlecase}}</span></div>
+        </div>
+        <div class="div_container_photo">
+          <hr>
+          <div class="div_photo">
+            <img [src]="this.empleadoFoto">
+          </div>
+          <hr>
         </div>
       </div>
       <div id="container">
@@ -67,26 +88,34 @@
         <p routerLink="/lista-espera">Lista <br> De <br> Espera</p>
       </div>
     </div>
-  } @else if(isCliente) {
+  } 
+  <!-- @else if(isCliente) {
     <div class="div_main">
       <div class="div_data">
         <div>
-          <p style="margin: 20px 0;">Bienvenido</p>
+          <p>Bienvenido</p>
           <span>✉️ {{email}}</span>
           <div><span class="span_profile">{{ (profile || "").split("_").join(" ") | titlecase }}</span></div>
         </div>
       </div>
       <div id="container">
-        <p class="qr-button" (click)="escanearQrEntrada()">Escanear <br> QR de <br> Entrada</p>
+        <p class="qr-button" (click)="escanearQrEntrada()"><img src="assets/images/qr.png"></p>
       </div>
-    </div>
-  } @else {
+    </div>}  -->
+    @else {
     <div class="div_main">
       <div class="div_data">
         <div>
-          <p style="margin: 50px 0 20px 0;">Bienvenido</p>
+          <p>Bienvenido</p>
           <span>✉️ {{email}}</span>
           <div><span class="span_profile">{{profile | titlecase}}</span></div>
+        </div>
+        <div class="div_container_photo2">
+          <hr>
+          <div class="div_photo">
+            <img [src]="this.empleadoFoto">
+          </div>
+          <hr>
         </div>
       </div>
 

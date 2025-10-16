@@ -10,17 +10,16 @@
   <ion-content>
     @if(clientes.length > 0) {
       <div class="div_list">
-        <!-- <div class="item" *ngFor="let c of clientes; let i = index"> -->
-        <div class="item" *ngFor="let c of clientesX2; let i = index">
+        <div class="item" *ngFor="let c of clientes; let i = index">
           <div class="item-first-part">
             <div class="item-img">
               <img [src]="c.foto_url || 'assets/img/default-user.png'" />
             </div>
   
             <div class="item-data">
-              <p class="name">{{ c.nombre }}</p>
+              <p class="name">{{ c.nombre | titlecase}}</p>
               <p><span>⚪Ingresó:</span> {{ c.creado_en | date:'short' }}</p>
-              <p><span>🟡Estado:</span> {{ c.estado }}</p>
+              <p><span>🟡Estado:</span> {{ c.estado | titlecase}}</p>
               @if(esCliente && (c.cliente_anonimo_id === anonimoId || c.cliente_id === usuarioId)) {
                 <p><strong>Posición en la fila: {{ i + 1 }}</strong></p>
               }

@@ -37,6 +37,7 @@ export class HomePage implements OnInit {
   usuarioId: number | null = null;
   email = '';
   profile = '';
+  empleadoFoto = '';
 
   constructor(
     private auth: AuthService,
@@ -94,6 +95,13 @@ export class HomePage implements OnInit {
         this.email = `${usuarioDB.correo_electronico}`.trim();
         this.profile = usuarioDB.perfil;
         this.usuarioId = usuarioDB.id ?? null;
+
+        const { data: empleado } = await supabase
+          .from('usuarios')
+          .select('foto_url')
+          .eq('correo_electronico', this.email)
+          .maybeSingle();
+        this.empleadoFoto = empleado?.foto_url ?? '';
 
         const { data: cliente } = await supabase
           .from('clientes')
