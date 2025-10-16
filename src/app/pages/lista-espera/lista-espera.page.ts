@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ModalController, NavController } from '@ionic/angular';
-import { Router, ActivatedRoute } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { supabase } from 'src/supabase.client';
 import { ListadoMesasPage } from '../listado-mesas/listado-mesas.page';
 import { Push } from 'src/app/services/push/push';
@@ -23,7 +23,6 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
   private seenWaitIds = new Set<string>();
 
   constructor(
-    private router: Router,
     private route: ActivatedRoute,
     private modalCtrl: ModalController,
     private navCtrl: NavController,
@@ -99,6 +98,10 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
       if (this.rtChannel) supabase.removeChannel(this.rtChannel);
     } catch {}
   }
+
+get clientesX2() {
+  return [...this.clientes, ...this.clientes];
+}
 
   async cargarLista() {
     this.loading = true;

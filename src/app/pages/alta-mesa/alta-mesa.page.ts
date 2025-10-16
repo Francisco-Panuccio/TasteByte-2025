@@ -29,9 +29,9 @@ export class AltaMesaPage implements OnInit {
     { label: "Movilidad Reducida", value: "movilidad_reducida" }
   ] as const;
 
+  placeholderUrl = "assets/icon/signo.png";
   private readonly platform = Capacitor.getPlatform();
-  private pendingFoto: { blob: Blob; ext: string } | null = null;
-  private previewUrl: string | null = null;
+  private pendingFoto: { blob: Blob; ext: string; previewUrl: string } | null = null;
 
   formAltaMesa: FormGroup = this.fb.group({
     numero: this.fb.control<number | null>(null, [Validators.required, Validators.min(1), Validators.max(9999)]),
@@ -41,62 +41,60 @@ export class AltaMesaPage implements OnInit {
   });
 
   get f() { return this.formAltaMesa.controls; }
+  get fotoCtrl() { return this.formAltaMesa.get("foto_url")!; }
 
-  ngOnInit() {
-    setTimeout(() => (this.loading = false), 2000);
-  }
+  ngOnInit() { setTimeout(() => (this.loading = false), 2000); }
 
   private tipoValido(): ValidatorFn {
     const permitidos = new Set(this.tipos.map(t => t.value));
     return (c: AbstractControl) => (c.value != null && permitidos.has(c.value)) ? null : { tipoInvalido: true };
   }
 
-  async elegirFoto(source?: "cam" | "gal") {
+  async capturarDesdeCamara(): Promise<void> {
     try {
       const onWeb = this.platform === "web";
       if (!onWeb) {
-        const needPhotos = source === "gal";
         const perm = await Camera.checkPermissions();
-        if (perm.camera !== "granted" || (needPhotos && perm.photos !== "granted")) {
-          const req = await Camera.requestPermissions({ permissions: needPhotos ? ["camera", "photos"] : ["camera"] });
-          if (req.camera !== "granted" || (needPhotos && req.photos !== "granted")) {
-            await this.mostrarToast("Permisos de cámara/galería denegados", "Error");
-            return;
-          }
+        if (perm.camera !== "granted") {
+          const req = await Camera.requestPermissions({ permissions: ["camera"] });
+          if (req.camera !== "granted") { await this.mostrarToast("Permiso de cámara denegado", "Error"); return; }
         }
       }
 
-      const photo = await Camera.getPhoto({
+      const ph = await Camera.getPhoto({
         resultType: onWeb ? CameraResultType.Uri : CameraResultType.Base64,
         quality: 85,
-        source: source ? (source === "cam" ? CameraSource.Camera : CameraSource.Photos) : CameraSource.Prompt,
+        source: CameraSource.Camera,
         allowEditing: false
       });
 
-      let blob: Blob;
+      let blob: Blob | null = null;
       let ext = "jpg";
-
-      if (onWeb && photo.webPath) {
-        const res = await fetch(photo.webPath);
+      if (onWeb && ph.webPath) {
+        const res = await fetch(ph.webPath);
         blob = await res.blob();
         ext = blob.type.includes("png") ? "png" : "jpg";
-      } else if (photo.base64String) {
-        blob = b64ToBlob(photo.base64String, "image/jpeg");
-      } else {
-        throw new Error("No se pudo obtener la imagen");
+      } else if (ph.base64String) {
+        blob = b64ToBlob(ph.base64String, "image/jpeg");
       }
+      if (!blob) return;
 
-      if (this.previewUrl) {
-        URL.revokeObjectURL(this.previewUrl);
-        this.previewUrl = null;
-      }
+      if (this.pendingFoto?.previewUrl) URL.revokeObjectURL(this.pendingFoto.previewUrl);
+      const previewUrl = URL.createObjectURL(blob);
+      this.pendingFoto = { blob, ext, previewUrl };
+      this.fotoCtrl.setValue(previewUrl);
+      this.fotoCtrl.markAsTouched();
+      this.fotoCtrl.updateValueAndValidity();
+    } catch { await this.mostrarToast("Error al tomar foto", "Error"); }
+  }
 
-      this.pendingFoto = { blob, ext };
-      this.previewUrl = URL.createObjectURL(blob);
-      this.formAltaMesa.get("foto_url")!.setValue(this.previewUrl);
-    } catch {
-      await this.mostrarToast("Error al cargar la foto", "Error");
-    }
+  eliminarFoto(): void {
+    if (this.pendingFoto?.previewUrl) URL.revokeObjectURL(this.pendingFoto.previewUrl);
+    this.pendingFoto = null;
+    this.fotoCtrl.setValue("");
+    this.fotoCtrl.markAsDirty();
+    this.fotoCtrl.markAsTouched();
+    this.fotoCtrl.updateValueAndValidity();
   }
 
   async enviar() {
@@ -111,49 +109,34 @@ export class AltaMesaPage implements OnInit {
       if (this.pendingFoto) {
         const fileName = `mesa_${Date.now()}.${this.pendingFoto.ext}`;
         const publicUrl = await this.mesasSvc.uploadPhotoBlob(fileName, this.pendingFoto.blob);
-        this.formAltaMesa.get("foto_url")!.setValue(publicUrl);
+        URL.revokeObjectURL(this.pendingFoto.previewUrl);
+        this.pendingFoto = null;
+        this.fotoCtrl.setValue(publicUrl);
       }
 
       const numero = Number(this.f["numero"].value);
       const existe = await this.mesasSvc.existsByNumero(numero);
-      if (existe) {
-        await this.mostrarToast("Mesa existente", "Error");
-        this.loading = false;
-        return;
-      }
+      if (existe) { await this.mostrarToast("Mesa existente", "Error"); this.loading = false; return; }
 
       const payload: Mesa = {
         numero,
         capacidad: Number(this.f["capacidad"].value),
         tipo: this.f["tipo"].value as TipoMesa,
-        foto_url: String(this.f["foto_url"].value)
+        foto_url: String(this.fotoCtrl.value)
       };
 
       const creada = await this.mesasSvc.create(payload);
       await this.mesasSvc.setQr(creada.id!, creada.numero);
       this.qrValue = await this.qr.getQrMesa(creada.id!);
 
-      if (this.previewUrl) URL.revokeObjectURL(this.previewUrl);
-      this.previewUrl = null;
-      this.pendingFoto = null;
       this.formAltaMesa.reset({ numero: null, capacidad: null, tipo: null, foto_url: "" });
-
       await this.mostrarToast("Mesa creada", "Éxito");
-    } catch {
-      await this.mostrarToast("No se pudo guardar la mesa", "Error");
-    } finally {
-      this.loading = false;
-    }
+    } catch { await this.mostrarToast("No se pudo guardar la mesa", "Error"); }
+    finally { this.loading = false; }
   }
 
   private async mostrarToast(message: string, header = "Aviso"): Promise<void> {
-    const t = await this.toast.create({
-      header,
-      message,
-      duration: 1500,
-      cssClass: "toast",
-      position: "top"
-    });
+    const t = await this.toast.create({ header, message, duration: 1500, cssClass: "toast", position: "top" });
     await t.present();
   }
 }

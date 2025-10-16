@@ -153,6 +153,11 @@ footer:active {
   background-color: var(--color-btn-tertiary);
 }
 
+.profile-select.is-placeholder {
+  color: var(--color-text);
+  background-color: var(--color-btn-tertiary);
+}
+
 ion-select::part(icon) {
   color: var(--color-text);
 }

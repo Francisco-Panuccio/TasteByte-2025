@@ -4,94 +4,62 @@ form {
   justify-content: center;
   align-items: center;
   gap: 10px;
+  margin: 15px 0;
 }
 
 .ion-item-input {
-  --background: #d7b899;
-  --border-width: 0px;
+  --background: transparent;
+  --border-width: 0;
   --padding-start: 0;
   --inner-padding-end: 0;
   --highlight-color-focused: transparent;
   border-radius: 12px;
   width: 300px;
-  height: 60px;
 }
 
-ion-input,
-select {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  --color: #554738;
-  --placeholder-color: #554738;
+.error {
+  text-align: center;
+  color: var(--color-error);
+  font-weight: 800;
+  font-size: 17px;
+  background-color: var(--color-btn-primary);
+  border: 1px solid var(--color-black);
+  padding: 5px 10px;
   border-radius: 12px;
-  padding: 0.75rem 1rem !important;
-  border: 1px solid #d3a87c;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
-  font-size: 1rem;
-  font-weight: 600;
-  height: 60px;
-  opacity: 1;
-}
-
-.foto {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-  margin: 10px 0;
-}
-
-.foto img {
-  width: 100%;
-  aspect-ratio: 1;
-  object-fit: cover;
-  border-radius: 8px;
-  width: 100px;
-  height: 100px;
-}
-
-.btn_slot_cam {
-  --background: #554738;
-}
-
-.btn_slot_pho {
-  --background: white;
-  color: #554738;
-  --border-color: white;
 }
 
 ion-button {
+  --background: transparent;
+  --background-activated: rgba(215, 184, 153, 0.2);
+  --color: var(--color-text);
+  --border-color: var(--color-text);
+  --border-style: solid;
+  --border-width: 1px;
+  --border-radius: 12px;
+  border-radius: 12px;
   font-weight: 600;
+  height: 44px;
 }
 
-.btns_main {
-  --background: #554738;
-  border: 2px solid white;
-  border-radius: 5px;
-}
-
-.btns_main_back {
-  color: #554738;
-  --background: white;
-  border: 2px solid #554738;
-  border-radius: 5px;
-}
-
-.acciones {
-  display: flex;
-  gap: 5px
-}
-
-.div_img {
+.fotos {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 20px 0 10px 0;
-}
+  gap: 8px;
+  margin: 10px 0;
 
-.div_img img {
-  width: 200px;
-  height: 200px;
+  .slot {
+    width: 250px;
+    height: 250px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 12px;
+    border: 2px solid var(--color-text);
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 12px;
+    }
+  }
 }
