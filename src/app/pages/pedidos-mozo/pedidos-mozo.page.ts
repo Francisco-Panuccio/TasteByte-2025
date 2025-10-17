@@ -106,7 +106,7 @@ export class PedidosMozoPage implements OnInit {
       .eq('token', tk);
   }
 
-  this.push.testNotificacionLocal();
+  // this.push.testNotificacionLocal();
 }
 
 

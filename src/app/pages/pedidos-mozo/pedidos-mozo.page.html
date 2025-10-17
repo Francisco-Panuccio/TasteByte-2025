@@ -2,7 +2,9 @@
   <app-loading/>
 }@else {
   <header>
-    <title>Pedidos - Mozo</title>
+    <img src="assets/icon/cubiertos.png">
+    <title>Pedidos Mozo</title>
+    <img src="assets/icon/cubiertos.png">
   </header>
 
   <ion-content [class.blocked]="busy">
@@ -12,7 +14,7 @@
       <button [class.active]="filtro==='recibido'"  (click)="setFiltro('recibido')"  [disabled]="busy">Entregados</button>
       <button [class.active]="filtro==='terminado'" (click)="setFiltro('terminado')" [disabled]="busy">Terminados</button>
       <button [class.active]="filtro==='impagado'"  (click)="setFiltro('impagado')"  [disabled]="busy">Impagados</button>
-      <button [disabled]="busy"></button>
+      <button class="diag" [disabled]="busy"></button>
     </div>
 
     <div class="div_container" *ngIf="pedidos.length">
@@ -45,18 +47,24 @@
       </div>
     </div>
 
-    <div *ngIf="!loading && !pedidos.length" class="vacio">Sin Pedidos</div>
+    <div *ngIf="!loading && !pedidos.length" class="vacio">
+      <p>Sin Pedidos</p>
+      <div class="div_img">
+        <img src="assets/images/mozo.png">
+      </div>
+    </div>
   </ion-content>
 
   <footer>
-    <ion-toolbar>
-      <ion-buttons class="ion_btns" slot="start">
-        <ion-button class="btn_logged" (click)="abrirInbox()" [disabled]="busy">Mensajes</ion-button>
-      </ion-buttons>
-      <ion-buttons class="ion_btns" slot="end">
-        <ion-button class="btn_logged" routerLink="/home" [disabled]="busy">Volver</ion-button>
-      </ion-buttons>
-    </ion-toolbar>
+    <hr>
+    <button class="btn_footer" (click)="abrirInbox()" [disabled]="busy">
+      Mensajes
+    </button>
+    <hr>
+    <button class="btn_footer" [disabled]="busy" routerLink="/home">
+      Volver
+    </button>
+    <hr>
   </footer>
 
   <ion-modal #chatModal
@@ -67,13 +75,13 @@
              handle="false"
              (didDismiss)="chatOpen=false">
     <ng-template>
-      <header style="margin-top: 0 !important; padding: 10px !important;">
-        <ion-toolbar>
-          <title style="font-size: 25px;">Chat Mesa {{ mesasNum.get(mesaChatId!) ?? mesaChatId }}</title>
-          <ion-buttons slot="end">
-            <ion-button (click)="cerrarChat()" class="btn_close">Cerrar</ion-button>
-          </ion-buttons>
-        </ion-toolbar>
+      <header class="header-chat">
+        <div>
+          <img src="assets/icon/cubiertos.png">
+          <title class="title2">Chat Mesa {{ mesasNum.get(mesaChatId!) ?? mesaChatId }}</title>
+          <img src="assets/icon/cubiertos.png">
+        </div>
+        <button (click)="cerrarChat()">❌ Cerrar ❌</button>
       </header>
 
       <ion-content #chatContent class="ion-content-chat">
@@ -84,7 +92,7 @@
                [class.cliente-msg]="m.role==='cliente'"
                *ngFor="let m of messages">
             <div class="bubble">
-              <div class="body">{{ m.text }}</div>
+              <div class="body">{{ m.text | titlecase}}</div>
               <div [class.mozo-meta]="m.role==='mozo'"
                    [class.cliente-meta]="m.role==='cliente'">
                 {{ m.role==='mozo' ? 'Mozo' : ('Mesa ' + (mesasNum.get(mesaChatId!) ?? "NN")) }} • {{ m.time }}
@@ -100,7 +108,7 @@
                      (keyup.enter)="enviar()"
                      [disabled]="busy">
           </ion-input>
-          <ion-button slot="end" [disabled]="!newMsg.trim() || busy" (click)="enviar()" style="color: white; --background: #554738;">Enviar</ion-button>
+          <ion-button slot="end" [disabled]="!newMsg.trim() || busy" (click)="enviar()">Enviar</ion-button>
         </ion-item>
       </ion-content>
     </ng-template>
@@ -114,13 +122,13 @@
              handle="false"
              (didDismiss)="inboxOpen=false">
     <ng-template>
-      <header style="margin-top: 0 !important; padding: 10px !important;">
-        <ion-toolbar>
-          <title style="font-size: 25px;">Clientes</title>
-          <ion-buttons slot="end">
-            <ion-button (click)="cerrarInbox()" class="btn_close">Cerrar</ion-button>
-          </ion-buttons>
-        </ion-toolbar>
+      <header class="header-chat">
+        <div>
+          <img src="assets/icon/cubiertos.png">
+          <title>Clientes</title>
+          <img src="assets/icon/cubiertos.png">
+        </div>
+        <button (click)="cerrarInbox()">❌ Cerrar ❌</button>
       </header>
 
       <ion-content class="ion-padding">
@@ -128,13 +136,14 @@
         <div class="inbox-list" *ngIf="inbox.length">
           <div class="inbox-item" *ngFor="let it of inbox">
             <div class="inbox-meta">
-              <div class="inbox-title">Mesa • {{ it.mesaNumero ?? it.mesaId }} | {{ it.time }} </div>
+              <div class="inbox-title">◽Mesa • {{ it.mesaNumero ?? it.mesaId }}◽</div>
+              <div class="inbox-title">⏲ {{ it.time }} ⏲</div>
             </div>
 
-            <div class="inbox-text">{{ it.lastText }}</div>
+            <div class="inbox-text">{{ it.lastText | titlecase}}</div>
 
             <div class="inbox-actions">
-              <button class="btn_abrir" (click)="abrirDesdeInbox(it)">Abrir chat</button>
+              <button class="btn-primary" (click)="abrirDesdeInbox(it)">Abrir Chat</button>
             </div>
           </div>
         </div>

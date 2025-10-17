@@ -83,8 +83,7 @@
           </ion-button>
         }
 
-        <!-- AGREGAR FUNCIONALIDAD -->
-        <ion-button class="last-btn">
+        <ion-button class="last-btn" (click)="escanearQr()">
           <img src="assets/images/qr.png">
         </ion-button>
       </div>
@@ -100,13 +99,13 @@
     handle="false"
     (didDismiss)="chatOpen=false">
     <ng-template>
-      <header style="margin-top: 0 !important; padding: 10px !important;">
-        <ion-toolbar>
-          <title style="font-size: 25px;">Chat Mozo</title>
-          <ion-buttons slot="end">
-            <ion-button (click)="closeChat()" class="btn_close">Cerrar</ion-button>
-          </ion-buttons>
-        </ion-toolbar>
+      <header class="header-chat">
+        <div>
+          <img src="assets/icon/cubiertos.png">
+          <title class="title2">Chat Mozo</title>
+          <img src="assets/icon/cubiertos.png">
+        </div>
+        <button (click)="closeChat()">❌ Cerrar ❌</button>
       </header>
 
       <ion-content #chatContent class="ion-content-chat">
@@ -117,7 +116,7 @@
                [class.cliente-msg]="m.role==='cliente'"
                *ngFor="let m of messages; trackBy: trackMsg;">
             <div class="bubble">
-              <div class="body">{{ m.text }}</div>
+              <div class="body">{{ m.text | titlecase }}</div>
               <div [class.mozo-meta]="m.role==='mozo'"
                    [class.cliente-meta]="m.role==='cliente'">
                 {{ m.role==='mozo' ? 'Mozo' : 'Cliente' }} • {{ m.time }}
@@ -137,8 +136,7 @@
           <ion-button
             slot="end"
             [disabled]="!chatReady || !newMsg.trim()"
-            (click)="sendMessage();"
-            style="color: white; --background: #554738;">
+            (click)="sendMessage();">
             Enviar
           </ion-button>
         </ion-item>

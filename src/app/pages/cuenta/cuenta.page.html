@@ -2,75 +2,73 @@
   <app-loading/>
 } @else {
   <header>
+    <img src="assets/icon/cubiertos.png">
     <title>Cuenta</title>
+    <img src="assets/icon/cubiertos.png">
   </header>
 
-  <ion-content class="cuenta-content">
-    <div class="cuenta-wrapper">
-      <div class="cuenta-container">
-        <ion-card class="cuenta-card">
-          <ion-card-header>
-            <ion-card-title>🧾 Tu Pedido</ion-card-title>
-          </ion-card-header>
+  <ion-content class="ion-padding">
+    <div class="cuenta-container">
+      <ion-card class="cuenta-card">
+        <ion-card-header>
+          <ion-card-title>🧾Pedido🧾</ion-card-title>
+        </ion-card-header>
 
-          <ion-card-content>
-            <div class="items-list">
-              @for (it of items; track it.id) {
-                <ion-item lines="none" class="item-row">
-                  <ion-label>
-                    <h2>{{ it.nombre }}</h2>
-                    <p>{{ it.tipo }}</p>
-                  </ion-label>
-                  <ion-note slot="end">
-                    {{ it.cantidad }} × {{ it.precio_unit | currency:"ARS":"symbol-narrow" }}
-                  </ion-note>
-                </ion-item>
-              }
-            </div>
+        <ion-card-content>
+          <div class="items-list">
+            @for (it of items; track it.id) {
+              <ion-item lines="none" class="item-row">
+                <ion-label>
+                  <h2>{{ it.nombre }}</h2>
+                  <p>{{ it.tipo }}</p>
+                </ion-label>
+                <ion-note slot="end">
+                  {{ it.cantidad }} × {{ it.precio_unit | currency:"ARS":"symbol-narrow":"1.0-0" }}
+                </ion-note>
+              </ion-item>
+            }
+          </div>
 
-            <div class="totales">
-              <p><b>Subtotal:</b> {{ ped?.total | currency:"ARS":"symbol-narrow" }}</p>
+          <div class="totales">
+            <p><b>Subtotal:</b> {{ ped?.total | currency:"ARS":"symbol-narrow":"1.0-0" }}</p>
 
-              @if(descuento > 0) {
-                <p class="descuento">Descuento aplicado: -{{ descuento }}%</p>
-              }
+            @if(descuento > 0) {
+              <p class="descuento">Descuento aplicado: -{{ descuento }}%</p>
+            }
 
-              <div class="div_propina">
-                <ion-button expand="block" size="large" class="btn-pagar" (click)="escanearPropina()">
-                  📱 Escanear QR de Propina
+            <div class="div_propina">
+              <ion-button class="btn-secondary" (click)="escanearPropina()">
+                QR Propina
+              </ion-button>
+
+              @if(propinaSeleccionada > 0) {
+                <p class="propina-text">Propina seleccionada: {{ propinaSeleccionada }}%</p>
+                <ion-button class="btn-quit" (click)="quitarPropina()">
+                  ❌ Quitar Propina
                 </ion-button>
-
-                @if(propinaSeleccionada > 0) {
-                  <p class="propina-text">Propina seleccionada: {{ propinaSeleccionada }}%</p>
-                  <ion-button color="danger" expand="block" size="large" (click)="quitarPropina()">
-                    ❌ Quitar Propina
-                  </ion-button>
-                } @else {
-                  <p class="propina-text">Sin propina seleccionada</p>
-                }
-              </div>
-
-              <p class="total_final">
-                💰 TOTAL: {{ totalFinal | currency:"ARS":"symbol-narrow" }}
-              </p>
+              } @else {
+                <p class="propina-text2">Sin propina seleccionada</p>
+              }
             </div>
-          </ion-card-content>
-        </ion-card>
 
-        <div class="botones">
-          <ion-button expand="block" size="large" class="btn-pagar" (click)="pagar()">💵 Pagar</ion-button>
-        </div>
+            <p class="total_final">
+              Total: {{ totalFinal | currency:"ARS":"symbol-narrow":"1.0-0" }}
+            </p>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <div class="div_boton">
+        <ion-button class="btn-tertiary" (click)="pagar()">💲Pagar💲</ion-button>
       </div>
     </div>
   </ion-content>
   
   <footer>
-    <ion-toolbar>
-      <ion-buttons class="ion_btns">
-        <ion-button class="btn_logged" (click)="volver()">Volver</ion-button>
-      </ion-buttons>
-    </ion-toolbar>
+    <hr>
+    <button class="btn_footer" (click)="volver()">
+      Volver
+    </button>
+    <hr>
   </footer>
 }
-
-

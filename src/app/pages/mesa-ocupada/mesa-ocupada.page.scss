@@ -1,16 +1,23 @@
 ion-segment {
-  --background: #d7b899;
+  --background: var(--color-input);
+}
+
+ion-label {
+  font-weight: 600;
 }
 
 ion-segment-button {
-  font-weight: 600;
-  color: #554738;
-  border-right: 2px solid #554738;
-  --color-checked: #554738;
+  color: var(--color-text);
+  --background-checked: var(--color-btn-tertiary);
+  --color-checked: var(--color-text);
+  border-bottom: 2px solid var(--color-text);
+  border-top: none;
+  font-size: 18px;
 }
 
-ion-segment-button:nth-child(3) {
-  border-right: none;
+ion-segment-button:nth-child(1),
+ion-segment-button:nth-child(2) {
+  border-right: 2px solid var(--color-text);
 }
 
 .loading,
@@ -52,9 +59,9 @@ ion-content::part(scroll) {
   justify-content: center;
   align-items: center;
   gap: 12px;
-  border: 2px solid #000;
+  border: 2px solid var(--color-text);
   border-radius: 16px;
-  background: #e6dacd;
+  background: var(--color-btn-primary);
   padding: .5rem;
   height: 420px;
   width: 100%;
@@ -73,7 +80,12 @@ ion-content::part(scroll) {
       flex-wrap: nowrap;
       overflow-x: auto;
       scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: auto;
+      overscroll-behavior-x: contain;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
       height: 100%;
+      border: 2px solid var(--color-text);
     }
 
     .slide {
@@ -84,6 +96,8 @@ ion-content::part(scroll) {
       object-fit: fill;
       object-position: center;
       scroll-snap-align: start;
+      scroll-snap-stop: always;
+      border: 2px solid var(--color-text);
     }
   }
 }
@@ -98,6 +112,7 @@ ion-content::part(scroll) {
   justify-content: center;
   align-items: center;
   text-align: center;
+  color: var(--color-text);
 }
 
 .meta {
@@ -118,73 +133,76 @@ ion-content::part(scroll) {
   span {
     min-width: 20px;
     text-align: center;
-    font-weight: 700;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  ion-button {
+    --background: var(--color-btn-secondary);
+    --border-radius: 10px;
+    border: 2px solid var(--color-text);
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: 600;
   }
 }
 
 h3 {
   margin: 0 0 5px 0;
   font-weight: 700;
+  font-size: 25px;
+  text-decoration: underline;
 }
 
 .desc {
   font-size: 18px;
-  color: #554738;
+  color: var(--color-text);
   font-weight: 600;
   min-height: 2.5em;
   margin: 0;
 }
 
-.cliente-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: black;
-  font-size: 12px;
-  margin-top: 5px;
-  font-weight: 600;
-}
-
-.mozo-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: rgb(182, 182, 182);
-  font-size: 12px;
-  margin-top: 5px;
-  font-weight: 600;
-}
-
 .precio {
-  border: 1px solid #000;
+  border: 2px solid var(--color-black);
   padding: .1rem .4rem;
   border-radius: 8px;
   font-size: 20px;
-  color: #554738;
-  background: white;
+  color: var(--color-btn-primary);
+  background: var(--color-text);
 }
 
 .tiempo {
-  color: #554738;
+  color: var(--color-text);
   font-size: 20px;
+  font-weight: 600;
 }
 
-footer {
+// Estilos del Chat
+
+.header-chat {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
-}
+  padding: 0;
 
-.btn_open_chat {
-  color: #554738;
-  font-weight: 600;
-  font-size: 16px;
-}
+  div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+  }
 
-.btn_back {
-  color: black;
-  font-weight: 600;
-  font-size: 16px;
+  button {
+    width: 100%;
+    height: 40px;
+    background-color: var(--color-btn-primary);
+    color: var(--color-text);
+    border-top: 2px solid var(--color-text);
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
 }
 
 .chat {
@@ -205,20 +223,24 @@ footer {
 
 .cliente-msg .bubble {
   max-width: 80%;
-  color: black;
-  border: 2px solid black;
+  color: var(--color-text);
+  border: 2px solid var(--color-black);
   border-radius: 16px;
   padding: 8px 10px;
-  background: #e6f7ff;
+  background: var(--color-btn-secondary);
+  font-weight: 600;
+  font-size: 18px;
 }
 
 .mozo-msg .bubble {
   max-width: 80%;
-  border: 2px solid black;
+  border: 2px solid var(--color-black);
   border-radius: 16px;
   padding: 8px 10px;
-  color: white;
-  background: #554738;
+  color: var(--color-text);
+  background: var(--color-input);
+  font-weight: 600;
+  font-size: 18px;
 }
 
 .body {
@@ -227,15 +249,35 @@ footer {
   text-align: start;
 }
 
+.cliente-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--color-black);
+  font-size: 14px;
+  margin-top: 5px;
+  font-weight: 600;
+}
+
+.mozo-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--color-black);
+  font-size: 14px;
+  margin-top: 5px;
+  font-weight: 600;
+}
+
 .chat .meta {
   font-size: 0.75rem;
-  color: #555;
+  color: var(--color-text);
   margin-top: 4px;
   text-align: right;
 }
 
 ion-content.ion-content-chat {
-  --background: #d7b899;
+  --background: var(--color-background);
   --padding-bottom: calc(60px + var(--ion-safe-area-bottom) + var(--kb, 0px));
   overflow: scroll;
 }
@@ -246,23 +288,32 @@ ion-content.ion-content-chat {
   right: 0;
   bottom: 0;
   z-index: 10;
-  background: white;
-  border-top: 1px solid black;
+  background: var(--color-btn-primary);
+  border-top: 2px solid var(--color-text);
   padding: 6px 8px;
   padding-bottom: max(6px, calc(6px + var(--ion-safe-area-bottom)));
+
+  ion-input {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  ion-button {
+    --background: var(--color-text);
+    color: var(--color-btn-primary);
+    border: 2px solid var(--color-btn-primary);
+    --border-radius: 16px;
+    border-radius: 16px;
+    font-size: 14px;
+    font-weight: 600;
+  }
 }
 
-.composer ion-item {
+ion-item::part(native) {
   --background: transparent;
+  background-color: transparent;
   width: 100%;
-}
-
-.btn_close {
-  color: black;
-  font-weight: 600;
-  --padding-top: 0;
-  --padding-bottom: 0;
-  margin: 5px 5px 0 0;
 }
 
 .resumen-flotante {
@@ -276,35 +327,54 @@ ion-content.ion-content-chat {
     justify-content: center;
     align-items: center;
     gap: 10px;
-    background: #1b1b1b;
-    border-bottom: 2px solid black;
-    color: white;
-    padding: 8px 12px;
+    color: var(--color-text);
+    background-color: var(--color-btn-primary);
+    width: 100%;
+    height: 100%;
+    padding: 0;
     font-weight: 700;
   }
 
-  .div_data {
+  .div_btn {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
+    background-color: var(--color-btn-primary);
     width: 100%;
+    height: 100%;
 
-    .importe {
-      font-size: 25px;
-    }
-
-    .tiempo_espera {
-      font-size: 20px;
+    .btn_pedido {
+      padding: 10px 0;
+      background-color: var(--color-btn-primary);
+      font-size: 22px;
+      font-weight: 600;
+      border-radius: 12px;
+      color: var(--color-text);
+      opacity: 1;
+      width: 100%;
+      height: 100%;
+      border-radius: 0;
+      border-bottom: 2px solid var(--color-text);
     }
   }
+  // .div_data {
+  //   display: flex;
+  //   justify-content: space-between;
+  //   align-items: center;
+  //   width: 100%;
+
+  //   .importe {
+  //     font-size: 25px;
+  //   }
+
+  //   .tiempo_espera {
+  //     font-size: 20px;
+  //   }
+  // }
 }
 
 ion-content.blocked {
   pointer-events: none;
-}
-
-ion-button {
-  --background: #554738;
 }
 
 .pedido-banner {
@@ -312,27 +382,8 @@ ion-button {
   justify-content: center;
   align-items: center;
   text-align: center;
-  color: white;
+  color: var(--color-text);
   font-size: 20px;
   margin: 20px 0 0 0;
   font-weight: 600;
-}
-
-.div_btn {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  .btn_pedido {
-    background-color: #554738;
-    padding: 10px;
-    font-size: 18px;
-    font-weight: 600;
-    border-radius: 12px;
-    color: white;
-    opacity: 1;
-    width: 100%;
-    border-radius: 0;
-    border-top: 3px solid black;
-  }
 }

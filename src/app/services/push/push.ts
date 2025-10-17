@@ -333,7 +333,6 @@ export class Push {
     });
 }
 
-
 async testNotificacionLocal() {
   console.log("📣 Testeando notificación local...");
   await LocalNotifications.requestPermissions();
@@ -348,6 +347,4 @@ async testNotificacionLocal() {
     }]
   });
 }
-
-
 }

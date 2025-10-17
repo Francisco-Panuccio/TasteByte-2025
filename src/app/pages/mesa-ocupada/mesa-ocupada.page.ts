@@ -71,6 +71,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   etaMin = 0;
   userUid = "";
   pedidoEnCurso = false;
+  carritoFlag: boolean = false;
   pedidoActualId?: string;
   estadoPedido: Estado | null = null;
   bannerMsg = "";
@@ -471,65 +472,6 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     this.bebidaObj = { titulo: `Bebidas • Mesa ${mesaNumero}`, total: b.total, cantidad: b.cantidad, items: b.items };
   }
 
-  // private async enviarAProduccion(pedidoId: string): Promise<void> {
-  //   if (!this.mesaId || this.despachados.has(pedidoId)) { return; }
-  //   await this.push.ready();
-
-  //   const mesaNumero = this.mesa?.numero ?? 0;
-  //   const ahora = new Date().toISOString();
-
-  //   const cocinaItems = this.itemsSel
-  //     .filter(i => i.tipo === "plato" || i.tipo === "postre")
-  //     .map(i => ({ nombre: i.nombre, cantidad: i.cantidad, precioUnit: i.precioUnit, duracionMin: i.duracionMin, subtotal: Number((i.precioUnit * i.cantidad).toFixed(2)) }));
-
-  //   const barItems = this.itemsSel
-  //     .filter(i => i.tipo === "bebida")
-  //     .map(i => ({ nombre: i.nombre, cantidad: i.cantidad, precioUnit: i.precioUnit, duracionMin: i.duracionMin, subtotal: Number((i.precioUnit * i.cantidad).toFixed(2)) }));
-
-  //   const cocinaTotal = Number(cocinaItems.reduce((a, b) => a + b.subtotal, 0).toFixed(2));
-  //   const barTotal = Number(barItems.reduce((a, b) => a + b.subtotal, 0).toFixed(2));
-  //   const cocinaCant = cocinaItems.reduce((a, b) => a + b.cantidad, 0);
-  //   const barCant = barItems.reduce((a, b) => a + b.cantidad, 0);
-
-  //   try {
-  //     if (cocinaItems.length) {
-  //       await supabase.from("cocina_pedidos").insert({
-  //         pedido_id: pedidoId,
-  //         mesa_id: this.mesaId,
-  //         mesa_numero: mesaNumero,
-  //         creado_en: ahora,
-  //         total: cocinaTotal,
-  //         cantidad: cocinaCant,
-  //         items: cocinaItems,
-  //         estado: "pendiente"
-  //       });
-  //       await this.push.sendToCocina("Nuevo pedido", `Nuevo Pedido de la Mesa ${mesaNumero}`, {
-  //         tipo: "cocina_pedido", pedidoId, mesaId: this.mesaId, mesaNumero
-  //       });
-  //     }
-  //     if (barItems.length) {
-  //       await supabase.from("bar_pedidos").insert({
-  //         pedido_id: pedidoId,
-  //         mesa_id: this.mesaId,
-  //         mesa_numero: mesaNumero,
-  //         creado_en: ahora,
-  //         total: barTotal,
-  //         cantidad: barCant,
-  //         items: barItems,
-  //         estado: "pendiente"
-  //       });
-  //       await this.push.sendToBar("Nuevo pedido", `Nuevo Pedido de la Mesa ${mesaNumero}`, {
-  //         tipo: "bar_pedido", pedidoId, mesaId: this.mesaId, mesaNumero
-  //       });
-  //     }
-  //     this.despachados.add(pedidoId);
-  //   } catch (e: any) {
-  //     (await this.toast.create({
-  //       message: `Error al notificar: ${e?.message ?? e}`, duration: 2500, position: "top"
-  //     })).present();
-  //   }
-  // }
-
   async terminarPedido() {
     try {
       if (!this.itemsSel.length) { return; }
@@ -677,6 +619,11 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
 
   private gotoEncuestasEspera(): void {
     this.router.navigate(["/encuestas-espera"], { queryParams: this.buildEncuestaQuery() });
+  }
+
+  showCarrito() {
+    this.carritoFlag = !this.carritoFlag;
+    console.log(this.carritoFlag);
   }
 
   volver() {
