@@ -12,6 +12,9 @@
       @if(bannerMsg){
         <div class="pedido-banner" role="status">
           {{ bannerMsg }}
+          <div class="div_img">
+            <img src="assets/images/camarero.png">
+          </div>
         </div>
       } @else {
         <div class="resumen-flotante">
@@ -19,23 +22,10 @@
             <div class="div_btn">
               <button
                 class="btn_pedido"
-                [disabled]="submitting || pedidoBloqueado || itemsSel.length===0"
                 (click)="showCarrito()">
                 Ver Carrito
               </button>
             </div>
-  
-            <!-- <button
-              class="btn_pedido"
-              [disabled]="submitting || pedidoBloqueado || itemsSel.length===0"
-              (click)="terminarPedido();">
-              Finalizar Pedido
-            </button> -->
-  
-            <!-- <div class="div_data">
-              <div class="importe">Total: {{ total | currency:"ARS":"symbol-narrow":"1.0-0" }}</div>
-              <div class="tiempo_espera">Espera: {{ etaMin }} minutos</div>
-            </div> -->
           </section>
   
           <ion-segment [(ngModel)]="tab" [disabled]="submitting || pedidoBloqueado">
@@ -148,7 +138,32 @@
     </ion-content>
   } @else { 
     <ion-content>
-      HOLA
+      @if(bannerMsg){
+        <div class="pedido-banner" role="status">
+          {{ bannerMsg }}
+          <div class="div_img">
+            <img src="assets/images/camarero.png">
+          </div>
+        </div>
+      } @else {
+        <button
+          class="btn_pedido"
+          (click)="showCarrito()">
+          Ver Menú
+        </button>
+
+        <div class="div_data">
+          <div class="importe">Total: {{ total | currency:"ARS":"symbol-narrow":"1.0-0" }}</div>
+          <div class="tiempo_espera">Espera: {{ etaMin }} minutos</div>
+        </div>
+        
+        <button
+          class="btn_pedido"
+          [disabled]="submitting || pedidoBloqueado || itemsSel.length===0"
+          (click)="terminarPedido();">
+          Finalizar Pedido
+        </button>
+      }
     </ion-content>
   }
 

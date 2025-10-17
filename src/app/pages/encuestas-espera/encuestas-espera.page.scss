@@ -269,6 +269,12 @@ ion-item::part(native) {
   border: 2px solid var(--color-text);
 }
 
+footer {
+  hr {
+    width: 15%;
+  }
+}
+
 /* ---------------------------------------------------------- */
 /* 🔹 TEXTO DE INSTRUCCIÓN DEL QR DE INGRESO */
 /* ---------------------------------------------------------- */
