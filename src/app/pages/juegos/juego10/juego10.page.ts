@@ -1,17 +1,19 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { Descuentos } from 'src/app/services/descuentos/descuentos';
+import { Component, OnInit } from "@angular/core";
+import { ActivatedRoute, Router } from "@angular/router";
+import { ToastController } from "@ionic/angular";
+import { Descuentos } from "src/app/services/descuentos/descuentos";
 
 @Component({
-  selector: 'app-juego10',
-  templateUrl: './juego10.page.html',
-  styleUrls: ['./juego10.page.scss'],
+  selector: "app-juego10",
+  templateUrl: "./juego10.page.html",
+  styleUrls: ["./juego10.page.scss"],
   standalone: false
 })
 export class Juego10Page implements OnInit {
-  palabra = '';
+  palabra = "";
   letras_adivinadas: string[] = [];
   letras_utilizadas: string[] = [];
+  palabraFinal: string | null = null;
 
   play = false;
   fallos = 0;
@@ -25,7 +27,7 @@ export class Juego10Page implements OnInit {
   cargando_palabra = false;
 
   inicio!: number;
-  tiempoTranscurrido = '00:00:00';
+  tiempoTranscurrido = "00:00:00";
   intervalo!: ReturnType<typeof setInterval>;
   juego_finalizado = 0;
 
@@ -35,13 +37,18 @@ export class Juego10Page implements OnInit {
   anonimoId!: string | null;
   userId!: string | null;
 
-  constructor(private router: Router, private route: ActivatedRoute, private descuentos: Descuentos) {
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute,
+    private descuentos: Descuentos,
+    private toast: ToastController
+  ) {
     this.route.queryParams.subscribe(params => {
-      this.mesaId = params['mesaId'] ? Number(params['mesaId']) : 0;
-      this.clienteId = params['clienteId'] ? Number(params['clienteId']) : null;
-      this.usuarioId = params['usuarioId'] ? Number(params['usuarioId']) : null;
-      this.anonimoId = params['anonimoId'] ?? null;
-      this.userId = params['userId'] ?? null;
+      this.mesaId = params["mesaId"] ? Number(params["mesaId"]) : 0;
+      this.clienteId = params["clienteId"] ? Number(params["clienteId"]) : null;
+      this.usuarioId = params["usuarioId"] ? Number(params["usuarioId"]) : null;
+      this.anonimoId = params["anonimoId"] ?? null;
+      this.userId = params["userId"] ?? null;
     });
   }
 
@@ -52,7 +59,7 @@ export class Juego10Page implements OnInit {
 
   async fetchPalabraRandom() {
     this.cargando_palabra = true;
-    const palabras = ['IONIC', 'SUPABASE', 'ANGULAR', 'JUEGO', 'CLIENTE'];
+    const palabras = ["IONIC", "SUPABASE", "ANGULAR", "JUEGO", "CLIENTE"];
     this.palabra = palabras[Math.floor(Math.random() * palabras.length)];
     this.cargando_palabra = false;
   }
@@ -76,9 +83,7 @@ export class Juego10Page implements OnInit {
 
     if (this.palabra.includes(letra)) {
       this.letras_adivinadas.push(letra);
-      const todas = this.palabra.split('').every(l =>
-        this.letras_adivinadas.includes(l)
-      );
+      const todas = this.palabra.split("").every(l => this.letras_adivinadas.includes(l));
       if (todas) this.finalizarJuego(true);
     } else {
       this.fallos++;
@@ -87,17 +92,34 @@ export class Juego10Page implements OnInit {
     }
   }
 
+  private async presentToast(header:string, message: string) {
+    const t = await this.toast.create({
+      header,
+      message,
+      duration: 1500,
+      position: "top",
+      cssClass: "toast"
+    });
+    await t.present();
+  }
+
   async finalizarJuego(resultado: boolean) {
     clearInterval(this.intervalo);
     this.juego_finalizado = resultado ? 1 : 2;
+    this.palabraFinal = this.palabra;
 
-    if (resultado && this.intentos === 1 && !this.descuentoAplicado && this.userId) {
-      await this.descuentos.aplicarDescuento(this.clienteId, this.userId, this.mesaId, 10, 'juego10');
-      this.descuentoAplicado = true;
-    } else if (!this.descuentoAplicado && this.userId) {
-      await this.descuentos.registrarIntento(this.userId, 'juego10', false);
+    if (resultado) {
+      await this.presentToast("🎉 ¡Ganó el Juego! 🎉", "Felicitaciones");
+    } else {
+      await this.presentToast("😢 Perdió el Juego 😢", "Inténtelo Nuevamente");
     }
 
+    if (resultado && this.intentos === 1 && !this.descuentoAplicado && this.userId) {
+      await this.descuentos.aplicarDescuento(this.clienteId, this.userId, this.mesaId, 10, "juego10");
+      this.descuentoAplicado = true;
+    } else if (!this.descuentoAplicado && this.userId) {
+      await this.descuentos.registrarIntento(this.userId, "juego10", false);
+    }
   }
 
   async resetear() {
@@ -109,25 +131,26 @@ export class Juego10Page implements OnInit {
     this.fallos = 0;
     this.url_ahorcado = this.imagenes[0];
     this.letras_seleccionadas = 0;
-    this.tiempoTranscurrido = '00:00:00';
+    this.tiempoTranscurrido = "00:00:00";
     this.juego_finalizado = 0;
+    this.palabraFinal = null;
   }
 
   async precargaDeImagenes() {
     this.imagenes = [
-      'assets/images/ahorcado/0_ahorcado.png',
-      'assets/images/ahorcado/1_ahorcado.png',
-      'assets/images/ahorcado/2_ahorcado.png',
-      'assets/images/ahorcado/3_ahorcado.png',
-      'assets/images/ahorcado/4_ahorcado.png',
-      'assets/images/ahorcado/5_ahorcado.png',
-      'assets/images/ahorcado/6_ahorcado.png'
+      "assets/images/ahorcado/0_ahorcado.png",
+      "assets/images/ahorcado/1_ahorcado.png",
+      "assets/images/ahorcado/2_ahorcado.png",
+      "assets/images/ahorcado/3_ahorcado.png",
+      "assets/images/ahorcado/4_ahorcado.png",
+      "assets/images/ahorcado/5_ahorcado.png",
+      "assets/images/ahorcado/6_ahorcado.png"
     ];
     this.url_ahorcado = this.imagenes[0];
   }
 
   volver() {
-    this.router.navigate(['/juegos'], {
+    this.router.navigate(["/juegos"], {
       queryParams: {
         clienteId: this.clienteId,
         usuarioId: this.usuarioId,

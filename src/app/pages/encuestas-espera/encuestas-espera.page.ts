@@ -7,6 +7,7 @@ import { Push } from "src/app/services/push/push";
 import { Chat } from "src/app/services/chat/chat";
 import { ChatMessage } from "src/app/interfaces/chat-message";
 import { Pedidos } from "src/app/services/pedidos/pedidos";
+import { Usuarios } from "src/app/services/usuarios/usuarios";
 
 type EstadoAsignacion = "pendiente" | "asignada" | "sentado" | "liberada" | "cancelada";
 interface AsignacionMesaRow { mesa_id: number; estado: EstadoAsignacion; }
@@ -55,10 +56,12 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   mesaAsignadaId: number | null = null;
   estadoPedido: string | null = null;
   pedidoId: string | null = null;
-
+  id: any;
+  email = '';
+  clienteFoto = '';
   tieneMesa = false;
 
-  constructor(private router: Router, private route: ActivatedRoute) { }
+  constructor(private router: Router, private route: ActivatedRoute, private usuarios: Usuarios) { }
 
   async ngOnInit() {
     this.route.queryParams.subscribe(async (params) => {
@@ -77,13 +80,24 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       const { data: au } = await supabase.auth.getUser();
       this.myUserId = this.anonimoId ? `anon-${this.anonimoId}` : au.user?.id ?? undefined;
 
+      const usuarioDB = await this.usuarios.getByEmail(au.user!.email!);
+      this.id = usuarioDB!.id;
+      this.email = `${usuarioDB!.correo_electronico}`.trim();
+
+      if (this.usuarioId === null) {
+        this.usuarioId = this.id;
+      }
+
       if (!this.usuarioId && this.clienteId) {
         const { data: cli } = await supabase.from("clientes").select("usuario_id").eq("id", this.clienteId).maybeSingle();
         this.usuarioId = typeof cli?.usuario_id === "number" ? cli?.usuario_id : null;
       }
+
       if (this.usuarioId) {
-        const { data: usuario } = await supabase.from("usuarios").select("nombres, apellidos").eq("id", this.usuarioId).maybeSingle();
+        const { data: usuario } = await supabase.from("usuarios").select("nombres, apellidos, foto_url").eq("id", this.id).maybeSingle();
         this.nombreCliente = usuario ? `${usuario.nombres} ${usuario.apellidos}` : "Cliente";
+        this.clienteFoto = usuario?.foto_url ?? '';
+        console.log("HOLA" + this.clienteFoto);
       } else if (this.anonimoId) {
         const { data: anonimo } = await supabase.from("clientes_anonimos").select("nombre").eq("id", this.anonimoId).maybeSingle();
         this.nombreCliente = anonimo?.nombre || "Cliente Anónimo";
@@ -164,7 +178,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     if (this.pedidoSub) supabase.removeChannel(this.pedidoSub);
     if (this.listaEsperaSub) supabase.removeChannel(this.listaEsperaSub);
 
-    try { this.chatSvc.unsubscribe?.(); } catch {}
+    try { this.chatSvc.unsubscribe?.(); } catch { }
   }
 
   async escanearQr() {
@@ -311,41 +325,41 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   }
 
   async registrarseListaEspera() {
-  if (this.yaRegistrado) return;
-  const payload: any = { estado: "pendiente" };
-  const tk = this.push.getToken();
-  if (tk) payload.push_token = tk;
-  if (this.clienteId) payload.cliente_id = this.clienteId;
-  else if (this.anonimoId) payload.cliente_anonimo_id = this.anonimoId;
-  else {
-    this.mostrarToast("Error: no se detectó cliente");
-    return;
-  }
+    if (this.yaRegistrado) return;
+    const payload: any = { estado: "pendiente" };
+    const tk = this.push.getToken();
+    if (tk) payload.push_token = tk;
+    if (this.clienteId) payload.cliente_id = this.clienteId;
+    else if (this.anonimoId) payload.cliente_anonimo_id = this.anonimoId;
+    else {
+      this.mostrarToast("Error: no se detectó cliente");
+      return;
+    }
 
-  const { data, error } = await supabase.from("lista_espera").insert(payload).select().single();
-  if (error) {
-    this.mostrarToast("Error al registrarse en la lista de espera");
-    return;
-  }
+    const { data, error } = await supabase.from("lista_espera").insert(payload).select().single();
+    if (error) {
+      this.mostrarToast("Error al registrarse en la lista de espera");
+      return;
+    }
 
-  try {
-    await this.push.sendToRoles(
-      ["maitre"],
-      "Nuevo cliente en lista de espera",
-      "Se ha agregado un nuevo cliente a la lista de espera.",
-      {
-        tipo: "lista_espera",
-        screen: "lista-espera",
-        lista_espera_id: data.id
-      }
-    );
-  } catch (e) {
-    console.error("[push][lista_espera][sendToRoles]", e);
-  }
+    try {
+      await this.push.sendToRoles(
+        ["maitre"],
+        "Nuevo cliente en lista de espera",
+        "Se ha agregado un nuevo cliente a la lista de espera.",
+        {
+          tipo: "lista_espera",
+          screen: "lista-espera",
+          lista_espera_id: data.id
+        }
+      );
+    } catch (e) {
+      console.error("[push][lista_espera][sendToRoles]", e);
+    }
 
-  this.yaRegistrado = true;
-  this.mostrarToast("Te registraste correctamente en la lista de espera");
-}
+    this.yaRegistrado = true;
+    this.mostrarToast("Te registraste correctamente en la lista de espera");
+  }
 
 
   async registrarEncuesta(encuestaId: string) {
@@ -422,9 +436,9 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   private async ensureChatAndSubscribe(): Promise<void> {
     if (!this.mesaAsignadaId) return;
     if (!this.myUserId) {
-  const { data: au } = await supabase.auth.getUser();
-  this.myUserId = this.anonimoId ? `anon-${this.anonimoId}` : au.user?.id ?? undefined;
-}
+      const { data: au } = await supabase.auth.getUser();
+      this.myUserId = this.anonimoId ? `anon-${this.anonimoId}` : au.user?.id ?? undefined;
+    }
 
 
     const chat = await this.chatSvc.getOrCreateForMesa(this.mesaAsignadaId, "cliente", this.anonimoId);
@@ -452,9 +466,9 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
 
       const role: "mozo" | "cliente" = "mozo";
       this.zone.run(() => {
-      this.messages.push({ ...vm, role });
-      this.seenIds.add(m.id);
-    });
+        this.messages.push({ ...vm, role });
+        this.seenIds.add(m.id);
+      });
 
 
       if (!this.chatOpen) {

@@ -9,38 +9,44 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 20px;
 }
 
-.div_contenido_img {
+.div_contenido_img,
+.div_contenido_img2 {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 16px;
+  margin: 18px 0 16px 0;
+
+  .img_ahorcado,
+  .img_ahorcado_two {
+    width: 320px;
+    height: auto;
+  }
+
+  .img_ahorcado_two {
+    width: 400px;
+  }
 }
 
-.img_ahorcado,
-.img_ahorcado_two {
-  width: 180px;
-  height: auto;
-  margin-bottom: 12px;
-}
+.div_contenido_img2 {
+  margin: 0;
 
-.img_ahorcado_two {
-  width: 400px;
-  height: auto;
-  margin-bottom: 12px;
+  .img_ahorcado2 {
+    margin-bottom: 0;
+    width: 250px;
+  }
 }
 
 .div_contenido_estadisticas {
   display: flex;
-  gap: 10px;
+  gap: 40px;
 }
 
 .palabra {
   display: flex;
   justify-content: center;
-  margin: 20px 0;
+  margin: 20px 0 10px 0;
   gap: 8px;
   flex-wrap: wrap;
 }
@@ -48,25 +54,38 @@
 .span_letra {
   font-size: 24px;
   font-weight: bold;
-  color: var(--ion-color-dark);
+  color: var(--color-text);
   padding: 4px 6px;
-  border-bottom: 2px solid var(--ion-color-medium);
+}
+
+ion-button {
+  --background: transparent;
+  --background-activated: rgba(215, 184, 153, 0.2);
+  --color: var(--color-text);
+  --border-color: var(--color-text);
+  --border-style: solid;
+  --border-width: 1px;
+  --border-radius: 12px;
+  border-radius: 12px;
+  font-weight: 600;
+  height: 40px;
+  margin: 10px;
 }
 
 .div_keyboard {
-  margin-top: 20px;
-
   ion-button {
-    --color: black;
-    --border-color: black;
-    --background: #e6d5c3;
+    --color: var(--color-text);
+    --border-color: var(--color-text);
+    --background: var(--color-btn-primary);
     font-weight: 600;
+    font-size: 16px;
+    width: 34px;
+    padding: 0 2px;
   }
 }
 
 ion-grid {
   width: 100%;
-  max-width: 500px;
 }
 
 ion-col {
@@ -81,54 +100,52 @@ ion-row {
   justify-content: center;
   align-items: center;
   text-align: center;
+  height: 50px;
 }
 
 .div_final_juego {
   text-align: center;
-  margin-top: 30px;
 
-  p {
+  .div_replay {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 20px;
-    font-weight: 600;
-    font-size: 20px;
+
+    p {
+      margin: -20px 0 20px 0;
+      color: var(--color-text);
+      font-size: 28px;
+      font-weight: 600;
+      text-decoration: underline;
+    }
+
+    span {
+      color: var(--color-text);
+      background-color: var(--color-btn-tertiary);
+      font-weight: 600;
+      font-size: 22px;
+      border-radius: 20px;
+      padding: 10px;
+      text-decoration: none;
+      margin: 0 0 20px 0;
+    }
+
+    img {
+      width: 120px;
+      margin: -30px 0 10px 0;
+    }
   }
-
-  .victoria,
-  .derrota {
-    margin-top: 25px;
-    color: white;
-    font-weight: bold;
-    font-size: 30px;
-  }
-
-  .derrota {
-    margin-top: 10px;
-  }
 }
 
-.ion_btns {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.btn_logged {
-  font-size: 20px;
-  font-weight: 1000;
-}
-
-.timer {
-  --color: white;
-  font-size: 16px;
-  font-weight: 600;
-}
-
+.timer,
 .fallos {
-  --color: black;
-  font-size: 16px;
+  --color: var(--color-text);
+  font-size: 25px;
   font-weight: 600;
+}
+
+.btn-primary {
+  font-size: 20px;
+  margin: 0 0 20px 0;
 }

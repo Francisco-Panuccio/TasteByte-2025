@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { ToastController } from '@ionic/angular';
 import { Descuentos } from 'src/app/services/descuentos/descuentos';
 
 interface Carta {
@@ -43,7 +44,8 @@ export class Juego20Page implements OnInit {
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private descuentos: Descuentos
+    private descuentos: Descuentos,
+    private toast: ToastController
   ) {
     this.route.queryParams.subscribe(params => {
       this.mesaId = params['mesaId'] ? Number(params['mesaId']) : 0;
@@ -64,6 +66,7 @@ export class Juego20Page implements OnInit {
     this.vidasRestantes = 3;
     this.descuentoAplicado = false;
     this.juegoFinalizado = false;
+    this.seleccionadas = [];
 
     const pares = [...this.imagenesBase, ...this.imagenesBase];
     this.cartas = pares
@@ -94,6 +97,7 @@ export class Juego20Page implements OnInit {
       c1.encontrada = true;
       c2.encontrada = true;
       this.aciertos++;
+      this.seleccionadas = [];
 
       if (this.aciertos === this.imagenesBase.length) {
         this.finalizarJuego(true);
@@ -105,20 +109,34 @@ export class Juego20Page implements OnInit {
 
       if (this.vidasRestantes <= 0) {
         this.finalizarJuego(false);
+        this.seleccionadas = [];
         return;
       }
     }
     this.seleccionadas = [];
   }
 
+  private async presentToast(header: string, message: string) {
+    const t = await this.toast.create({
+      cssClass: "toast",
+      header,
+      message,
+      duration: 1500,
+      position: "top"
+    });
+    await t.present();
+  }
+
   async finalizarJuego(ganador: boolean) {
     this.juegoFinalizado = true;
 
     if (ganador) {
+      await this.presentToast("🎉 ¡Ganó el Juego! 🎉", "Felicitaciones");
       if (this.intentos === 1 && !this.descuentoAplicado && this.clienteId && this.userId) {
         await this.descuentos.aplicarDescuento(this.clienteId, this.userId, this.mesaId, 20, "juego20");
         this.descuentoAplicado = true;
       } else {
+        await this.presentToast("😢 Perdió el Juego 😢", "Inténtelo Nuevamente");
         if (this.userId) {
           await this.descuentos.registrarIntento(this.userId, "juego20", false);
         }

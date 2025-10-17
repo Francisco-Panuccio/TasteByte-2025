@@ -7,21 +7,28 @@
     <img src="assets/icon/cubiertos.png">
   </header>
 
-  <ion-content class="ion-padding">
-    <ion-list>
-      <ion-item *ngFor="let mesa of mesas">
-        <ion-label>
-          <h2 class="h2">Mesa #{{ mesa.numero }}</h2>
-          <p>Capacidad: {{ mesa.capacidad }} - Tipo: {{ mesa.tipo }}</p>
-        </ion-label>
-        <div>
-          <qrcode [qrdata]="mesa.qr_contenido" [width]="120"></qrcode>
-        </div>
-        <ion-button slot="end" class="btn_asignar" (click)="seleccionarMesa(mesa)">
-          Asignar
-        </ion-button>
-      </ion-item>
-    </ion-list>
+  <ion-content>
+    <div class="div_list">
+      <div class="item" *ngFor="let mesa of mesas">
+          <div class="item-first-part">
+            <div class="item-data">
+              <h2 class="h2">◽Mesa <span>#{{ mesa.numero }}</span></h2>
+              <p>- Capacidad: {{ mesa.capacidad }}</p>
+              <p class="type">- Tipo: {{ mesa.tipo === 'movilidad_reducida' ? 'Movilidad Reducida' : (mesa.tipo | titlecase) }}</p>
+            </div>
+  
+            <div class="item-btn">
+              <ion-button class="btn-tertiary" (click)="seleccionarMesa(mesa)">
+                Asignar
+              </ion-button>
+            </div>
+          </div>
+
+          <div class="item-img">
+            <qrcode [qrdata]="mesa.qr_contenido" [width]="100"></qrcode>
+          </div>
+      </div>
+    </div>
   </ion-content>
 
   <footer>

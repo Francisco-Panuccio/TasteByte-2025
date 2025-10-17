@@ -1,31 +1,43 @@
 <header>
+  <img src="assets/icon/cubiertos.png">
   <title>Ahorcado</title>
+  <img src="assets/icon/cubiertos.png">
 </header>
 
 <ion-content>
   @if(juego_finalizado === 0) {
     <div class="div_body">
       <div class="div_contenedor_ahorcado">
-        <div class="div_contenido_img">
-          <img class="img_ahorcado" [src]="url_ahorcado" alt="horca"/>
-          <div class="div_contenido_estadisticas">
-            <ion-chip class="timer">⏱ {{ tiempoTranscurrido }}</ion-chip>
-            <ion-chip class="fallos">❌ {{ fallos }} / {{ max_fallos }}</ion-chip>
+        @if(!play) {
+          <div class="div_contenido_img">
+            <img class="img_ahorcado" [src]="url_ahorcado" alt="horca"/>
+            <div class="div_contenido_estadisticas">
+              <ion-chip class="timer">⏱ {{ tiempoTranscurrido }}</ion-chip>
+              <ion-chip class="fallos">❌ {{ fallos }} / {{ max_fallos }}</ion-chip>
+            </div>
           </div>
-        </div>
+        } @else {
+          <div class="div_contenido_img2">
+            <img class="img_ahorcado2" [src]="url_ahorcado" alt="horca"/>
+            <div class="div_contenido_estadisticas">
+              <ion-chip class="timer">⏱ {{ tiempoTranscurrido }}</ion-chip>
+              <ion-chip class="fallos">❌ {{ fallos }} / {{ max_fallos }}</ion-chip>
+            </div>
+          </div>
+        }
 
         <div class="palabra">
           @if(!play) {
-            <ion-button expand="block" (click)="jugar()">
+            <ion-button class="btn-primary" (click)="jugar()">
               <ion-icon name="play" slot="start"></ion-icon>
               Jugar
             </ion-button>
           } @else {
-            @for (letra of palabra.split(''); track letra) {
-              <span class="span_letra">
-                {{ letras_adivinadas.includes(letra) ? letra : "_" }}
-              </span>
-            }
+              @for (letra of palabra.split(''); track letra) {
+                <span class="span_letra">
+                  {{ letras_adivinadas.includes(letra) ? letra : "_" }}
+                </span>
+              }
           }
         </div>
       </div>
@@ -36,7 +48,7 @@
             <ion-row>
               @for (letra of ['Q','W','E','R','T','Y','U','I','O','P']; track letra) {
                 <ion-col size="1.2">
-                  <ion-button expand="block" size="small" fill="outline"
+                  <ion-button size="small"
                     (click)="adivinarLetra(letra)"
                     [disabled]="letras_utilizadas.includes(letra)">
                     {{ letra }}
@@ -48,7 +60,7 @@
             <ion-row>
               @for (letra of ['A','S','D','F','G','H','J','K','L','Ñ']; track letra) {
                 <ion-col size="1.2">
-                  <ion-button expand="block" size="small" fill="outline"
+                  <ion-button size="small"
                     (click)="adivinarLetra(letra)"
                     [disabled]="letras_utilizadas.includes(letra)">
                     {{ letra }}
@@ -60,7 +72,7 @@
             <ion-row>
               @for (letra of ['Z','X','C','V','B','N','M']; track letra) {
                 <ion-col size="1.2">
-                  <ion-button expand="block" size="small" fill="outline"
+                  <ion-button size="small"
                     (click)="adivinarLetra(letra)"
                     [disabled]="letras_utilizadas.includes(letra)">
                     {{ letra }}
@@ -76,25 +88,29 @@
     </div>
   } @else {
     <div class="div_final_juego">
-      @if(juego_finalizado === 1) {
-        <p><span class="victoria">🎉 ¡¡¡Ganaste!!! 🎉</span></p>
-      } @else if (juego_finalizado === 2) {
-        <p><span class="derrota">💀 ¡Perdiste! 💀</span> <br />La palabra era: {{ palabra }}</p>
-      }
-      <ion-button style="border: 2px solid black; border-radius: 8px;" (click)="resetear()">
-        Volver a Jugar
-      </ion-button>
-      <div class="div_contenido_img">
+      <div class="div_contenido_img2">
         <img class="img_ahorcado_two" src="assets/images/ahorcado/6_ahorcado.png" alt="horca"/>
+      </div>
+
+      <div class="div_replay">
+        @if(juego_finalizado === 2) {
+          <p>La palabra era:</p>
+          <span>{{this.palabraFinal}}</span>
+        } @else {
+          <img src="assets/images/ahorcado/emblema.png">
+        }
+        <ion-button class="btn-primary" (click)="resetear()">
+          Volver a Jugar
+        </ion-button>
       </div>
     </div>
   }
 </ion-content>
 
 <footer>
-  <ion-toolbar>
-    <ion-buttons class="ion_btns">
-      <ion-button class="btn_logged" (click)="volver()">Volver</ion-button>
-    </ion-buttons>
-  </ion-toolbar>
+  <hr>
+  <button class="btn_footer" (click)="volver()">
+    Volver
+  </button>
+  <hr>
 </footer>

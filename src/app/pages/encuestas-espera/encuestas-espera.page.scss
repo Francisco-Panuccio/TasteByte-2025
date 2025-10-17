@@ -1,68 +1,102 @@
 :host ion-content.ion-padding::part(scroll) {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: start;
   align-items: center;
 }
 
-h2 {
-  text-align: center;
-  color: #554738;
-  font-weight: 700;
-  margin-bottom: 20px;
-}
-
-.fotos {
+.div_data {
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.slot {
-  display: grid;
-  place-items: center;
-  border: 2px solid black;
+  background:
+    radial-gradient(circle 80px at 250px 180px,
+      rgba(255, 255, 255, .10) 0 60%,
+      rgba(255, 255, 255, 0) 60%),
+    radial-gradient(circle 80px at 250px -10px,
+      rgba(255, 255, 255, .10) 0 60%,
+      rgba(255, 255, 255, 0) 60%),
+    var(--color-container);
+  margin: 20px auto;
+  width: 350px;
+  border-radius: 20px;
+  border: 2px solid var(--color-text);
   padding: 10px;
-  border-radius: 12px;
-  background-color: #d3a87c;
-  width: 300px;
-  gap: 8px;
-}
-
-ion-card-header {
-  font-weight: 600;
-  text-align: center;
-  color: #554738;
-  font-size: 16px;
-  text-decoration: underline;
-  padding-bottom: 10px;
-}
-
-ion-card-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
 
   div {
     display: flex;
-    flex-direction: column;
+    justify-content: center;
     align-items: center;
-    gap: 12px;
+    padding: 0 5px;
+    width: 160px;
+
+    span {
+      color: var(--color-text);
+      font-size: 25px;
+      font-weight: 600;
+      text-align: center;
+    }
   }
 
-  ion-button {
-    height: 36px;
-    width: 250px;
-    box-shadow: rgba(6, 24, 44, 0.4) 0px 0px 0px 2px,
-      rgba(6, 24, 44, 0.65) 0px 4px 6px -1px,
-      rgba(255, 255, 255, 0.08) 0px 1px 0px inset;
-    --border-radius: 20px;
-    border-radius: 20px;
+  .div_photo {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    padding: 0;
+    border: 2px solid var(--color-text);
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
   }
+}
+
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--color-container);
+  border-radius: 20px;
+  border: 2px solid var(--color-black);
+  margin: 0 auto 20px auto;
+  width: 350px;
+  height: 300px;
+  overflow: scroll;
+  padding: 10px;
+  gap: 15px;
+
+  ion-button {
+    text-align: center;
+    color: var(--color-text);
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+    width: 150px;
+    height: 120px;
+    border-radius: 20px;
+    --border-radius: 17px;
+    padding: 0;
+    border: 2px solid var(--color-text);
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+}
+
+.last-btn::part(native) {
+  --background: var(--color-input);
+  --padding-inline-start: 0;
+  --padding-inline-end: 0;
+  --padding-bottom: 0;
+  --padding-top: 0;
+  box-shadow: 1px 1px 2px 2px var(--color-text) inset;
 }
 
 .div_mesa {
@@ -72,17 +106,6 @@ ion-card-content {
   gap: 8px;
 }
 
-.ion_btns {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.btn_logged {
-  font-size: 20px;
-  font-weight: 1000;
-}
-
 .acciones {
   display: flex;
   gap: 5px;
@@ -90,57 +113,6 @@ ion-card-content {
 
 ion-button {
   font-weight: 600;
-}
-
-.btns_main {
-  --background: #554738;
-  border: 2px solid white;
-  border-radius: 5px;
-  margin: -15px 0 10px 0;
-}
-
-.btns_main_back {
-  color: #554738;
-  --background: white;
-  border: 2px solid #554738;
-  border-radius: 5px;
-}
-
-.card-pending {
-  background: #f5e6d3;
-  border: 2px solid #d3a87c;
-  border-radius: 12px;
-  text-align: center;
-  color: #554738;
-  font-weight: 600;
-  margin: 10px 0;
-  padding: 10px;
-}
-
-.card-pending .resalta {
-  color: #a45c2b;
-  font-weight: bold;
-}
-
-.card-success {
-  background: #e8f5e9;
-  border: 2px solid #4caf50;
-  border-radius: 12px;
-  text-align: center;
-  color: #2e7d32;
-  font-weight: 600;
-  margin: 10px 0;
-  padding: 0 10px 10px 10px;
-}
-
-.estado-mesa {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  background-color: #e6dacd;
-  border-top: 2px solid black;
 }
 
 .btn_pedido {

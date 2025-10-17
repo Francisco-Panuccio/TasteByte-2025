@@ -1,5 +1,7 @@
 <header>
+  <img src="assets/icon/cubiertos.png">
   <title>Memotest</title>
+  <img src="assets/icon/cubiertos.png">
 </header>
 
 <ion-content>
@@ -8,7 +10,7 @@
 
     <div class="vidas">
       Vidas restantes:
-      <span *ngFor="let v of [].constructor(vidasRestantes)">🖤</span>
+      <span *ngFor="let v of [].constructor(vidasRestantes)">🩷</span>
     </div>
 
     <div class="tablero">
@@ -22,24 +24,20 @@
       <p>Pares encontrados: {{ aciertos }} / {{ imagenesBase.length }}</p>
     </div>
 
-    <div *ngIf="juegoFinalizado" class="resultado">
-      <ion-button class="btn_replay" (click)="resetear()">
-        Volver a Jugar
-      </ion-button>
-      <p *ngIf="vidasRestantes <= 0" class="perdio-texto">
-        😢 Te quedaste sin vidas 😢 <br> Inténtalo de nuevo
-      </p>
-      <p *ngIf="aciertos === imagenesBase.length" class="gano-texto">
-        🎉 ¡Ganaste el juego!
-      </p>
-    </div>
+    @if(juegoFinalizado) {
+      <div class="div_replay">
+        <ion-button class="btn-primary" (click)="resetear()">
+          Volver a Jugar
+        </ion-button>
+      </div>
+    }
   </div>
 </ion-content>
 
 <footer>
-  <ion-toolbar>
-    <ion-buttons class="ion_btns">
-      <ion-button class="btn_logged" (click)="volver()">Volver</ion-button>
-    </ion-buttons>
-  </ion-toolbar>
+  <hr>
+  <button class="btn_footer" (click)="volver()">
+    Volver
+  </button>
+  <hr>
 </footer>

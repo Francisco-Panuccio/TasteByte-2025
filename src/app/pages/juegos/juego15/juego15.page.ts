@@ -1,19 +1,20 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { Descuentos } from 'src/app/services/descuentos/descuentos';
+import { Component, OnInit } from "@angular/core";
+import { ActivatedRoute, Router } from "@angular/router";
+import { ToastController } from "@ionic/angular";
+import { Descuentos } from "src/app/services/descuentos/descuentos";
 
 @Component({
-  selector: 'app-juego15',
-  templateUrl: './juego15.page.html',
-  styleUrls: ['./juego15.page.scss'],
+  selector: "app-juego15",
+  templateUrl: "./juego15.page.html",
+  styleUrls: ["./juego15.page.scss"],
   standalone: false
 })
 export class Juego15Page implements OnInit {
   play = false;
   cartaActual = 0;
   cartaSiguiente = 0;
-  urlCarta = '';
-  urlBaraja = '';
+  urlCarta = "";
+  urlBaraja = "";
 
   imagenes: string[] = [];
 
@@ -32,14 +33,15 @@ export class Juego15Page implements OnInit {
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private descuentos: Descuentos
+    private descuentos: Descuentos,
+    private toast: ToastController
   ) {
     this.route.queryParams.subscribe(params => {
-      this.mesaId = params['mesaId'] ? Number(params['mesaId']) : 0;
-      this.clienteId = params['clienteId'] ? Number(params['clienteId']) : null;
-      this.usuarioId = params['usuarioId'] ? Number(params['usuarioId']) : null;
-      this.anonimoId = params['anonimoId'] ?? null;
-      this.userId = params['userId'] ?? null;
+      this.mesaId = params["mesaId"] ? Number(params["mesaId"]) : 0;
+      this.clienteId = params["clienteId"] ? Number(params["clienteId"]) : null;
+      this.usuarioId = params["usuarioId"] ? Number(params["usuarioId"]) : null;
+      this.anonimoId = params["anonimoId"] ?? null;
+      this.userId = params["userId"] ?? null;
     });
   }
 
@@ -49,19 +51,19 @@ export class Juego15Page implements OnInit {
 
   async precargaDeImagenes() {
     this.imagenes = [
-      'assets/images/mayor-menor/baraja.jpg',
-      'assets/images/mayor-menor/1.jpg',
-      'assets/images/mayor-menor/2.jpg',
-      'assets/images/mayor-menor/3.jpg',
-      'assets/images/mayor-menor/4.jpg',
-      'assets/images/mayor-menor/5.jpg',
-      'assets/images/mayor-menor/6.jpg',
-      'assets/images/mayor-menor/7.jpg',
-      'assets/images/mayor-menor/8.jpg',
-      'assets/images/mayor-menor/9.jpg',
-      'assets/images/mayor-menor/10.jpg',
-      'assets/images/mayor-menor/11.jpg',
-      'assets/images/mayor-menor/12.jpg'
+      "assets/images/mayor-menor/baraja.jpg",
+      "assets/images/mayor-menor/1.jpg",
+      "assets/images/mayor-menor/2.jpg",
+      "assets/images/mayor-menor/3.jpg",
+      "assets/images/mayor-menor/4.jpg",
+      "assets/images/mayor-menor/5.jpg",
+      "assets/images/mayor-menor/6.jpg",
+      "assets/images/mayor-menor/7.jpg",
+      "assets/images/mayor-menor/8.jpg",
+      "assets/images/mayor-menor/9.jpg",
+      "assets/images/mayor-menor/10.jpg",
+      "assets/images/mayor-menor/11.jpg",
+      "assets/images/mayor-menor/12.jpg"
     ];
     this.urlBaraja = this.imagenes[0];
     this.urlCarta = this.urlBaraja;
@@ -82,7 +84,7 @@ export class Juego15Page implements OnInit {
     return Math.floor(Math.random() * 12) + 1;
   }
 
-  async elegir(opcion: 'mayor' | 'menor') {
+  async elegir(opcion: "mayor" | "menor") {
     if (this.juegoFinalizado) return;
 
     this.intentos++;
@@ -97,8 +99,7 @@ export class Juego15Page implements OnInit {
 
     const esMayor = this.cartaSiguiente > this.cartaActual;
     const acierto =
-      (opcion === 'mayor' && esMayor) ||
-      (opcion === 'menor' && !esMayor);
+      (opcion === "mayor" && esMayor) || (opcion === "menor" && !esMayor);
 
     if (acierto) {
       this.racha++;
@@ -106,25 +107,28 @@ export class Juego15Page implements OnInit {
         this.gano = true;
         this.juegoFinalizado = true;
 
+        await this.presentToast("🎉 ¡Ganó el Juego! 🎉", "Felicitaciones");
+
         if (!this.descuentoAplicado && this.clienteId && this.userId) {
           await this.descuentos.aplicarDescuento(
             this.clienteId,
             this.userId,
             this.mesaId,
             15,
-            'juego15'
+            "juego15"
           );
           this.descuentoAplicado = true;
         }
       }
     } else {
-
       this.gano = false;
       this.juegoFinalizado = true;
       this.racha = 0;
 
+      await this.presentToast("😢 Perdió el Juego 😢", "Inténtelo Nuevamente");
+
       if (this.userId) {
-        await this.descuentos.registrarIntento(this.userId, 'juego15', false);
+        await this.descuentos.registrarIntento(this.userId, "juego15", false);
       }
     }
 
@@ -135,8 +139,19 @@ export class Juego15Page implements OnInit {
     this.iniciarJuego();
   }
 
+  private async presentToast(header:string, message: string) {
+    const t = await this.toast.create({
+      header,
+      message,
+      duration: 1500,
+      position: "top",
+      cssClass: "toast"
+    });
+    await t.present();
+  }
+
   volver() {
-    this.router.navigate(['/juegos'], {
+    this.router.navigate(["/juegos"], {
       queryParams: {
         clienteId: this.clienteId,
         usuarioId: this.usuarioId,

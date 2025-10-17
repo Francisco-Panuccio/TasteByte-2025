@@ -2,44 +2,49 @@
   <app-loading/>
 } @else {
   <header>
+    <img src="assets/icon/cubiertos.png">
     <title>Clientes Pendientes</title>
+    <img src="assets/icon/cubiertos.png">
   </header>
 
-  <ion-content class="ion-padding">
-    <ion-text color="danger" *ngIf="err">{{ err }}</ion-text>
-    <ion-text color="success" *ngIf="ok">{{ ok }}</ion-text>
-
-    <ion-list *ngIf="!loading && clientes.length > 0">
-      <ion-item *ngFor="let c of clientes" class="card-item">
-        <div class="item-content">
-          <div class="user-info">
-            <ion-avatar slot="start">
-              <img [src]="c.usuario.foto_url || 'assets/avatar.png'" alt="foto cliente">
-            </ion-avatar>
-            <ion-label>
-              <h2>{{ c.usuario.apellidos }}, {{ c.usuario.nombres }}</h2>
-              <p>DNI: {{ c.usuario.numero_documento }}</p>
-              <p>Email: {{ c.usuario.correo_electronico }}</p>
-            </ion-label>
+  <ion-content>
+    @if(clientes.length > 0) {
+      <div class="div_list">
+        <div class="item" *ngFor="let c of clientes">
+          <div class="item-first-part">
+            <div class="item-img">
+              <img [src]="c.usuario.foto_url || 'assets/avatar.png'" />
+            </div>
+  
+            <div class="item-data">
+              <p class="name">{{ c.usuario.apellidos | titlecase }} {{ c.usuario.nombres | titlecase }}</p>
+              <p>🛂DNI: {{ c.usuario.numero_documento }}</p>
+            </div>
           </div>
-          <div class="buttons-row">
-            <button class="btn-success" (click)="aprobar(c.usuario_id)">APROBAR</button>
-            <button class="btn-danger" (click)="rechazar(c.usuario_id)">RECHAZAR</button>
+
+          <div class="item-data2">
+            <p>✉️{{ c.usuario.correo_electronico }}</p>
+          </div>
+
+          <div class="item-btns">
+            <button class="aprove" (click)="aprobar(c.usuario_id)">Aprobar</button>
+            <button class="quit" (click)="rechazar(c.usuario_id)">Quitar</button>
           </div>
         </div>
-      </ion-item>
-    </ion-list>
-
-    <ion-item *ngIf="!loading && clientes.length === 0">
-      <p class="p_clientes">No hay Clientes Pendientes</p>
-    </ion-item>
+      </div>
+    } @else {
+      <div #vacio class="empty">
+        <p class="p_clientes">No hay Clientes en Espera</p>
+        <img src="assets/images/espera.png">
+      </div>
+    }
   </ion-content>
 
   <footer>
-    <ion-toolbar>
-      <ion-buttons class="ion_btns">
-        <ion-button class="btn_logged" routerLink="/home">Volver</ion-button>
-      </ion-buttons>
-    </ion-toolbar>
+    <hr>
+    <button class="btn_footer" routerLink="/home">
+      Volver
+    </button>
+    <hr>
   </footer>
 }
