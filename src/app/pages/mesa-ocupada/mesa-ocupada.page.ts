@@ -623,7 +623,6 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
 
   showCarrito() {
     this.carritoFlag = !this.carritoFlag;
-    console.log(this.carritoFlag);
   }
 
   volver() {

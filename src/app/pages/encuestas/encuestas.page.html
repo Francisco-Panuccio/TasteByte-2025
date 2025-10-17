@@ -38,7 +38,7 @@
           <ion-item class="items" *ngFor="let r of respuestas">
             <ion-label>
               <h3>🗓️ {{ r.creado_en | date:'short' }}</h3>
-              <hr>
+              <hr class="hr">
               <div class="div_encuesta">
                 <p class="p_encuesta">Calificación General: </p> 
                 <span class="span_encuesta">{{ r.calificacion_general || '—'}}/10</span>
@@ -53,7 +53,7 @@
                 <p class="p_encuesta">Tiempo de Espera: </p> 
                 <span class="span_encuesta">{{ r.tiempo_espera || '—' | titlecase }}</span>
               </div>
-              <hr>
+              <hr class="hr">
               @if (r.opinion) { 
                 <div class="div_opinion">
                   <p class="p_encuesta">Opinión General</p> 
