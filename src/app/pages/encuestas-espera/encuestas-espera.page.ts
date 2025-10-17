@@ -87,14 +87,25 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     private router: Router,
     private route: ActivatedRoute,
     private usuarios: Usuarios,
-    private session: ClienteSessionService // ✅ agregado
+    private session: ClienteSessionService
   ) {}
 
   async ngOnInit() {
-    //this.loading = true;
-    //setTimeout(() => (this.loading = false), 1200);
+    if (this.session.mesaAsignadaId && this.session.tienePermiso) {
+      this.mesaAsignadaId = this.session.mesaAsignadaId;
+      this.pedidoId = this.session.pedidoId;
+      this.estadoPedido = this.session.estadoPedido;
+      this.tienePermiso = true;
+      this.yaRegistrado = true;
+      this.qrValido = true;
+      this.tieneMesa = true;
 
-    // ✅ restaurar sesión anterior si existe
+      this.actualizarFlags();
+      await this.ensureChatAndSubscribe();
+      this.loading = false;
+      return;
+    }
+
     if (this.session.tienePermiso) {
       this.tienePermiso = this.session.tienePermiso;
       this.qrValido = this.session.qrValido;
@@ -221,8 +232,16 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
                 this.yaRegistrado = true;
                 this.tieneMesa = true;
                 this.zone.run(() => {
-                  this.mostrarToast(`Ya puede tomar asiento en la mesa #${this.mesaAsignadaId}.`, "Mesa Asginada");
+                  this.mostrarToast(
+                    `Ya puede tomar asiento en la mesa #${this.mesaAsignadaId}.`,
+                    'Mesa Asginada'
+                  );
                 });
+
+                this.session.mesaAsignadaId = this.mesaAsignadaId;
+                this.session.yaRegistrado = true;
+                this.session.tienePermiso = true;
+
                 await this.ensureChatAndSubscribe();
               }
             } else if (payload.eventType === 'DELETE') {
@@ -307,6 +326,11 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
           this.qrValido = true;
           this.session.tienePermiso = true;
           this.session.qrValido = true;
+
+          if (this.mesaAsignadaId) {
+            this.session.mesaAsignadaId = this.mesaAsignadaId;
+          }
+
           this.mostrarToast(
             '✔️ Ingreso validado. Ya tenes acceso a algunas funciones.'
           );
@@ -329,7 +353,6 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
           .maybeSingle();
 
         if (pedido) {
-
           this.estadoPedido = pedido.estado;
           this.pedidoId = pedido.id;
           this.mesaAsignadaId = mesaId;
@@ -367,9 +390,12 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       .in('estado', ['pendiente', 'asignada', 'sentado'] as EstadoAsignacion[])
       .order('asignada_en', { ascending: false })
       .limit(1);
+
     if (this.clienteId) q = q.eq('cliente_id', this.clienteId);
     if (this.anonimoId) q = q.eq('cliente_anonimo_id', this.anonimoId);
+
     const { data: asignacion, error: errAsignacion } = await q.maybeSingle();
+
     if (
       !errAsignacion &&
       asignacion &&
@@ -378,6 +404,32 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       this.mesaAsignadaId = asignacion.mesa_id;
       this.yaRegistrado = true;
       this.tieneMesa = true;
+      this.tienePermiso = true;
+
+      this.session.tienePermiso = true;
+      this.session.qrValido = true;
+      this.session.mesaAsignadaId = this.mesaAsignadaId;
+      this.session.yaRegistrado = true;
+
+      const { data: pedido } = await supabase
+        .from('pedidos')
+        .select('id, estado')
+        .eq('mesa_id', this.mesaAsignadaId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (pedido) {
+        this.estadoPedido = pedido.estado;
+        this.pedidoId = pedido.id;
+
+        this.session.pedidoId = this.pedidoId;
+        this.session.estadoPedido = this.estadoPedido;
+
+        this.actualizarFlags();
+        this.suscribirPedido(this.pedidoId);
+      }
+
       await this.ensureChatAndSubscribe();
       return;
     }
@@ -386,11 +438,16 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       .from('lista_espera')
       .select('id, estado')
       .in('estado', ['pendiente', 'aprobado']);
+
     if (this.clienteId) qLista = qLista.eq('cliente_id', this.clienteId);
     if (this.anonimoId)
       qLista = qLista.eq('cliente_anonimo_id', this.anonimoId);
+
     const { data: espera, error: errLista } = await qLista.maybeSingle();
-    if (!errLista && espera) this.yaRegistrado = true;
+    if (!errLista && espera) {
+      this.yaRegistrado = true;
+      this.session.yaRegistrado = true;
+    }
   }
 
   async escanearQrMesa() {
@@ -424,6 +481,8 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       if (data) {
         this.estadoPedido = data.estado;
         this.pedidoId = data.id;
+        this.session.pedidoId = this.pedidoId;
+        this.session.estadoPedido = this.estadoPedido;
 
         if (this.estadoPedido === 'rechazado') {
           await this.router.navigate(['/mesa-ocupada'], { queryParams: qp });
@@ -498,7 +557,10 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
         },
         (payload) => {
           const nuevoEstado = (payload.new as any)['estado'];
-          if (nuevoEstado) this.estadoPedido = nuevoEstado;
+          if (nuevoEstado) {
+            this.estadoPedido = nuevoEstado;
+            this.session.estadoPedido = nuevoEstado;
+          }
         }
       )
       .on(
@@ -642,11 +704,18 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     try {
       await supabase.auth.signOut();
     } catch {}
+    this.session.limpiar();
     this.router.navigate(['/login'], { replaceUrl: true });
   }
 
   private async mostrarToast(mensaje: string, header?: string) {
-    const t = await this.toast.create({ header, message: mensaje, duration: 1500, cssClass: "toast", position: "top" });
+    const t = await this.toast.create({
+      header,
+      message: mensaje,
+      duration: 1500,
+      cssClass: 'toast',
+      position: 'top',
+    });
     await t.present();
   }
 
@@ -718,30 +787,27 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   }
 
   async openChat() {
-  if (!this.chatId && this.mesaAsignadaId) {
-    const chat = await this.chatSvc.getOrCreateForMesa(
-      this.mesaAsignadaId,
-      "cliente",
-      this.anonimoId
-    );
+    if (!this.chatId && this.mesaAsignadaId) {
+      const chat = await this.chatSvc.getOrCreateForMesa(
+        this.mesaAsignadaId,
+        'cliente',
+        this.anonimoId
+      );
 
-    this.chatId = chat.id;
-    await this.chatSvc.bindMyPushToken(this.chatId, this.anonimoId);
+      this.chatId = chat.id;
+      await this.chatSvc.bindMyPushToken(this.chatId, this.anonimoId);
+    }
+
+    this.chatOpen = true;
+    this.chatReady = true;
+    this.scrollToBottomAfterRender();
   }
 
-  this.chatOpen = true;
-  this.chatReady = true;
-  this.scrollToBottomAfterRender();
-}
-
-
-
   async closeChat() {
-  await this.chatModal?.dismiss();
-  this.chatOpen = false;
-  this.chatReady = false;
-}
-
+    await this.chatModal?.dismiss();
+    this.chatOpen = false;
+    this.chatReady = false;
+  }
 
   async sendMessage() {
     if (!this.chatReady || !this.chatId) return;

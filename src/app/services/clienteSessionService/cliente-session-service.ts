@@ -10,6 +10,10 @@ export class ClienteSessionService {
   clienteId: string | null = null;
   userUid: string | null = null;
 
+  mesaAsignadaId: number | null = null;
+  pedidoId: string | null = null;
+  estadoPedido: string | null = null;
+
   limpiar() {
     this.tienePermiso = false;
     this.qrValido = false;
@@ -18,5 +22,8 @@ export class ClienteSessionService {
     this.usuarioId = null;
     this.clienteId = null;
     this.userUid = null;
+    this.mesaAsignadaId = null;
+    this.pedidoId = null;
+    this.estadoPedido = null;
   }
 }
