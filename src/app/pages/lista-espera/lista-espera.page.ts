@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { ModalController, NavController, ToastController } from '@ionic/angular';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router'; 
 import { supabase } from 'src/supabase.client';
 import { ListadoMesasPage } from '../listado-mesas/listado-mesas.page';
 import { Push } from 'src/app/services/push/push';
@@ -18,13 +18,14 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
   esMaitre = false;
   anonimoId: string | null = null;
   usuarioId: string | null = null;
-
+  from: 'cliente' | 'maitre' | null = null;
   private rtChannel?: ReturnType<typeof supabase.channel>;
   private seenWaitIds = new Set<string>();
   private toast = inject(ToastController);
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private modalCtrl: ModalController,
     private navCtrl: NavController,
     private push: Push
@@ -44,6 +45,7 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
   async ngOnInit() {
     this.anonimoId = this.route.snapshot.queryParamMap.get('anonimoId');
     this.usuarioId = this.route.snapshot.queryParamMap.get('userId');
+    this.from = (this.route.snapshot.queryParamMap.get('from') as any) ?? null;
     if (this.anonimoId) this.esCliente = true;
 
     let perfil: string | undefined;
@@ -101,7 +103,6 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
         }
       )
       .subscribe();
-
   }
 
   ngOnDestroy(): void {
@@ -111,7 +112,7 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
   }
 
   async cargarLista() {
-    this.loading = true;
+    //this.loading = true;
     const { data, error } = await supabase
       .from('lista_espera_v')
       .select('*')
@@ -212,7 +213,34 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
     return idx >= 0 ? idx + 1 : null;
   }
 
-  volver() {
-    this.navCtrl.back();
-  }
+ async volver() {
+  if (this.from === 'cliente') {
+    this.loading = true;
+    setTimeout(() => {
+      this.router.navigate(['/encuestas-espera'], {
+        queryParams: {
+          anonimoId: this.anonimoId,
+          usuarioId: this.usuarioId,
+          tienePermiso: true,
+          qrValido: true,
+        },
+      });
+    }, 300);
+    setTimeout(() => (this.loading = false), 1800);
+  } else {
+  this.navCtrl.navigateBack('/home', {
+    animated: true,
+    state: { from: 'lista-espera' },
+  });
+}
+
+}
+
+
+
+
+
+
+
+
 }

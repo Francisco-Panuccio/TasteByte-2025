@@ -66,41 +66,58 @@ export class AnonRegisterPage implements OnInit {
   }
 
   async registrarAnonimo() {
-    if (this.formAnon.invalid) {
-      this.formAnon.markAllAsTouched();
+  if (this.formAnon.invalid) {
+    this.formAnon.markAllAsTouched();
+    this.err = 'Completá todos los campos.';
+    return;
+  }
+
+  this.loading = true;
+  this.err = null;
+
+  try {
+    const { nombre, foto } = this.formAnon.value;
+
+    if (!foto) {
+      this.err = 'Tenés que sacar una foto antes de continuar.';
+      this.loading = false;
       return;
     }
 
-    this.loading = true;
-    try {
-      const { nombre, foto } = this.formAnon.value;
+    console.log('[AnonRegister] Enviando datos:', { nombre, foto });
 
-      const { data, error } = await supabase
-        .from('clientes_anonimos')
-        .insert({
-          nombre,
-          foto_url: foto,
-        })
-        .select('id')
-        .single();
+    const { data, error } = await supabase
+      .from('clientes_anonimos')
+      .insert({ nombre, foto_url: foto })
+      .select('id')
+      .maybeSingle();
 
-      if (error) throw error;
+    if (error) throw error;
 
-      const anonimoId = data.id;
+    console.log('[AnonRegister] Insert OK:', data);
 
-      this.router.navigate(['/encuestas-espera'], {
-        queryParams: {
-          anonimoId,
-          tienePermiso: true,
-          yaRegistrado: true,
-          qrValido: true,
-        },
-        replaceUrl: true,
-      });
-    } catch (e: any) {
-      this.err = e.message || 'No se pudo registrar anónimo';
-    } finally {
-      this.loading = false;
+    if (!data?.id) {
+      throw new Error('No se recibió ID del cliente anónimo.');
     }
+
+    const anonimoId = data.id;
+
+    const toast = document.createElement('ion-toast');
+    toast.message = 'Registro exitoso, bienvenido!';
+    toast.duration = 1500;
+    document.body.appendChild(toast);
+    await toast.present();
+
+    await this.router.navigate(['/encuestas-espera'], {
+      queryParams: { anonimoId },
+      replaceUrl: true,
+    });
+  } catch (e: any) {
+    console.error('[AnonRegister Error]', e);
+    this.err = e.message || 'No se pudo registrar el cliente anónimo.';
+  } finally {
+    this.loading = false;
   }
+}
+
 }

@@ -65,52 +65,39 @@
           <hr>
         </div>
 
-        <div id="container">
-          <p routerLink="/alta-bebida">Alta <br> Bebidas</p>
-          <p routerLink="/bar">Bar</p>
-        </div>
-      </div>
-    } @else if(isMaitre) {
-      <div class="div_main">
-        <div class="div_data">
-          <div class="two-items">
-            <p>Bienvenido</p>
-            <span>✉️ {{email}}</span>
-            <div><span class="span_profile">{{profile | titlecase}}</span></div>
-          </div>
-        </div>
-
-        <div class="div_container_photo">
-          <hr>
-          <div class="div_photo">
-            <img [src]="this.empleadoFoto">
-          </div>
-          <hr>
-        </div>
-
-        <div id="container">
-          <p routerLink="/alta-cliente">Alta <br> Clientes</p>
-          <p routerLink="/lista-espera">Lista <br> De <br> Espera</p>
-        </div>
-      </div>
-    } 
-    
-    @else if(isCliente) {
-    <div class="div_main">
-      <div class="div_data">
-        <div>
-          <p style="margin: 20px 0;">Bienvenido</p>
-          <span>✉️ {{email}}</span>
-          <div><span class="span_profile">{{ (profile || "").split("_").join(" ") | titlecase }}</span></div>
-        </div>
-      </div>
       <div id="container">
-        <p class="qr-button" (click)="escanearQrEntrada()">Escanear <br> QR de <br> Entrada</p>
+        <p routerLink="/alta-bebida">Alta <br> Bebidas</p>
+        <p routerLink="/bar">Bar</p>
       </div>
     </div>
-  }
-    
-    @else {
+  } @else if(isMaitre) {
+  <div class="div_main">
+    <div class="div_data">
+      <div class="two-items">
+        <p>Bienvenido</p>
+        <span>✉️ {{email}}</span>
+        <div><span class="span_profile">{{profile | titlecase}}</span></div>
+      </div>
+    </div>
+
+    <div class="div_container_photo">
+      <hr>
+      <div class="div_photo">
+        <img [src]="this.empleadoFoto">
+      </div>
+      <hr>
+    </div>
+
+    <div id="container">
+      <p routerLink="/alta-cliente">Alta <br> Clientes</p>
+      <p routerLink="/lista-espera"
+        [queryParams]="{ from: 'maitre' }"
+        routerDirection="forward">
+        Lista <br> De <br> Espera
+      </p>
+    </div>
+  </div>
+} @else {
       <div class="div_main">
         <div class="div_data">
           <div>

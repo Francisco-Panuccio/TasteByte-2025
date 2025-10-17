@@ -268,3 +268,52 @@ ion-item::part(native) {
   border-radius: 20px;
   border: 2px solid var(--color-text);
 }
+
+/* ---------------------------------------------------------- */
+/* 🔹 TEXTO DE INSTRUCCIÓN DEL QR DE INGRESO */
+/* ---------------------------------------------------------- */
+
+.btn_ingreso {
+  --background: rgb(70, 194, 87);
+  color: var(--color-text);
+  font-size: 20px;
+  font-weight: 600;
+  width: 150px;
+  height: 120px;
+  border-radius: 20px;
+  border: 2px solid var(--color-text);
+  text-align: center;
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.25);
+  animation: pulseIngreso 2s infinite ease-in-out;
+}
+
+@keyframes pulseIngreso {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(70, 194, 87, 0.6);
+  }
+  70% {
+    transform: scale(1.04);
+    box-shadow: 0 0 0 10px rgba(70, 194, 87, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(70, 194, 87, 0);
+  }
+}
+
+.texto_ingreso {
+  text-align: center;
+  color: var(--color-text);
+  font-size: 18px;
+  font-weight: 600;
+  margin-top: 10px;
+  margin-bottom: 0;
+  background-color: var(--color-container);
+  border: 2px solid var(--color-text);
+  border-radius: 15px;
+  padding: 8px 12px;
+  width: 300px;
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+  line-height: 1.3;
+}
