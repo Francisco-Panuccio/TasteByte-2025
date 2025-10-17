@@ -31,6 +31,8 @@ export class HomePage implements OnInit {
   isMaitre = false;
   isCliente = false;
   isMozo = false;
+  private yaMostroLoading = false;
+  private skipNextLoading = false;
 
   userId = '';
   clienteId: number | null = null;
@@ -66,14 +68,23 @@ export class HomePage implements OnInit {
   }
 
   async ngOnInit() {
+    const vieneDeLista = sessionStorage.getItem('desdeLista') === 'true';
+    if (vieneDeLista) {
+      this.loading = false;
+      sessionStorage.removeItem('desdeLista');
+    } else {
+      this.loading = true;
+    }
+
     try {
       this.route.queryParams.subscribe(async (params) => {
         const anonimoId = params['anonimoId'];
+
         if (anonimoId) {
-          this.isCliente = true;
-          this.profile = 'cliente_anonimo';
-          this.email = ' ☠︎ anonymous ☠︎';
-          this.loading = false;
+          this.router.navigate(['/encuestas-espera'], {
+            queryParams: { anonimoId },
+            replaceUrl: true,
+          });
           return;
         }
 
@@ -82,9 +93,11 @@ export class HomePage implements OnInit {
           this.router.navigateByUrl('/login', { replaceUrl: true });
           return;
         }
-        this.userId = user.id;
 
-        const usuarioDB: Usuario | null = await this.usuarios.getByEmail(user.email!);
+        this.userId = user.id;
+        const usuarioDB: Usuario | null = await this.usuarios.getByEmail(
+          user.email!
+        );
         if (!usuarioDB) {
           this.router.navigateByUrl('/login', { replaceUrl: true });
           return;
@@ -94,6 +107,30 @@ export class HomePage implements OnInit {
         this.profile = usuarioDB.perfil;
         this.usuarioId = usuarioDB.id ?? null;
 
+        const p = (usuarioDB.perfil ?? '')
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLowerCase()
+          .trim();
+
+        if (p === 'cliente_registrado') {
+          const { data: cliente } = await supabase
+            .from('clientes')
+            .select('id')
+            .eq('usuario_id', usuarioDB.id)
+            .maybeSingle();
+
+          this.router.navigate(['/encuestas-espera'], {
+            queryParams: {
+              clienteId: cliente?.id ?? null,
+              usuarioId: usuarioDB.id,
+              userId: user.id,
+            },
+            replaceUrl: true,
+          });
+          return;
+        }
+
         const { data: empleado } = await supabase
           .from('usuarios')
           .select('foto_url')
@@ -101,25 +138,12 @@ export class HomePage implements OnInit {
           .maybeSingle();
         this.empleadoFoto = empleado?.foto_url ?? '';
 
-        const { data: cliente } = await supabase
-          .from('clientes')
-          .select('id')
-          .eq('usuario_id', usuarioDB.id)
-          .maybeSingle();
-        this.clienteId = cliente?.id ?? null;
-
-        const p = (usuarioDB.perfil ?? '')
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '')
-          .toLowerCase()
-          .trim();
-
         this.isDuenoSupervisor = p === 'dueno' || p === 'supervisor';
         this.isCocinero = p === 'cocinero';
         this.isBartender = p === 'bartender';
         this.isMaitre = p === 'maitre';
-        this.isCliente = p === 'cliente_registrado' || p === 'cliente_anonimo';
         this.isMozo = p === 'mozo';
+        this.isCliente = false;
 
         const role = this.perfilToRole(usuarioDB.perfil);
         await this.push.init(this.usuarioId ?? null, role);
@@ -128,11 +152,14 @@ export class HomePage implements OnInit {
     } catch {
       this.router.navigateByUrl('/login', { replaceUrl: true });
     } finally {
-      setTimeout(() => {
+      if (this.skipNextLoading) {
         this.loading = false;
-      }, 2000);
+        this.skipNextLoading = false;
+        return;
+      }
 
-
+      this.loading = true;
+      setTimeout(() => (this.loading = false), 2000);
     }
   }
 
@@ -151,32 +178,13 @@ export class HomePage implements OnInit {
     this.router.navigateByUrl('/login', { replaceUrl: true });
   }
 
-  async escanearQrEntrada() {
-    this.router.navigate(['/encuestas-espera'], {
-      queryParams: {
-        clienteId: this.clienteId,
-        tienePermiso: true,
-        yaRegistrado: true,
-        qrValido: true,
-        userId: this.userId,
-      },
-    });
-    //   const qr = await this.qr.scanQr();
-    //   if (!qr) return;
+  ionViewWillEnter() {
+    if (performance.getEntriesByType('navigation').length > 1) {
+      this.loading = false;
+      return;
+    }
 
-    //   const res = await this.qr.procesarQrCliente(qr, this.clienteId ?? undefined);
-
-    //   if (res.permiso && qr.startsWith("INGRESO")) {
-    //     this.router.navigate(["/encuestas-espera"], {
-    //       queryParams: {
-    //         clienteId: this.clienteId,
-    //         tienePermiso: true,
-    //         yaRegistrado: !!res.yaRegistrado,
-    //         qrValido: true,
-    //         userId: this.userId
-    //       }
-    //     });
-    //   }
-    // }
+    this.loading = true;
+    setTimeout(() => (this.loading = false), 2000);
   }
 }
