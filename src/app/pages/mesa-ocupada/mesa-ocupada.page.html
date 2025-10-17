@@ -146,23 +146,48 @@
           </div>
         </div>
       } @else {
-        <button
-          class="btn_pedido"
-          (click)="showCarrito()">
-          Ver Menú
-        </button>
+        <header class="carrito-header">
+          <h2>🛒 Carrito de Pedido</h2>
+        </header>
 
-        <div class="div_data">
-          <div class="importe">Total: {{ total | currency:"ARS":"symbol-narrow":"1.0-0" }}</div>
-          <div class="tiempo_espera">Espera: {{ etaMin }} minutos</div>
+        <div class="carrito-lista">
+          @if(itemsSel.length > 0) {
+            @for(item of itemsSel; track item.productoId) {
+              <div class="carrito-item">
+                <div class="item-info">
+                  <strong>{{ item.nombre | titlecase }}</strong>
+                  <p>{{ item.tipo | titlecase }}</p>
+                </div>
+
+                <div class="item-detalle">
+                  <span>Cant: {{ item.cantidad }}</span>
+                  <span>Precio: {{ item.precioUnit | currency:"ARS":"symbol-narrow":"1.0-0" }}</span>
+                  <span>Subtotal: {{ item.cantidad * item.precioUnit | currency:"ARS":"symbol-narrow":"1.0-0" }}</span>
+                </div>
+              </div>
+            }
+
+            <div class="carrito-total">
+              <p><strong>Total:</strong> {{ total | currency:"ARS":"symbol-narrow":"1.0-0" }}</p>
+              <p><strong>Tiempo estimado:</strong> {{ etaMin }} min</p>
+            </div>
+
+            <div class="carrito-botones">
+              <button
+                class="btn_pedido"
+                [disabled]="submitting || pedidoBloqueado || itemsSel.length===0"
+                (click)="terminarPedido();">
+                Finalizar Pedido
+              </button>
+            </div>
+          } @else {
+            <div class="carrito-vacio">
+              <img src="assets/images/carritoVacio.png" alt="Carrito vacío">
+              <p>No hay productos en tu pedido todavía.</p>
+              <button class="btn_pedido" (click)="showCarrito()">Ver Menú</button>
+            </div>
+          }
         </div>
-        
-        <button
-          class="btn_pedido"
-          [disabled]="submitting || pedidoBloqueado || itemsSel.length===0"
-          (click)="terminarPedido();">
-          Finalizar Pedido
-        </button>
       }
     </ion-content>
   }
