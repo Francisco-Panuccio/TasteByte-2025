@@ -531,149 +531,139 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   // }
 
   async terminarPedido() {
-  try {
-    if (!this.itemsSel.length) { return; }
-    if (!this.mesaId) { throw new Error("Mesa inválida."); }
-    if (this.pedidoBloqueado) { this.updateBanner(); return; }
-    this.submitting = true;
+    try {
+      if (!this.itemsSel.length) { return; }
+      if (!this.mesaId) { throw new Error("Mesa inválida."); }
+      if (this.pedidoBloqueado) { this.updateBanner(); return; }
+      this.submitting = true;
 
-    // Obtener o refrescar identidad del cliente
-    if (!this.userUid && !this.clienteEmail) {
-      const { data } = await supabase.auth.getUser();
-      this.clienteEmail = data.user?.email ?? null;
-      this.userUid = this.anonimoId ? "" : (data.user?.id ?? "");
-    }
-
-    let existente = await this.buscarPedidoActivoDb();
-
-    if (!existente && this.clienteEmail) {
-      try {
-        const svc = await this.pedidos.getPedidoActivo({
-          mesaId: this.mesaId,
-          clienteUid: undefined,
-          clienteEmail: this.clienteEmail
-        });
-        if (svc) {
-          existente = {
-            id: svc.id as string,
-            estado: (svc as any).estado,
-            mesa_id: this.mesaId
-          } as PedidoRow;
-        }
-      } catch { }
-    }
-
-    let pedidoId: string | undefined;
-
-    // Reutilizar o crear nuevo pedido
-    if (existente) {
-      if (existente.estado !== "rechazado") {
-        this.pedidoEnCurso = true;
-        this.pedidoActualId = existente.id;
-        this.applyEstado(existente.estado);
-        return;
-      } else {
-        await this.pedidos.reemplazarItems(existente.id, this.itemsSel, this.total, this.etaMin, "pendiente");
-        pedidoId = existente.id;
+      if (!this.userUid && !this.clienteEmail) {
+        const { data } = await supabase.auth.getUser();
+        this.clienteEmail = data.user?.email ?? null;
+        this.userUid = this.anonimoId ? "" : (data.user?.id ?? "");
       }
-    } else {
-      const rej = await this.buscarUltimoRechazadoDb();
-      if (rej?.id) {
-        await this.pedidos.reemplazarItems(rej.id, this.itemsSel, this.total, this.etaMin, "pendiente");
-        pedidoId = rej.id;
-      } else {
-        pedidoId = await this.pedidos.crearPedido(
-          this.mesaId,
-          this.anonimoId ? "" : this.userUid,
-          this.clienteEmail,
-          this.itemsSel,
-          this.total,
-          this.etaMin
-        );
+
+      let existente = await this.buscarPedidoActivoDb();
+
+      if (!existente && this.clienteEmail) {
         try {
-          const upd: any = {};
-          if (this.anonimoId) { upd.anonimo_id = this.anonimoId; }
-          if (this.usuarioId !== null) { upd.usuario_id = this.usuarioId; }
-          if (this.clienteId !== null) { upd.cliente_id = this.clienteId; }
-          if (Object.keys(upd).length) {
-            await supabase.from("pedidos").update(upd).eq("id", pedidoId);
+          const svc = await this.pedidos.getPedidoActivo({
+            mesaId: this.mesaId,
+            clienteUid: undefined,
+            clienteEmail: this.clienteEmail
+          });
+          if (svc) {
+            existente = {
+              id: svc.id as string,
+              estado: (svc as any).estado,
+              mesa_id: this.mesaId
+            } as PedidoRow;
           }
         } catch { }
       }
-    }
 
-    // Marcar pedido en curso
-    this.pedidoEnCurso = true;
-    this.applyEstado("pendiente");
-    this.pedidoActualId = pedidoId!;
+      let pedidoId: string | undefined;
 
-    // 🔔 Notificar a mozos del nuevo pedido
-    const mesaNumero = this.mesa?.numero ?? "NN";
-    await this.chatSvc
-      .notifyMozosNuevoPedido(mesaNumero as any, this.formatARS(this.total), pedidoId!, this.mesaId)
-      .catch(async e => (await this.toast.create({
-        message: `No se notificó a mozos: ${e?.message ?? e}`,
-        duration: 2500,
-        position: "top"
-      })).present());
-
-    // 🔄 Suscribirse a cambios de estado del pedido
-    this.unsubEstado?.();
-    this.unsubEstado = this.pedidos.onEstadoPedido(pedidoId!, async (estado: any) => {
-      this.zone.run(async () => {
-        this.applyEstado(estado);
-
-        if (this.estadoPedido === "aceptado") {
-          // 🚫 Ya no llamamos enviarAProduccion()
-          // Los triggers en la base se encargan de generar bar_pedidos y cocina_pedidos
-          this.buildPlatoYBebida();
-          this.gotoEncuestasEspera();
-        } 
-        else if (this.estadoPedido === "rechazado") {
-          // Enviar push al cliente en este dispositivo
+      if (existente) {
+        if (existente.estado !== "rechazado") {
+          this.pedidoEnCurso = true;
+          this.pedidoActualId = existente.id;
+          this.applyEstado(existente.estado);
+          return;
+        } else {
+          await this.pedidos.reemplazarItems(existente.id, this.itemsSel, this.total, this.etaMin, "pendiente");
+          pedidoId = existente.id;
+        }
+      } else {
+        const rej = await this.buscarUltimoRechazadoDb();
+        if (rej?.id) {
+          await this.pedidos.reemplazarItems(rej.id, this.itemsSel, this.total, this.etaMin, "pendiente");
+          pedidoId = rej.id;
+        } else {
+          pedidoId = await this.pedidos.crearPedido(
+            this.mesaId,
+            this.anonimoId ? "" : this.userUid,
+            this.clienteEmail,
+            this.itemsSel,
+            this.total,
+            this.etaMin
+          );
           try {
-            await this.push.ready();
-            const tok = this.push.getToken();
-            if (tok) {
-              await this.push.send(
-                tok,
-                "Pedido rechazado",
-                "Tu pedido fue rechazado. Modifícalo y reenvíalo.",
-                { tipo: "pedido_rechazado", pedidoId, mesaId: this.mesaId, mesaNumero: this.mesa?.numero ?? null }
-              );
+            const upd: any = {};
+            if (this.anonimoId) { upd.anonimo_id = this.anonimoId; }
+            if (this.usuarioId !== null) { upd.usuario_id = this.usuarioId; }
+            if (this.clienteId !== null) { upd.cliente_id = this.clienteId; }
+            if (Object.keys(upd).length) {
+              await supabase.from("pedidos").update(upd).eq("id", pedidoId);
             }
           } catch { }
-
-          this.pedidoEnCurso = false;
-          this.submitting = false;
-          (await this.toast.create({
-            message: "Su pedido fue rechazado, por favor modifíquelo correctamente y reenvíelo.",
-            position: "top",
-            cssClass: "toasty",
-            duration: undefined,
-            buttons: [{ text: "Cerrar", role: "cancel" }]
-          })).present();
         }
+      }
+
+      this.pedidoEnCurso = true;
+      this.applyEstado("pendiente");
+      this.pedidoActualId = pedidoId!;
+
+      const mesaNumero = this.mesa?.numero ?? "NN";
+      await this.chatSvc
+        .notifyMozosNuevoPedido(mesaNumero as any, this.formatARS(this.total), pedidoId!, this.mesaId)
+        .catch(async e => (await this.toast.create({
+          message: `No se notificó a mozos: ${e?.message ?? e}`,
+          duration: 2500,
+          position: "top"
+        })).present());
+
+      this.unsubEstado?.();
+      this.unsubEstado = this.pedidos.onEstadoPedido(pedidoId!, async (estado: any) => {
+        this.zone.run(async () => {
+          this.applyEstado(estado);
+
+          if (this.estadoPedido === "aceptado") {
+            this.buildPlatoYBebida();
+            this.gotoEncuestasEspera();
+          }
+          else if (this.estadoPedido === "rechazado") {
+            try {
+              await this.push.ready();
+              const tok = this.push.getToken();
+              if (tok) {
+                await this.push.send(
+                  tok,
+                  "Pedido rechazado",
+                  "Tu pedido fue rechazado. Modifícalo y reenvíalo.",
+                  { tipo: "pedido_rechazado", pedidoId, mesaId: this.mesaId, mesaNumero: this.mesa?.numero ?? null }
+                );
+              }
+            } catch { }
+
+            this.pedidoEnCurso = false;
+            this.submitting = false;
+            (await this.toast.create({
+              message: "Su pedido fue rechazado, por favor modifíquelo correctamente y reenvíelo.",
+              position: "top",
+              cssClass: "toasty",
+              duration: undefined,
+              buttons: [{ text: "Cerrar", role: "cancel" }]
+            })).present();
+          }
+        });
       });
-    });
 
-    // Mensaje de confirmación al cliente
-    (await this.toast.create({
-      message: "Pedido enviado. Esperando confirmación del mozo.",
-      duration: 2000,
-      position: "top",
-      cssClass: "toast"
-    })).present();
-  } catch (e: any) {
-    (await this.toast.create({
-      message: e?.message ?? "Error al enviar pedido",
-      duration: 1800,
-      position: "top"
-    })).present();
-    this.submitting = false;
+      (await this.toast.create({
+        message: "Pedido enviado. Esperando confirmación del mozo.",
+        duration: 2000,
+        position: "top",
+        cssClass: "toast"
+      })).present();
+    } catch (e: any) {
+      (await this.toast.create({
+        message: e?.message ?? "Error al enviar pedido",
+        duration: 1800,
+        position: "top"
+      })).present();
+      this.submitting = false;
+    }
   }
-}
-
 
   private buildEncuestaQuery(): any {
     const q: any = {};

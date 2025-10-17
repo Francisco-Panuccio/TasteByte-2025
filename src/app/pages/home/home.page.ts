@@ -84,9 +84,7 @@ export class HomePage implements OnInit {
         }
         this.userId = user.id;
 
-        const usuarioDB: Usuario | null = await this.usuarios.getByEmail(
-          user.email!
-        );
+        const usuarioDB: Usuario | null = await this.usuarios.getByEmail(user.email!);
         if (!usuarioDB) {
           this.router.navigateByUrl('/login', { replaceUrl: true });
           return;

@@ -2,50 +2,66 @@
   <app-loading/>
 } @else {
   <header>
+    <img src="assets/icon/cubiertos.png">
     <title>Juegos</title>
+    <img src="assets/icon/cubiertos.png">
   </header>
 
   <ion-content>
     <div class="div_main">
       <h2>Elige un juego para obtener descuentos</h2>
 
-      <ion-button expand="block" class="btn_juego juego10" [routerLink]="['/juegos/juego10']"
-        [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId, userId : userId, mesaId : mesaId}">
-        Juego 10% Descuento
-      </ion-button>
-      <div class="div_img"
-      [routerLink]="['/juegos/juego10']"
-      [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId, userId : userId, mesaId : mesaId}">
-        <img src="assets/images/ahorcado/6_ahorcado_negro.png" alt="ahorcado">
-      </div>
+      <div class="div_containers">
+        <div class="div_container">
+          <div class="div_btns">
+            <ion-button class="btn_juego juego10" [routerLink]="['/juegos/juego10']"
+              [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId, userId : userId, mesaId : mesaId}">
+              Juego 10% Descuento
+            </ion-button>
+          </div>
 
-      <ion-button expand="block" class="btn_juego juego10" [routerLink]="['/juegos/juego15']"
-        [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId, userId : userId, mesaId : mesaId}">
-        Juego 15% Descuento
-      </ion-button>
-      <div class="div_img"
-      [routerLink]="['/juegos/juego15']"
-      [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId, userId : userId, mesaId : mesaId}">
-        <img src="assets/images/mayor-menor/baraja.jpg" alt="mayor-menor">
-      </div>
+          <div class="div_img" [routerLink]="['/juegos/juego10']"
+            [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId, userId : userId, mesaId : mesaId}">
+            <img src="assets/images/ahorcado/6_ahorcado_negro.png" alt="ahorcado">
+          </div>
+        </div>
+    
+        <div class="div_container">
+          <div class="div_btns">
+            <ion-button class="btn_juego juego15" [routerLink]="['/juegos/juego15']"
+              [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId, userId : userId, mesaId : mesaId}">
+              Juego 15% Descuento
+            </ion-button>
+          </div>
 
-      <ion-button expand="block" class="btn_juego juego10" [routerLink]="['/juegos/juego20']"
-        [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId, userId : userId, mesaId : mesaId}">
-        Juego 20% Descuento
-      </ion-button>
-      <div class="div_img"
-      [routerLink]="['/juegos/juego20']"
-      [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId, userId : userId, mesaId : mesaId}">
-        <img src="assets/images/memotest/bananas.png" alt="memotest">
+          <div class="div_img2" [routerLink]="['/juegos/juego15']"
+            [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId, userId : userId, mesaId : mesaId}">
+            <img src="assets/images/mayor-menor/baraja_title.png" alt="mayor-menor">
+          </div>
+        </div>
+    
+        <div class="div_container">
+          <div class="div_btns">
+            <ion-button class="btn_juego juego20" [routerLink]="['/juegos/juego20']"
+              [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId, userId : userId, mesaId : mesaId}">
+              Juego 20% Descuento
+            </ion-button>
+          </div>
+
+          <div class="div_img" [routerLink]="['/juegos/juego20']"
+            [queryParams]="{ anonimoId: anonimoId, usuarioId: usuarioId, clienteId: clienteId, userId : userId, mesaId : mesaId}">
+            <img src="assets/images/memotest/bananas_title.png" alt="memotest">
+          </div>
+        </div>
       </div>
     </div>
   </ion-content>
 
   <footer>
-    <ion-toolbar>
-      <ion-buttons class="ion_btns">
-        <ion-button class="btn_logged" (click)="volver()">Volver</ion-button>
-      </ion-buttons>
-    </ion-toolbar>
+    <hr>
+    <button class="btn_footer" (click)="volver()">
+      Volver
+    </button>
+    <hr>
   </footer>
 }

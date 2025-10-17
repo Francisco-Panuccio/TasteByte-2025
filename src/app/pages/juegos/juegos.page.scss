@@ -1,76 +1,82 @@
 .div_main {
-  padding: 20px;
-  text-align: center;
-}
-
-.div_main h2 {
-  margin: 0 0 20px 0;
-  font-size: 22px;
-  font-weight: bold;
-  color: var(--ion-color-dark);
-}
-
-.btn_juego {
-  margin-bottom: 12px;
-  font-weight: bold;
-  border-radius: 10px;
-  --color: white;
-}
-
-.btn_juego.juego10 {
-  --background: var(--ion-color-tertiary);
-}
-
-.btn_juego.juego15 {
-  --background: var(--ion-color-success);
-}
-
-.btn_juego.juego20 {
-  --background: var(--ion-color-warning);
-  --color: black;
-}
-
-.ion_btns {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-}
+  text-align: center;
+  padding: 20px;
 
-.btn_logged {
-  font-size: 20px;
-  font-weight: 1000;
-}
-
-ion-button {
-  --border-radius: 4px 4px 0 0;
-  margin: 0;
-}
-
-.div_img {
-  width: 100%;
-  height: 100%;
-  border: 1px solid #554738;
-  border-top: none;
-  margin: -12px 0 20px 0;
-  border-radius: 0 0 4px 4px;
-  background-color: #e6d5c3;
-
-  img {
-    width: 100px;
-    height: 100px;
-    margin: 10px 0 5px 0;
+  h2 {
+    margin: 0 0 30px 0;
+    font-size: 25px;
+    font-weight: bold;
+    color: var(--color-text);
+    text-decoration: underline;
   }
 }
 
-.div_img:nth-of-type(1) img {
-  width: 120px;
+.div_containers {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 20px;
 }
 
-.div_img:nth-of-type(2) img {
-  width: 80px;
-  height: 100px;
-}
+.div_container {
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  align-items: center;
+  text-align: center;
+  border: 2px solid var(--color-text);
+  background-color: var(--color-input);
+  border-radius: 20px;
+  width: 300px;
+  height: 130px;
 
-.div_img:last-child {
-  margin: -12px 0 0 0;
+  .div_btns {
+    border-bottom: 4px solid var(--color-text);
+    width: 100%;
+    border-radius: 20px 20px 0 0;
+
+    .btn_juego {
+      width: 100%;
+      font-weight: bold;
+      font-size: 18px;
+      margin: 0;
+      --border-radius: 20px 20px 0 0;
+      --color: var(--color-text);
+    }
+
+    .juego10 {
+      --background: var(--color-btn-primary);
+    }
+
+    .juego15 {
+      --background: var(--color-btn-secondary);
+    }
+
+    .juego20 {
+      --background: var(--color-btn-tertiary);
+    }
+  }
+
+  .div_img,
+  .div_img2 {
+    width: 85px;
+    height: 85px;
+    margin: auto;
+
+    img {
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  .div_img2 {
+    width: 55px;
+    height: 70px;
+  }
 }

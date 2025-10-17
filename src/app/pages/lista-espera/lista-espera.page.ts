@@ -1,5 +1,5 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { ModalController, NavController } from '@ionic/angular';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { ModalController, NavController, ToastController } from '@ionic/angular';
 import { ActivatedRoute } from '@angular/router';
 import { supabase } from 'src/supabase.client';
 import { ListadoMesasPage } from '../listado-mesas/listado-mesas.page';
@@ -21,6 +21,7 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
 
   private rtChannel?: ReturnType<typeof supabase.channel>;
   private seenWaitIds = new Set<string>();
+  private toast = inject(ToastController);
 
   constructor(
     private route: ActivatedRoute,
@@ -177,8 +178,8 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
       console.error('[push][mesa_asignada][error]', e);
     }
     this.clientes = this.clientes.filter((c) => c.id !== cliente.id);
+    await this.mostrarToast("Cliente Aprobado");
   }
-
 
   async quitar(cliente: any) {
     const { error } = await supabase.from('lista_espera').delete().eq('id', cliente.id);
@@ -192,6 +193,17 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
         lista_espera_id: cliente.id
       });
     }
+    await this.mostrarToast("Cliente Rechazado");
+  }
+
+  private async mostrarToast(message: string): Promise<void> {
+    const t = await this.toast.create({
+      message,
+      duration: 1500,
+      cssClass: "toast",
+      position: "top"
+    });
+    await t.present();
   }
 
   getPosicionCliente(): number | null {

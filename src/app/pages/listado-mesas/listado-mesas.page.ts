@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { supabase } from 'src/supabase.client';
-import { ModalController } from '@ionic/angular';
+import { ModalController, ToastController } from '@ionic/angular';
 
 @Component({
   selector: 'app-listado-mesas',
@@ -11,6 +11,7 @@ import { ModalController } from '@ionic/angular';
 export class ListadoMesasPage implements OnInit {
   mesas: any[] = [];
   loading = true;
+  private toast = inject(ToastController);
 
   constructor(private modalCtrl: ModalController) { }
 
@@ -39,13 +40,24 @@ export class ListadoMesasPage implements OnInit {
     }
 
     const mesasOcupadasIds = (ocupadas || []).map(o => o.mesa_id).filter((id: number) => !!id);
-
     this.mesas = (mesas || []).filter(m => !mesasOcupadasIds.includes(m.id));
-
     setTimeout(() => (this.loading = false), 2000);
   }
 
-  seleccionarMesa(mesa: any) { this.modalCtrl.dismiss(mesa); }
+  private async mostrarToast(message: string): Promise<void> {
+    const t = await this.toast.create({
+      message,
+      duration: 1500,
+      cssClass: "toast",
+      position: "top"
+    });
+    await t.present();
+  }
+
+  async seleccionarMesa(mesa: any) { 
+    await this.mostrarToast("Mesa Asignada");
+    this.modalCtrl.dismiss(mesa); 
+  }
 
   cerrar() { this.modalCtrl.dismiss(null); }
 }

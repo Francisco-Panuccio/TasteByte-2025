@@ -61,7 +61,7 @@ export class EncuestasPage implements OnInit {
   };
 
   ratingChart: any = {
-    chart: { type: "bar", height: 250, width: "100%" },
+    chart: { type: "bar", height: 250, width: "100%", color:"black" },
     series: [{ name: "Calificaciones", data: new Array(10).fill(0) }],
     xaxis: {
       categories: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],

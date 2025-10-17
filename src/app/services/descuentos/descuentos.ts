@@ -8,21 +8,19 @@ export class Descuentos {
 
   constructor(private toast: ToastController) {}
 
-  /** Aplica un descuento al pedido actual del cliente (usa cliente_uid UUID) */
   async aplicarDescuento(
   clienteId: number | null,
   userId: string | null,
   mesaId: number,
   porc: number,
-  juego: string   // 👈 nuevo parámetro
+  juego: string 
 ) {
   try {
     if (!userId) {
-      await this.mostrarToast('⚠ No se puede aplicar descuento sin userId');
+      await this.mostrarToast('No se puede aplicar descuento sin userId');
       return { ok: false, reason: 'NO_USER' };
     }
 
-    // 1. Revisar si el usuario ya jugó algún juego (cualquiera)
     const { data: intentoPrevio, error: intentoError } = await supabase
       .from('intentos_juegos')
       .select('id')
@@ -30,16 +28,15 @@ export class Descuentos {
       .maybeSingle();
 
     if (intentoError) {
-      await this.mostrarToast(`❌ Error verificando intentos: ${intentoError.message}`);
+      await this.mostrarToast(`Error verificando intentos: ${intentoError.message}`);
       return { ok: false, reason: 'DB_ERROR', error: intentoError.message };
     }
 
     if (intentoPrevio) {
-      await this.mostrarToast('⚠ Ya jugaste anteriormente, no podés obtener otro descuento');
+      await this.mostrarToast('Ha jugado anteriormente, no puede obtener otro descuento');
       return { ok: false, reason: 'ALREADY_PLAYED' };
     }
 
-    // 2. Buscar pedido activo (con cliente_uid)
     const { data: pedido, error: pedError } = await supabase
       .from('pedidos')
       .select('id, total, estado, mesa_id, cliente_uid')
@@ -49,16 +46,15 @@ export class Descuentos {
       .maybeSingle();
 
     if (pedError) {
-      await this.mostrarToast(`❌ Error consultando pedido: ${pedError.message}`);
+      await this.mostrarToast(`Error consultando pedido: ${pedError.message}`);
       return { ok: false, reason: 'DB_ERROR', error: pedError.message };
     }
 
     if (!pedido) {
-      await this.mostrarToast(`⚠ No se encontró pedido aceptado en mesa ${mesaId} con uid ${userId}`);
+      await this.mostrarToast(`No se encontró pedido aceptado en mesa ${mesaId} con uid ${userId}`);
       return { ok: false, reason: 'NO_PEDIDO' };
     }
 
-    // 3. Verificar si ya existe descuento en este pedido
     const { data: existente } = await supabase
       .from('descuentos')
       .select('id')
@@ -66,11 +62,10 @@ export class Descuentos {
       .maybeSingle();
 
     if (existente) {
-      await this.mostrarToast('⚠ Ya existe un descuento para este pedido');
+      await this.mostrarToast('Ya existe un descuento para este pedido');
       return { ok: false, reason: 'DUPLICATE' };
     }
 
-    // 4. Insertar descuento
     const payload: any = {
       pedido_id: pedido.id,
       porcentaje: porc,
@@ -81,11 +76,10 @@ export class Descuentos {
     const { error: insError } = await supabase.from('descuentos').insert(payload);
 
     if (insError) {
-      await this.mostrarToast(`❌ Error guardando descuento: ${insError.message}`);
+      await this.mostrarToast(`Error guardando descuento: ${insError.message}`);
       return { ok: false, reason: 'INSERT_ERROR', error: insError.message };
     }
 
-    // 5. Registrar intento (⚡ acá usamos el juego dinámico)
     const { error: intentoInsError } = await supabase.from('intentos_juegos').insert({
       cliente_uid: userId,
       juego: juego,
@@ -94,18 +88,17 @@ export class Descuentos {
     });
 
     if (intentoInsError) {
-      await this.mostrarToast(`⚠ Error registrando intento: ${intentoInsError.message}`);
+      await this.mostrarToast(`Error registrando intento: ${intentoInsError.message}`);
     }
 
     localStorage.setItem(this.storageKey, JSON.stringify(payload));
     await this.mostrarToast(`✅ Descuento del ${porc}% aplicado al pedido ${pedido.id}`);
     return { ok: true };
   } catch (err: any) {
-    await this.mostrarToast(`❌ Error aplicarDescuento: ${err.message ?? err}`);
+    await this.mostrarToast(`Error aplicarDescuento: ${err.message ?? err}`);
     return { ok: false, reason: 'EXCEPTION', error: err };
   }
 }
-
 
 async registrarIntento(userId: string, juego: string, obtuvoDescuento: boolean) {
   await supabase.from('intentos_juegos').insert({
@@ -124,11 +117,11 @@ async registrarIntento(userId: string, juego: string, obtuvoDescuento: boolean) 
     localStorage.removeItem(this.storageKey);
   }
 
-  private async mostrarToast(mensaje: string, color: string = 'primary') {
+  private async mostrarToast(mensaje: string) {
     const t = await this.toast.create({
       message: mensaje,
-      duration: 2500,
-      color,
+      duration: 1500,
+      cssClass: "toast",
       position: 'top'
     });
     await t.present();

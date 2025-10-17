@@ -2,13 +2,19 @@
   <app-loading/>
 } @else {
   <header>
+    <img src="assets/icon/cubiertos.png">
     <title>Encuestas</title>
+    <img src="assets/icon/cubiertos.png">
   </header>
 
-  <ion-content class="ion-padding">
+  <ion-content>
     <ion-segment [(ngModel)]="segment">
-      <ion-segment-button value="encuestas">Encuestas</ion-segment-button>
-      <ion-segment-button value="graficos">Gráficos</ion-segment-button>
+      <ion-segment-button value="encuestas">
+        <ion-label>Encuestas</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="graficos">
+        <ion-label>Gráficos</ion-label>
+      </ion-segment-button>
     </ion-segment>
 
     @if (segment === 'encuestas') {
@@ -31,12 +37,13 @@
         <ion-list>
           <ion-item class="items" *ngFor="let r of respuestas">
             <ion-label>
-              <h3>{{ r.creado_en | date:'short' }}</h3>
+              <h3>🗓️ {{ r.creado_en | date:'short' }}</h3>
+              <hr>
               <div class="div_encuesta">
                 <p class="p_encuesta">Calificación General: </p> 
-                <span class="span_encuesta">{{ r.calificacion_general || '—'}}</span>
+                <span class="span_encuesta">{{ r.calificacion_general || '—'}}/10</span>
               </div>
-
+              
               <div class="div_encuesta">
                 <p class="p_encuesta">Calidad de la Comida: </p> 
                 <span class="span_encuesta">{{ r.calidad_comida || '—' | titlecase }}</span>
@@ -46,9 +53,10 @@
                 <p class="p_encuesta">Tiempo de Espera: </p> 
                 <span class="span_encuesta">{{ r.tiempo_espera || '—' | titlecase }}</span>
               </div>
+              <hr>
               @if (r.opinion) { 
                 <div class="div_opinion">
-                  <i>Opinión General:</i> 
+                  <p class="p_encuesta">Opinión General</p> 
                   <span>{{ r.opinion }}</span>
                 </div> 
               }
@@ -59,9 +67,9 @@
     }
 
     @if (segment === 'graficos') {
-      <div class="ion-padding-top">
+      <div>
         <ion-card>
-          <ion-card-header>Calificación General (1-10)</ion-card-header>
+          <ion-card-header>⚪Calificación General (1-10)</ion-card-header>
           <ion-card-content>
             <apx-chart
               [series]="ratingChart.series"
@@ -73,7 +81,7 @@
         </ion-card>
 
         <ion-card>
-          <ion-card-header>Tiempo de Espera</ion-card-header>
+          <ion-card-header>⚪Tiempo de Espera</ion-card-header>
           <ion-card-content>
             <apx-chart
               [series]="waitChart.series"
@@ -85,7 +93,7 @@
         </ion-card>
 
         <ion-card>
-          <ion-card-header>Calidad de la Comida</ion-card-header>
+          <ion-card-header>⚪Calidad de la Comida</ion-card-header>
           <ion-card-content>
             <apx-chart
               [series]="qualityChart.series"
@@ -102,10 +110,10 @@
   </ion-content>
 
   <footer>
-    <ion-toolbar>
-      <ion-buttons class="ion_btns">
-        <ion-button class="btn_logged" (click)="volver()">Volver</ion-button>
-      </ion-buttons>
-    </ion-toolbar>
+    <hr>
+    <button class="btn_footer" (click)="volver()">
+      Volver
+    </button>
+    <hr>
   </footer>
 }

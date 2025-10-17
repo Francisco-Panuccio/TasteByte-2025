@@ -7,6 +7,7 @@ import { Email } from "src/app/services/email/email";
 import { Push } from "src/app/services/push/push";
 import { supabase } from "src/supabase.client";
 import { Subscription } from "rxjs";
+import { ToastController } from "@ionic/angular";
 
 type RoleLike = "dueño" | "supervisor";
 
@@ -21,6 +22,7 @@ export class ListadoClientesPage implements OnInit, OnDestroy {
   private usuariosSvc = inject(Usuarios);
   private emailSvc = inject(Email);
   private push = inject(Push);
+  private toast = inject(ToastController);
 
   loading = true;
   err: string | null = null;
@@ -53,21 +55,24 @@ export class ListadoClientesPage implements OnInit, OnDestroy {
 
     this.isPrivileged = !!role;
 
-    await this.push.init(usuarioRowId ?? null, role);
-    await this.push.ready();
+    try {
+      await this.push.init(usuarioRowId ?? null, role);
+      await this.push.ready();
+    } catch { }
 
     const tk = this.push.getToken();
     if (!tk) {
-      this.err = "Sin token FCM. Revisá configuración Firebase/FCM del proyecto Android.";
-      return;
+      this.err = "Sin token FCM. Continuando sin notificaciones.";
     }
 
     await this.cargarPendientes();
 
-    this.pushSub = this.push.onPush$.subscribe(async (data: any) => {
-      const tipo = (data?.tipo ?? data?._type) as string;
-      if (tipo === "cliente_registrado") await this.cargarPendientes();
-    });
+    if (tk) {
+      this.pushSub = this.push.onPush$.subscribe(async (data: any) => {
+        const tipo = (data?.tipo ?? data?._type) as string;
+        if (tipo === "cliente_registrado") await this.cargarPendientes();
+      });
+    }
 
     this.rtChannel = supabase
       .channel("rt-clientes-pendientes")
@@ -124,6 +129,7 @@ export class ListadoClientesPage implements OnInit, OnDestroy {
         { nombres: cliente.usuario.nombres, apellidos: cliente.usuario.apellidos }
       );
       this.ok = "Cliente aprobado y notificado por email";
+      await this.mostrarToast("Cliente Aprobado");
       await this.cargarPendientes();
     } catch (e: any) {
       this.err = e.message || "No se pudo aprobar el cliente";
@@ -142,9 +148,20 @@ export class ListadoClientesPage implements OnInit, OnDestroy {
         { nombres: cliente.usuario.nombres, apellidos: cliente.usuario.apellidos }
       );
       this.ok = "Cliente rechazado y notificado por email";
+      await this.mostrarToast("Cliente Rechazado");
       await this.cargarPendientes();
     } catch (e: any) {
       this.err = e.message || "No se pudo rechazar el cliente";
     }
+  }
+
+  private async mostrarToast(message: string): Promise<void> {
+    const t = await this.toast.create({
+      message,
+      duration: 1500,
+      cssClass: "toast",
+      position: "top"
+    });
+    await t.present();
   }
 }
