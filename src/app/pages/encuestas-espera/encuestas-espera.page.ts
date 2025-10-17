@@ -185,7 +185,6 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
           ? `${usuario.nombres} ${usuario.apellidos}`
           : 'Cliente';
         this.clienteFoto = usuario?.foto_url ?? '';
-        console.log('HOLA' + this.clienteFoto);
       } else if (this.anonimoId) {
         const { data: anonimo } = await supabase
           .from('clientes_anonimos')
@@ -221,6 +220,9 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
                 this.mesaAsignadaId = payload.new.mesa_id;
                 this.yaRegistrado = true;
                 this.tieneMesa = true;
+                this.zone.run(() => {
+                  this.mostrarToast(`Ya puede tomar asiento en la mesa #${this.mesaAsignadaId}.`, "Mesa Asginada");
+                });
                 await this.ensureChatAndSubscribe();
               }
             } else if (payload.eventType === 'DELETE') {
@@ -643,13 +645,8 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     this.router.navigate(['/login'], { replaceUrl: true });
   }
 
-  private async mostrarToast(mensaje: string) {
-    const t = await this.toast.create({
-      message: mensaje,
-      duration: 1500,
-      cssClass: 'toast',
-      position: 'top',
-    });
+  private async mostrarToast(mensaje: string, header?: string) {
+    const t = await this.toast.create({ header, message: mensaje, duration: 1500, cssClass: "toast", position: "top" });
     await t.present();
   }
 

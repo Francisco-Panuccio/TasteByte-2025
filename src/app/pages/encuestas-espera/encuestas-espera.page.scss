@@ -131,9 +131,33 @@ ion-button {
   --background: rgb(182, 159, 10);
 }
 
-/* ---------------------------------------------------------- */
-/* 🔹 ESTILOS DEL CHAT (mismos que mesa-ocupada) */
-/* ---------------------------------------------------------- */
+// Estilos del Chat
+
+.header-chat {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+
+  div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+  }
+
+  button {
+    width: 100%;
+    height: 40px;
+    background-color: var(--color-btn-primary);
+    color: var(--color-text);
+    border-top: 2px solid var(--color-text);
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+}
 
 .chat {
   display: flex;
@@ -153,20 +177,24 @@ ion-button {
 
 .cliente-msg .bubble {
   max-width: 80%;
-  color: black;
-  border: 2px solid black;
+  color: var(--color-text);
+  border: 2px solid var(--color-black);
   border-radius: 16px;
   padding: 8px 10px;
-  background: #e6f7ff;
+  background: var(--color-btn-secondary);
+  font-weight: 600;
+  font-size: 18px;
 }
 
 .mozo-msg .bubble {
   max-width: 80%;
-  border: 2px solid black;
+  border: 2px solid var(--color-black);
   border-radius: 16px;
   padding: 8px 10px;
-  color: white;
-  background: #554738;
+  color: var(--color-text);
+  background: var(--color-input);
+  font-weight: 600;
+  font-size: 18px;
 }
 
 .body {
@@ -179,8 +207,8 @@ ion-button {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: black;
-  font-size: 12px;
+  color: var(--color-black);
+  font-size: 14px;
   margin-top: 5px;
   font-weight: 600;
 }
@@ -189,14 +217,14 @@ ion-button {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: rgb(182, 182, 182);
-  font-size: 12px;
+  color: var(--color-black);
+  font-size: 14px;
   margin-top: 5px;
   font-weight: 600;
 }
 
 ion-content.ion-content-chat {
-  --background: #d7b899;
+  --background: var(--color-background);
   --padding-bottom: calc(60px + var(--ion-safe-area-bottom) + var(--kb, 0px));
   overflow: scroll;
 }
@@ -207,27 +235,46 @@ ion-content.ion-content-chat {
   right: 0;
   bottom: 0;
   z-index: 10;
-  background: white;
-  border-top: 1px solid black;
+  background: var(--color-btn-primary);
+  border-top: 2px solid var(--color-text);
   padding: 6px 8px;
   padding-bottom: max(6px, calc(6px + var(--ion-safe-area-bottom)));
+
+  ion-input {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  ion-button {
+    --background: var(--color-text);
+    color: var(--color-btn-primary);
+    border: 2px solid var(--color-btn-primary);
+    --border-radius: 16px;
+    border-radius: 16px;
+    font-size: 14px;
+    font-weight: 600;
+  }
 }
 
-.composer ion-item {
+ion-item::part(native) {
   --background: transparent;
+  background-color: transparent;
   width: 100%;
 }
 
-.btn_close {
-  color: black;
-  font-weight: 600;
-  --padding-top: 0;
-  --padding-bottom: 0;
-  margin: 5px 5px 0 0;
+.btn-primary {
+  padding: 0 10px;
+  border-radius: 20px;
+  border: 2px solid var(--color-text);
 }
 
+/* ---------------------------------------------------------- */
+/* 🔹 TEXTO DE INSTRUCCIÓN DEL QR DE INGRESO */
+/* ---------------------------------------------------------- */
+
 .btn_ingreso {
-  --background: rgb(70, 194, 87); /* mismo tono que btn_encuesta */
+  --background: rgb(70, 194, 87);
   color: var(--color-text);
   font-size: 20px;
   font-weight: 600;
@@ -240,7 +287,6 @@ ion-content.ion-content-chat {
   animation: pulseIngreso 2s infinite ease-in-out;
 }
 
-/* ✅ animación suave para atraer atención */
 @keyframes pulseIngreso {
   0% {
     transform: scale(1);
@@ -255,10 +301,6 @@ ion-content.ion-content-chat {
     box-shadow: 0 0 0 0 rgba(70, 194, 87, 0);
   }
 }
-
-/* ---------------------------------------------------------- */
-/* 🔹 TEXTO DE INSTRUCCIÓN DEL QR DE INGRESO */
-/* ---------------------------------------------------------- */
 
 .texto_ingreso {
   text-align: center;
@@ -275,4 +317,3 @@ ion-content.ion-content-chat {
   box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
   line-height: 1.3;
 }
-

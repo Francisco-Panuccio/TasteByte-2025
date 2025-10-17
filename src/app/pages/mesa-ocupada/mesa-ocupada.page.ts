@@ -71,6 +71,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   etaMin = 0;
   userUid = "";
   pedidoEnCurso = false;
+  carritoFlag: boolean = false;
   pedidoActualId?: string;
   estadoPedido: Estado | null = null;
   bannerMsg = "";
@@ -618,6 +619,11 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
 
   private gotoEncuestasEspera(): void {
     this.router.navigate(["/encuestas-espera"], { queryParams: this.buildEncuestaQuery() });
+  }
+
+  showCarrito() {
+    this.carritoFlag = !this.carritoFlag;
+    console.log(this.carritoFlag);
   }
 
   volver() {

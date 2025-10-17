@@ -2,7 +2,9 @@
   <app-loading/>
 } @else {
   <header>
+    <img src="assets/icon/cubiertos.png">
     <title>Encuesta Nueva</title>
+    <img src="assets/icon/cubiertos.png">
   </header>
 
   <ion-content class="ion-padding">
@@ -42,20 +44,20 @@
     <ion-item class="item_opinion">
       <div class="opinion">
         <p position="stacked">Opinión General</p>
-        <ion-textarea auto-grow="true" [(ngModel)]="opinion"></ion-textarea>
+        <ion-textarea placeholder="Escriba aquí su opinión..." auto-grow="true" [(ngModel)]="opinion"></ion-textarea>
       </div>
     </ion-item>
 
-    <ion-button expand="block" (click)="enviar()" [disabled]="calificacionGeneral==null || !calidadComida || !tiempoEspera">
+    <ion-button class="btn-secondary" (click)="enviar()" [disabled]="calificacionGeneral==null || !calidadComida || !tiempoEspera">
       Enviar
     </ion-button>
   </ion-content>
 
   <footer>
-    <ion-toolbar>
-      <ion-buttons class="ion_btns">
-        <ion-button class="btn_logged" (click)="volver()">Volver</ion-button>
-      </ion-buttons>
-    </ion-toolbar>
+    <hr>
+    <button class="btn_footer" (click)="volver()">
+      Volver
+    </button>
+    <hr>
   </footer>
 }

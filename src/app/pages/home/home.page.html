@@ -7,30 +7,33 @@
     <img src="assets/icon/cubiertos.png">
   </header>
 
-  @if(isDuenoSupervisor) {
-    <div class="div_main">
-      <div class="div_data">
-        <div>
-          <p>Bienvenido</p>
-          <span>✉️ {{email}}</span>
-          <div><span class="span_profile">{{profile | titlecase}}</span></div>
+  <ion-content class="ion-padding">
+    @if(isDuenoSupervisor) {
+      <div class="div_main">
+        <div class="div_data">
+          <div>
+            <p>Bienvenido</p>
+            <span>✉️ {{email}}</span>
+            <div><span class="span_profile">{{profile | titlecase}}</span></div>
+          </div>
         </div>
-      </div>
 
-      <div id="container">
-        <p routerLink="/alta-empleado">Alta Empleado</p>
-        <p routerLink="/alta-mesa">Alta <br> Mesas</p>
-        <p routerLink="/listado-clientes">Clientes Pendientes</p>
-      </div>
-    </div>
-  } @else if(isCocinero) {
-    <div class="div_main">
-      <div class="div_data">
-        <div class="two-items">
-          <p>Bienvenido</p>
-          <span>✉️ {{email}}</span>
-          <div><span class="span_profile">{{profile | titlecase}}</span></div>
+        <div id="container">
+          <p routerLink="/alta-empleado">Alta Empleado</p>
+          <p routerLink="/alta-mesa">Alta <br> Mesas</p>
+          <p routerLink="/listado-clientes">Clientes Pendientes</p>
         </div>
+      </div>
+    } @else if(isCocinero) {
+      <div class="div_main">
+        <div class="div_data">
+          <div class="two-items">
+            <p>Bienvenido</p>
+            <span>✉️ {{email}}</span>
+            <div><span class="span_profile">{{profile | titlecase}}</span></div>
+          </div>
+        </div>
+
         <div class="div_container_photo">
           <hr>
           <div class="div_photo">
@@ -38,21 +41,22 @@
           </div>
           <hr>
         </div>
-      </div>
 
-      <div id="container">
-        <p routerLink="/alta-plato">Alta <br> Platos</p>
-        <p routerLink="/cocina">Cocina</p>
-      </div>
-    </div>
-  } @else if(isBartender) {
-    <div class="div_main">
-      <div class="div_data">
-        <div class="two-items">
-          <p>Bienvenido</p>
-          <span>✉️ {{email}}</span>
-          <div><span class="span_profile">{{profile | titlecase}}</span></div>
+        <div id="container">
+          <p routerLink="/alta-plato">Alta <br> Platos</p>
+          <p routerLink="/cocina">Cocina</p>
         </div>
+      </div>
+    } @else if(isBartender) {
+      <div class="div_main">
+        <div class="div_data">
+          <div class="two-items">
+            <p>Bienvenido</p>
+            <span>✉️ {{email}}</span>
+            <div><span class="span_profile">{{profile | titlecase}}</span></div>
+          </div>
+        </div>
+
         <div class="div_container_photo">
           <hr>
           <div class="div_photo">
@@ -60,7 +64,6 @@
           </div>
           <hr>
         </div>
-      </div>
 
       <div id="container">
         <p routerLink="/alta-bebida">Alta <br> Bebidas</p>
@@ -75,51 +78,49 @@
         <span>✉️ {{email}}</span>
         <div><span class="span_profile">{{profile | titlecase}}</span></div>
       </div>
-      <div class="div_container_photo">
-        <hr>
-        <div class="div_photo">
-          <img [src]="this.empleadoFoto">
-        </div>
-        <hr>
+    </div>
+
+    <div class="div_container_photo">
+      <hr>
+      <div class="div_photo">
+        <img [src]="this.empleadoFoto">
       </div>
+      <hr>
     </div>
 
     <div id="container">
       <p routerLink="/alta-cliente">Alta <br> Clientes</p>
-      <p
-        routerLink="/lista-espera"
+      <p routerLink="/lista-espera"
         [queryParams]="{ from: 'maitre' }"
-        routerDirection="forward"
-      >
+        routerDirection="forward">
         Lista <br> De <br> Espera
       </p>
     </div>
   </div>
-}
-
-  
-    @else {
-    <div class="div_main">
-      <div class="div_data">
-        <div>
-          <p>Bienvenido</p>
-          <span>✉️ {{email}}</span>
-          <div><span class="span_profile">{{profile | titlecase}}</span></div>
+} @else {
+      <div class="div_main">
+        <div class="div_data">
+          <div>
+            <p>Bienvenido</p>
+            <span>✉️ {{email}}</span>
+            <div><span class="span_profile">{{profile | titlecase}}</span></div>
+          </div>
         </div>
-        <div class="div_container_photo2">
+
+        <div class="div_container_photo">
           <hr>
           <div class="div_photo">
             <img [src]="this.empleadoFoto">
           </div>
           <hr>
         </div>
-      </div>
 
-      <div id="container">
-        <p routerLink="/pedidos-mozo">Pedidos</p>
+        <div id="container">
+          <p routerLink="/pedidos-mozo">Pedidos</p>
+        </div>
       </div>
-    </div>
-  }
+    }
+  </ion-content>
 
   <footer>
     <hr>

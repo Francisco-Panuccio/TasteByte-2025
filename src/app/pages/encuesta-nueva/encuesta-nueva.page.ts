@@ -1,4 +1,3 @@
-// encuesta-nueva.page.ts
 import { Component, OnInit, inject } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { ToastController } from "@ionic/angular";
