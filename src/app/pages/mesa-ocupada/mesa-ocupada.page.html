@@ -11,7 +11,7 @@
     <ion-content [scrollY]="false" [class.blocked]="submitting || pedidoBloqueado">
       @if(bannerMsg){
         <div class="pedido-banner" role="status">
-          {{ bannerMsg }}
+          <span>{{ bannerMsg }}</span>
           <div class="div_img">
             <img src="assets/images/camarero.png">
           </div>

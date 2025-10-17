@@ -20,14 +20,15 @@
     <div class="div_container" *ngIf="pedidos.length">
       <div class="div_pedidos" *ngFor="let p of pedidos">
         <div class="div_data_pedido">
-          <p>Mesa: {{ p.mesa?.numero ?? p.mesa_id }} • ${{ p.total }}</p>
-          <p>Espera: {{ p.eta_minutos }} min</p>
-          <p>Estado: {{ p.estado | titlecase }}</p>
-          <p>Fecha: {{ p.created_at | date:'short' }}</p>
+          <p>⚪Mesa: {{ p.mesa?.numero ?? p.mesa_id }}</p>
+          <p>🟡Espera: {{ p.eta_minutos }} min</p>
+          <p>🟢Estado: {{ p.estado | titlecase }}</p>
+          <p>💸Total: ${{ p.total }}</p>
+          <p>🗓️{{ p.created_at | date:'short' }}</p>
           
           @if(filtro === 'aceptado') {
-            <p>Bar: {{ p.estadoBar ?? ' —' }}</p>
-            <p>Cocina: {{ p.estadoCocina ?? ' —' }}</p>
+            <p>🍸Bar: {{ p.estadoBar ?? ' —' }}</p>
+            <p>🍳Cocina: {{ p.estadoCocina ?? ' —' }}</p>
           }
         </div>
 

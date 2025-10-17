@@ -62,6 +62,11 @@ title {
   border-right: none;
 }
 
+.div_btns2 button:nth-child(5), 
+.div_btns2 button:nth-child(6) {
+  border-bottom: 4px solid var(--color-text);
+}
+
 .div_btns2 button:nth-child(6) {
   pointer-events: none;
 }
@@ -111,8 +116,9 @@ title {
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    background-color: var(--color-text);
-    border-bottom: 2px solid var(--color-black);
+    background-color: var(--color-btn-primary);
+    border-bottom: 4px solid var(--color-text);
+    border-top: none;
 
     .div_data_pedido {
       display: flex;
@@ -125,7 +131,7 @@ title {
 
       p {
         color: var(--color-text);
-        font-size: 14px;
+        font-size: 18px;
         font-weight: 600;
         align-self: flex-start;
         margin: 0;
@@ -143,10 +149,10 @@ title {
 
       button {
         color: var(--color-text);
-        font-size: 14px;
+        font-size: 20px;
         font-weight: 600;
         align-self: center;
-        width: 80px;
+        width: 110px;
         padding: 5px;
         margin: 0;
         border: 2px solid var(--color-black);
@@ -169,10 +175,6 @@ title {
         background-color: rgb(107, 170, 238);
       }
     }
-  }
-
-  .div_pedidos:first-child {
-    border-top: 2px solid var(--color-black);
   }
 
   .div_pedidos:last-child:not(:only-child) {
