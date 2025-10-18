@@ -9,7 +9,10 @@
 
   <ion-content>
     @if(!loading && !ped) {
-      <div class="vacio">Pedido no Encontrado</div>
+      <div class="vacio">
+        <p>Pedido no Encontrado</p>
+        <img src="assets/images/platoVacio.png">
+      </div>
     } @else {
         <div class="contenedor">
           <div class="div_total">
