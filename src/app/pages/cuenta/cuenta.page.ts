@@ -58,17 +58,17 @@ export class CuentaPage implements OnInit {
       .maybeSingle();
 
     if (errPed || !ped) {
-      await this.mostrarToast('❌ Error cargando pedido.');
+      await this.mostrarToast('Error cargando pedido.');
       return;
     }
     this.ped = ped;
 
-    const { data: items, error: errItems } = await supabase
-      .from('pedidos_items')
+    const { data: itemsTotales, error: errItems } = await supabase
+      .from('pedido_items')
       .select('id, nombre, tipo, cantidad, precio_unit')
       .eq('pedido_id', this.pedidoId);
 
-    if (!errItems && items) this.items = items;
+    if (!errItems && itemsTotales) this.items = itemsTotales;
 
     const { data: desc } = await supabase
       .from('descuentos')
@@ -118,7 +118,7 @@ export class CuentaPage implements OnInit {
       await this.mostrarToast(`Propina seleccionada: ${this.propinaSeleccionada}%`);
     } catch (err) {
       console.error(err);
-      await this.mostrarToast('❌ Error al escanear QR.');
+      await this.mostrarToast('Error al escanear QR.');
     }
   }
 
@@ -154,7 +154,7 @@ export class CuentaPage implements OnInit {
         { tipo: "pago_realizado", pedidoId: this.pedidoId, mesaId, mesaNumero }
       );
 
-      await this.mostrarToast("✅ Pago solicitado. Espera confirmación del mozo.");
+      await this.mostrarToast("Pago solicitado. Espere confirmación del mozo.");
       this.volver();
     } catch {
       await this.mostrarToast("Error al pagar.");

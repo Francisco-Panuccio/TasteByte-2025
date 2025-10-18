@@ -27,8 +27,8 @@
           <p>🗓️{{ p.created_at | date:'short' }}</p>
           
           @if(filtro === 'aceptado') {
-            <p>🍸Bar: {{ p.estadoBar ?? ' —' }}</p>
-            <p>🍳Cocina: {{ p.estadoCocina ?? ' —' }}</p>
+            <p>🍸Bar: {{ p.estadoBar ?? ' —' | titlecase }}</p>
+            <p>🍳Cocina: {{ p.estadoCocina ?? ' —' | titlecase }}</p>
           }
         </div>
 
