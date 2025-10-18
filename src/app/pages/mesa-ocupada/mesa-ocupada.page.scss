@@ -444,8 +444,7 @@ ion-content.blocked {
   flex-direction: column;
   gap: 15px;
   color: var(--color-text);
-  background-color: var(--color-btn-primary);
-  min-height: 100%;
+  background-color: var(--color-background);
 }
 
 .carrito-item {
@@ -498,49 +497,54 @@ ion-content.blocked {
     margin: 6px 0;
     color: var(--color-text);
   }
+
+  .totalCarrito {
+    font-size: 30px !important;
+  }
 }
 
 .carrito-botones {
   display: flex;
   justify-content: center;
-  margin-top: 10px;
-
-  .btn_pedido {
-    width: 100%;
-    background-color: var(--color-btn-primary);
-    border-top: 2px solid var(--color-text);
-    font-size: 22px;
-    font-weight: 600;
-    color: var(--color-text);
-    border-radius: 12px;
-    padding: 12px 0;
-  }
 }
 
 .carrito-vacio {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   text-align: center;
-  margin-top: 40px;
+  margin-top: 20px;
   color: var(--color-text);
 
   img {
-    width: 160px;
+    width: 300px;
     opacity: 0.7;
-    margin-bottom: 15px;
   }
 
   p {
-    font-size: 20px;
+    font-size: 30px;
     font-weight: 600;
-    margin-bottom: 20px;
   }
+}
 
-  .btn_pedido {
-    background-color: var(--color-btn-primary);
-    color: var(--color-text);
-    border: 2px solid var(--color-text);
-    font-size: 20px;
-    font-weight: 600;
-    border-radius: 12px;
-    padding: 8px 16px;
-  }
+.btn_pedido2 {
+  background-color: var(--color-container);
+  border: 2px solid var(--color-text);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text);
+  border-radius: 12px;
+  padding: 5px;
+  width: fit-content;
+}
+
+.btn_finalizar {
+  background-color: var(--color-container);
+  border-top: 2px solid var(--color-text);
+  font-size: 25px;
+  font-weight: 600;
+  color: var(--color-text);
+  border-radius: 12px;
+  padding: 10px;
 }

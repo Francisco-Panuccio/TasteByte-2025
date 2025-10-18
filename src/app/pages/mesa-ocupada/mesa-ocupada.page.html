@@ -148,7 +148,7 @@
       } @else {
         <div class="carrito-header">
           <h2>🛒 Carrito de Pedido</h2>
-          <button class="btn_pedido" (click)="showCarrito()">Ver Menú</button>
+          <button class="btn_pedido2" (click)="showCarrito()">Atrás</button>
         </div>
 
         <div class="carrito-lista">
@@ -161,7 +161,7 @@
                 </div>
 
                 <div class="item-detalle">
-                  <span>Cant: {{ item.cantidad }}</span>
+                  <span>Cantidad: {{ item.cantidad }}</span>
                   <span>Precio: {{ item.precioUnit | currency:"ARS":"symbol-narrow":"1.0-0" }}</span>
                   <span>Subtotal: {{ item.cantidad * item.precioUnit | currency:"ARS":"symbol-narrow":"1.0-0" }}</span>
                 </div>
@@ -169,13 +169,13 @@
             }
 
             <div class="carrito-total">
-              <p><strong>Total:</strong> {{ total | currency:"ARS":"symbol-narrow":"1.0-0" }}</p>
-              <p><strong>Tiempo estimado:</strong> {{ etaMin }} min</p>
+              <p>Tiempo Estimado: {{ etaMin }} minutos</p>
+              <p class="totalCarrito">Total: {{ total | currency:"ARS":"symbol-narrow":"1.0-0" }}</p>
             </div>
 
             <div class="carrito-botones">
               <button
-                class="btn_pedido"
+                class="btn_finalizar"
                 [disabled]="submitting || pedidoBloqueado || itemsSel.length===0"
                 (click)="terminarPedido();">
                 Finalizar Pedido
@@ -185,7 +185,6 @@
             <div class="carrito-vacio">
               <img src="assets/images/carritoVacio.png" alt="Carrito vacío">
               <p>No hay productos en tu pedido todavía.</p>
-              <button class="btn_pedido" (click)="showCarrito()">Ver Menú</button>
             </div>
           }
         </div>
