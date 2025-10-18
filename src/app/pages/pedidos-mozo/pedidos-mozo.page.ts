@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, ViewChild } from '@angular/core';
 import { IonContent, IonModal, ToastController } from '@ionic/angular';
 import { Chat } from 'src/app/services/chat/chat';
+import { ChatMessage } from 'src/app/interfaces/chat-message'; // ✅ agregado
 import { Mesas } from 'src/app/services/mesas/mesas';
 import { Pedidos } from 'src/app/services/pedidos/pedidos';
 import { supabase } from 'src/supabase.client';
@@ -59,56 +60,99 @@ export class PedidosMozoPage implements OnInit {
   private sentPedidoCompleto = new Set<string>();
 
   async ngOnInit() {
-  window.addEventListener("refrescarPedidosMozo", () => this.cargar());
+    window.addEventListener("refrescarPedidosMozo", () => this.cargar());
 
-  await this.ensureMozo();
+    await this.ensureMozo();
 
-  this.myUserId = await this.chatSvc.getMyUserId();
-  this.setFiltro('pendiente', true);
+    this.myUserId = await this.chatSvc.getMyUserId();
+    this.setFiltro('pendiente', true);
 
-  this.sub = this.pedidosSrv.subscribeCambios(() => this.cargar());
+    this.sub = this.pedidosSrv.subscribeCambios(() => this.cargar());
 
-  supabase
-    .channel('bar_pedidos_realtime')
-    .on(
-      'postgres_changes',
-      { event: 'UPDATE', schema: 'public', table: 'bar_pedidos' },
-      (payload) => {
-        console.log('📡 Cambio detectado en BAR:', payload);
-        this.cargar(); 
-      }
-    )
-    .subscribe();
+    supabase
+      .channel('bar_pedidos_realtime')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'bar_pedidos' },
+        (payload) => {
+          console.log('📡 Cambio detectado en BAR:', payload);
+          this.cargar();
+        }
+      )
+      .subscribe();
 
-  supabase
-    .channel('cocina_pedidos_realtime')
-    .on(
-      'postgres_changes',
-      { event: 'UPDATE', schema: 'public', table: 'cocina_pedidos' },
-      (payload) => {
-        console.log('📡 Cambio detectado en COCINA:', payload);
-        this.cargar(); 
-      }
-    )
-    .subscribe();
+    supabase
+      .channel('cocina_pedidos_realtime')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'cocina_pedidos' },
+        (payload) => {
+          console.log('📡 Cambio detectado en COCINA:', payload);
+          this.cargar();
+        }
+      )
+      .subscribe();
 
-  const tk = this.push.getToken?.();
-  const { data: au } = await supabase.auth.getUser();
-  if (tk && au?.user?.id) {
-    await supabase
-      .from('push_tokens')
-      .update({
-        usuario_id: au.user.id,
-        role: 'mozo',
-        active: true,
-        revoked: false,
-      })
-      .eq('token', tk);
-  }
+    // ✅ NUEVA SUSCRIPCIÓN GLOBAL AL CHAT
+    supabase
+      .channel('mozo_chat_realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'chat_messages' },
+        async (payload) => {
+          const raw = payload.new as {
+            id: string;
+            chat_id: string;
+            user_id: string;
+            body: string;
+            created_at: string;
+          } | null;
 
-  // this.push.testNotificacionLocal();
+          if (!raw) return;
+
+          const msg: ChatMessage = {
+            id: raw.id,
+            chat_id: raw.chat_id,
+            user_id: raw.user_id,
+            body: raw.body,
+            created_at: raw.created_at,
+          };
+
+          if (this.chatOpen && msg.chat_id === this.chatId) {
+  // Evitar duplicar mensajes ya insertados por subscribeToMessages
+  const yaExiste = this.messages.some((m) => m.id === msg.id);
+  if (yaExiste) return;
+
+  const vm = this.chatSvc.toViewMessage(msg, this.myUserId!);
+  this.messages.push({
+    ...vm,
+    role: vm.from === "yo" ? "mozo" : "cliente",
+  });
+  this.scrollToBottomAfterRender();
 }
 
+
+          if (this.inboxOpen) {
+            await this.cargarInbox();
+          }
+        }
+      )
+      .subscribe();
+
+    const tk = this.push.getToken?.();
+    const { data: au } = await supabase.auth.getUser();
+    if (tk && au?.user?.id) {
+      await supabase
+        .from('push_tokens')
+        .update({
+          usuario_id: au.user.id,
+          role: 'mozo',
+          active: true,
+          revoked: false,
+        })
+        .eq('token', tk);
+    }
+  }
 
   ngOnDestroy() {
     this.sub?.unsubscribe?.();
@@ -134,9 +178,7 @@ export class PedidosMozoPage implements OnInit {
       const ids = Array.from(
         new Set(this.pedidos.map((p) => p.mesa_id))
       ).filter(Boolean) as number[];
-      const mesas = await Promise.all(
-        ids.map((id) => this.mesasSrv.getById(id))
-      );
+      const mesas = await Promise.all(ids.map((id) => this.mesasSrv.getById(id)));
       mesas.forEach((m) => {
         if (m) {
           this.mesasNum.set(m.id!, m.numero!);
@@ -147,22 +189,18 @@ export class PedidosMozoPage implements OnInit {
         const pids = this.pedidos.map((p) => p.id).filter(Boolean) as string[];
         if (!pids.length) return;
 
-        const [{ data: bRows, error: bErr }, { data: cRows, error: cErr }] =
-          await Promise.all([
-            supabase
-              .from('bar_pedidos')
-              .select('pedido_id, estado, creado_en')
-              .in('pedido_id', pids)
-              .order('creado_en', { ascending: false }),
-            supabase
-              .from('cocina_pedidos')
-              .select('pedido_id, estado, creado_en')
-              .in('pedido_id', pids)
-              .order('creado_en', { ascending: false }),
-          ]);
-
-        if (bErr) console.error(bErr);
-        if (cErr) console.error(cErr);
+        const [{ data: bRows }, { data: cRows }] = await Promise.all([
+          supabase
+            .from('bar_pedidos')
+            .select('pedido_id, estado, creado_en')
+            .in('pedido_id', pids)
+            .order('creado_en', { ascending: false }),
+          supabase
+            .from('cocina_pedidos')
+            .select('pedido_id, estado, creado_en')
+            .in('pedido_id', pids)
+            .order('creado_en', { ascending: false }),
+        ]);
 
         const mapBar = new Map<string, string>();
         for (const r of bRows ?? []) {
@@ -252,28 +290,6 @@ export class PedidosMozoPage implements OnInit {
 
           if (estado === 'pagado') {
             await this.mesasSrv.liberarMesa(mesaId);
-
-            const { data: tokensDS } = await supabase
-              .from('push_tokens')
-              .select('token')
-              .in('role', ['dueño', 'supervisor'])
-              .eq('active', true)
-              .eq('revoked', false);
-
-            const safeDS = Array.from(
-              new Set((tokensDS ?? []).map((t: any) => t.token as string))
-            );
-            if (safeDS.length) {
-              const mesaNumero = this.mesasNum.get(mesaId) ?? mesaId;
-              const title = 'Pago confirmado';
-              const body = `Mesa ${mesaNumero}: el pago fue validado por el mozo ✅`;
-              await this.push.send(safeDS, title, body, {
-                tipo: 'pago_validado',
-                pedidoId,
-                mesaId,
-                estado,
-              });
-            }
           }
 
           if (tokens.length) {
@@ -383,31 +399,57 @@ export class PedidosMozoPage implements OnInit {
   }
 
   async abrirChat(mesaId: number) {
-    if (this.busy) return;
-    this.mesaChatId = mesaId;
-    if (!this.mesasNum.has(mesaId)) {
-      const m = await this.mesasSrv.getById(mesaId);
-      if (m) this.mesasNum.set(m.id!, m.numero!);
-    }
-    const chat = await this.chatSvc.getOrCreateForMesa(mesaId, 'mozo');
-    this.chatId = chat.id;
-    const msgs = await this.chatSvc.loadMessages(chat.id, 200);
-    this.messages = msgs.map((m) => {
-      const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
-      return { ...vm, role: vm.from === 'yo' ? 'mozo' : 'cliente' };
-    });
-    this.chatOpen = true;
-    this.scrollToBottomAfterRender();
-    this.chatSvc.unsubscribe();
-    this.chatSvc.subscribeToMessages(chat.id, (m) => {
-      const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
-      this.messages.push({
-        ...vm,
-        role: vm.from === 'yo' ? 'mozo' : 'cliente',
-      });
-      this.scrollToBottomAfterRender();
-    });
+  if (this.busy) return;
+
+  this.mesaChatId = mesaId;
+
+  // Asegurarse de tener número de mesa
+  if (!this.mesasNum.has(mesaId)) {
+    const m = await this.mesasSrv.getById(mesaId);
+    if (m) this.mesasNum.set(m.id!, m.numero!);
   }
+
+  // Obtener o crear chat
+  const chat = await this.chatSvc.getOrCreateForMesa(mesaId, "mozo");
+  this.chatId = chat.id;
+
+  // Cargar mensajes previos
+  const msgs = await this.chatSvc.loadMessages(chat.id, 200);
+  const seen = new Set<string>();
+  this.messages = msgs.map((m) => {
+    seen.add(m.id);
+    const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
+    return { ...vm, role: vm.from === "yo" ? "mozo" : "cliente" };
+  });
+  this.scrollToBottomAfterRender();
+
+  this.chatOpen = true;
+
+  // Desuscribir cualquier canal anterior
+  this.chatSvc.unsubscribe();
+
+  // Suscripción realtime con filtro anti-duplicados
+  this.chatSvc.subscribeToMessages(chat.id, async (m: ChatMessage) => {
+    // ⚙️ Evitar duplicados ya cargados
+    if (seen.has(m.id)) return;
+    seen.add(m.id);
+
+    // Evitar duplicados visuales (por si el evento se repite)
+    const yaExiste = this.messages.some((msg) => msg.id === m.id);
+    if (yaExiste) return;
+
+    const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
+
+    // Insertar el mensaje en la lista visible
+    this.messages.push({
+      ...vm,
+      role: vm.from === "yo" ? "mozo" : "cliente",
+    });
+
+    this.scrollToBottomAfterRender();
+  });
+}
+
 
   private scrollToBottom(ms: number = 200) {
     try {
@@ -420,10 +462,19 @@ export class PedidosMozoPage implements OnInit {
   }
 
   async cerrarChat() {
-    await this.chatModal?.dismiss();
-    this.chatOpen = false;
-    this.chatSvc.unsubscribe();
+  await this.chatModal?.dismiss();
+  this.chatOpen = false;
+  this.chatSvc.unsubscribe();
+  
+  await this.cargarInbox();
+  this.inboxOpen = true;
+
+  const modal = this.inboxModal;
+  if (modal) {
+    await modal.present();
   }
+}
+
 
   async enviar() {
     const t = this.newMsg.trim();
