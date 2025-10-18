@@ -748,65 +748,65 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   }
 
   private async ensureChatAndSubscribe(): Promise<void> {
-    if (!this.mesaAsignadaId) return;
-    if (!this.myUserId) {
-      const { data: au } = await supabase.auth.getUser();
-      this.myUserId = this.anonimoId
-        ? `anon-${this.anonimoId}`
-        : au.user?.id ?? undefined;
-    }
+  if (!this.mesaAsignadaId) return;
 
-    const chat = await this.chatSvc.getOrCreateForMesa(
-      this.mesaAsignadaId,
-      'cliente',
-      this.anonimoId
-    );
-
-    this.chatId = chat.id;
-
-    await this.chatSvc.bindMyPushToken(this.chatId, this.anonimoId);
-
-    const msgs = await this.chatSvc.loadMessages(chat.id, 200);
-    this.seenIds.clear();
-    this.messages = msgs.map((m: any) => {
-      this.seenIds.add(m.id);
-      const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
-      const role = vm.from === 'yo' ? 'cliente' : 'mozo';
-      return { ...vm, role };
-    });
-
-    this.scrollToBottomAfterRender();
-
-    this.chatSvc.subscribeToMessages(chat.id, async (m: ChatMessage) => {
-      if (this.seenIds.has(m.id)) return;
-
-      const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
-      if (vm.from === 'yo') {
-        this.seenIds.add(m.id);
-        return;
-      }
-
-      const role: 'mozo' | 'cliente' = 'mozo';
-      this.zone.run(() => {
-        this.messages.push({ ...vm, role });
-        this.seenIds.add(m.id);
-      });
-
-      if (!this.chatOpen) {
-        (
-          await this.toast.create({
-            message: `Mozo: ${vm.text}`,
-            duration: 3000,
-            position: 'top',
-            cssClass: 'toast',
-            buttons: [{ text: 'Abrir', handler: () => this.openChat() }],
-          })
-        ).present();
-      } else {
-        this.scrollToBottom();
-      }
-    });
+  // Asegurarse de tener mi userId
+  if (!this.myUserId) {
+    const { data: au } = await supabase.auth.getUser();
+    this.myUserId = this.anonimoId
+      ? `anon-${this.anonimoId}`
+      : au.user?.id ?? undefined;
   }
+
+  // Obtener o crear chat
+  const chat = await this.chatSvc.getOrCreateForMesa(
+    this.mesaAsignadaId,
+    "cliente",
+    this.anonimoId
+  );
+
+  this.chatId = chat.id;
+
+  // Asociar token push al chat
+  await this.chatSvc.bindMyPushToken(this.chatId, this.anonimoId);
+
+  // Cargar mensajes previos
+  const msgs = await this.chatSvc.loadMessages(chat.id, 200);
+  this.seenIds.clear();
+  this.messages = msgs.map((m: any) => {
+    this.seenIds.add(m.id);
+    return this.chatSvc.toViewMessage(m, this.myUserId!);
+  });
+
+  this.scrollToBottomAfterRender();
+
+  // Suscripción en tiempo real
+  this.chatSvc.subscribeToMessages(chat.id, async (m: ChatMessage) => {
+    if (this.seenIds.has(m.id)) return; // evitar duplicados
+    this.seenIds.add(m.id);
+
+    const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
+
+    this.zone.run(() => {
+      this.messages.push(vm);
+      this.scrollToBottomAfterRender();
+    });
+
+    // Si el chat está cerrado, mostrar notificación tipo toast
+    if (!this.chatOpen) {
+      (
+        await this.toast.create({
+          message: `Mozo: ${vm.text}`,
+          duration: 3000,
+          position: "top",
+          cssClass: "toast",
+          buttons: [{ text: "Abrir", handler: () => this.openChat() }],
+        })
+      ).present();
+    }
+  });
+}
+
 
   async openChat() {
     if (!this.chatId && this.mesaAsignadaId) {

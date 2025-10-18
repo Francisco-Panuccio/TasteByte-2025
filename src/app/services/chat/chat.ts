@@ -190,9 +190,27 @@ export class Chat {
     return ins.data as ChatMessage;
   }
 
-  toViewMessage(m: ChatMessage, myUserId: string): { id: string; from: "yo" | "mozo"; text: string; time: string } {
-    return { id: m.id, from: m.user_id === myUserId ? "yo" : "mozo", text: m.body, time: this.hhmm(new Date(m.created_at)) };
-  }
+toViewMessage(
+  m: ChatMessage,
+  myUserId: string
+): { id: string; from: "yo" | "mozo"; role: "mozo" | "cliente"; text: string; time: string } {
+  const fromMe = m.user_id === myUserId;
+
+  const role: "mozo" | "cliente" =
+    m.user_id?.startsWith("anon-") || (m.user_id && m.user_id.length < 36)
+      ? "cliente"
+      : "mozo";
+
+  return {
+    id: m.id,
+    from: fromMe ? "yo" : "mozo",
+    role,
+    text: m.body,
+    time: this.hhmm(new Date(m.created_at)),
+  };
+}
+
+
 
   private hhmm(d: Date): string {
     const hh = String(d.getHours()).padStart(2, "0");
