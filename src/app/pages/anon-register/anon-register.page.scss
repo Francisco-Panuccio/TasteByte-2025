@@ -103,6 +103,7 @@ form {
     height: auto;
     border-radius: 12px;
     opacity: 0.9;
+    border: 2px solid var(--color-text);
     transition: transform 0.3s ease;
 
     &:hover {

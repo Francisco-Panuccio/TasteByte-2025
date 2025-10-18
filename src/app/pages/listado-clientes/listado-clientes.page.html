@@ -7,7 +7,7 @@
     <img src="assets/icon/cubiertos.png">
   </header>
 
-  <ion-content>
+  <ion-content class="ion-padding">
     @if(clientes.length > 0) {
       <div class="div_list">
         <div class="item" *ngFor="let c of clientes">
@@ -18,12 +18,9 @@
   
             <div class="item-data">
               <p class="name">{{ c.usuario.apellidos | titlecase }} {{ c.usuario.nombres | titlecase }}</p>
-              <p>🛂DNI: {{ c.usuario.numero_documento }}</p>
+              <p>🛂D.N.I.: {{ c.usuario.numero_documento }}</p>
+              <p class="email">✉️{{ c.usuario.correo_electronico }}</p>
             </div>
-          </div>
-
-          <div class="item-data2">
-            <p>✉️{{ c.usuario.correo_electronico }}</p>
           </div>
 
           <div class="item-btns">
