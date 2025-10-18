@@ -1,183 +1,188 @@
 @if(loading) {
-  <app-loading />
+<app-loading />
 } @else {
-  <header>
-    <img src="assets/icon/cubiertos.png" />
-    <title>Bienvenido</title>
-    <img src="assets/icon/cubiertos.png" />
-  </header>
+<header>
+  <img src="assets/icon/cubiertos.png" />
+  <title>Bienvenido</title>
+  <img src="assets/icon/cubiertos.png" />
+</header>
 
-  <ion-content>
-    <div class="div_main">
-      <div class="div_data">
-        <div class="div_photo">
-          <img [src]="this.clienteFoto" />
-        </div>
-        <div>
-          <span>{{ nombreCliente }}</span>
-        </div>
+<ion-content>
+  <div class="div_main">
+    <div class="div_data">
+      <div class="div_photo">
+        <img [src]="this.clienteFoto" />
+      </div>
+      <div>
+        <span>{{ nombreCliente }}</span>
       </div>
     </div>
+  </div>
 
-    <div class="container">
-      @if(!tienePermiso) {
-        <ion-button expand="block" class="btn_ingreso" (click)="escanearQr()">
-          Escanear QR de Ingreso
-        </ion-button>
-        <p class="texto_ingreso">
-          Escanee el código QR del restaurante para habilitar todas las funciones.
-        </p>
+  <div class="container">
+    @if(!tienePermiso) {
+    <ion-button expand="block" class="btn_ingreso" (click)="escanearQr()">
+      Escanear QR de Ingreso
+    </ion-button>
+    <p class="texto_ingreso">
+      Escanee el código QR del restaurante para habilitar todas las funciones.
+    </p>
 
-      } @else {
-        @if(!tieneMesa) {
-          <ion-button
-            routerLink="/lista-espera"
-            [queryParams]="{ anonimoId: anonimoId, userId: usuarioId }"
-            color="tertiary"
-          >
-            Ver Lista de Espera
-          </ion-button>
+    } @else { @if(!tieneMesa) { <ion-button
+      routerLink="/lista-espera"
+      [queryParams]="{
+    anonimoId: anonimoId,
+    usuarioId: usuarioId,
+    clienteId: clienteId,
+    userId: userUid,
+    from: 'cliente'
+  }"
+      color="tertiary"
+    >
+      Ver Lista de Espera
+    </ion-button>
 
-          <ion-button
-            color="medium"
-            [disabled]="yaRegistrado"
-            (click)="registrarseListaEspera()"
-          >
-            Unirse a Lista de Espera
-          </ion-button>
-        } @else {
-          <ion-button color="primary" (click)="openChat()">
-            Consultar al Mozo
-          </ion-button>
-        }
+    <ion-button
+      color="medium"
+      [disabled]="yaRegistrado"
+      (click)="registrarseListaEspera()"
+    >
+      Unirse a Lista de Espera
+    </ion-button>
+    } @else {
+    <ion-button color="primary" (click)="openChat()">
+      Consultar al Mozo
+    </ion-button>
+    }
 
-        <ion-button
-          class="btn_encuesta"
-          [routerLink]="['/encuestas']"
-          [queryParams]="{
+    <ion-button
+      class="btn_encuesta"
+      [routerLink]="['/encuestas']"
+      [queryParams]="{
             anonimoId: anonimoId,
             usuarioId: usuarioId,
             clienteId: clienteId,
             userId: userUid
           }"
-        >
-          Encuestas Clientes
-        </ion-button>
+    >
+      Encuestas Clientes
+    </ion-button>
 
-        @if(mostrarJuegosPedido) {
-          <ion-button
-            class="btn_pedido"
-            [routerLink]="['/pedido']"
-            [queryParams]="{
+    @if(mostrarJuegosPedido) {
+    <ion-button
+      class="btn_pedido"
+      [routerLink]="['/pedido']"
+      [queryParams]="{
               id: pedidoId || undefined,
               mesaId: mesaAsignadaId || undefined,
               anonimoId: anonimoId,
               usuarioId: usuarioId,
               clienteId: clienteId
             }"
-          >
-            Pedido
-          </ion-button>
+    >
+      Pedido
+    </ion-button>
 
-          <ion-button
-            class="btn_juegos"
-            [routerLink]="['/juegos']"
-            [queryParams]="{
+    <ion-button
+      class="btn_juegos"
+      [routerLink]="['/juegos']"
+      [queryParams]="{
               anonimoId: anonimoId,
               usuarioId: usuarioId,
               clienteId: clienteId,
               userId: userUid,
               mesaId: mesaAsignadaId
             }"
-          >
-            Juegos
-          </ion-button>
-        }
-
-        @if(mostrarCuenta && tieneMesa && estadoPedido !== 'impagado') {
-          <ion-button
-            class="btn_cuenta"
-            (click)="pedirCuenta()"
-            [routerLink]="['/cuenta']"
-            [queryParams]="{
+    >
+      Juegos
+    </ion-button>
+    } @if(mostrarCuenta && tieneMesa && estadoPedido !== 'impagado') {
+    <ion-button
+      class="btn_cuenta"
+      (click)="pedirCuenta()"
+      [routerLink]="['/cuenta']"
+      [queryParams]="{
               pedidoId: pedidoId,
               anonimoId: anonimoId,
               usuarioId: usuarioId,
               clienteId: clienteId,
               userId: userUid
             }"
-          >
-            Pedir Cuenta
-          </ion-button>
-        }
+    >
+      Pedir Cuenta
+    </ion-button>
+    }
 
-        <ion-button class="last-btn" (click)="escanearQrMesa()">
-          <img src="assets/images/qr.png" />
-        </ion-button>
-      }
-    </div>
-  </ion-content>
+    <ion-button class="last-btn" (click)="escanearQrMesa()">
+      <img src="assets/images/qr.png" />
+    </ion-button>
+    }
+  </div>
+</ion-content>
 
-  <ion-modal
-    #chatModal
-    [isOpen]="chatOpen"
-    [breakpoints]="[1]"
-    [initialBreakpoint]="1"
-    backdropDismiss="false"
-    handle="false"
-    (didDismiss)="chatOpen=false"
-  >
-    <ng-template>
-      <header class="header-chat">
-        <div>
-          <img src="assets/icon/cubiertos.png">
-          <title class="title2">Chat Mozo</title>
-          <img src="assets/icon/cubiertos.png">
-        </div>
-        <button (click)="closeChat()">❌ Cerrar ❌</button>
-      </header>
+<ion-modal
+  #chatModal
+  [isOpen]="chatOpen"
+  [breakpoints]="[1]"
+  [initialBreakpoint]="1"
+  backdropDismiss="false"
+  handle="false"
+  (didDismiss)="chatOpen=false"
+>
+  <ng-template>
+    <header class="header-chat">
+      <div>
+        <img src="assets/icon/cubiertos.png" />
+        <title class="title2">Chat Mozo</title>
+        <img src="assets/icon/cubiertos.png" />
+      </div>
+      <button (click)="closeChat()">❌ Cerrar ❌</button>
+    </header>
 
-      <ion-content #chatContent class="ion-content-chat">
-        <div class="chat">
-          <div
-            class="msg"
-            [class.mine]="m.from==='yo'"
-            [class.mozo-msg]="m.role==='mozo'"
-            [class.cliente-msg]="m.role==='cliente'"
-            *ngFor="let m of messages; trackBy: trackMsg;"
-          >
-            <div class="bubble">
-              <div class="body">{{ m.text | titlecase }}</div>
-              <div [class.mozo-meta]="m.role==='mozo'"
-                   [class.cliente-meta]="m.role==='cliente'">
-                {{ m.role==='mozo' ? 'Mozo' : 'Cliente' }} • {{ m.time }}
-              </div>
+    <ion-content #chatContent class="ion-content-chat">
+      <div class="chat">
+        <div
+          class="msg"
+          [class.mine]="m.from==='yo'"
+          [class.mozo-msg]="m.role==='mozo'"
+          [class.cliente-msg]="m.role==='cliente'"
+          *ngFor="let m of messages; trackBy: trackMsg;"
+        >
+          <div class="bubble">
+            <div class="body">{{ m.text | titlecase }}</div>
+            <div
+              [class.mozo-meta]="m.role==='mozo'"
+              [class.cliente-meta]="m.role==='cliente'"
+            >
+              {{ m.role==='mozo' ? 'Mozo' : 'Cliente' }} • {{ m.time }}
             </div>
           </div>
         </div>
+      </div>
 
-        <ion-item class="composer" lines="none" slot="fixed">
-          <ion-input
-            type="text"
-            placeholder="Escribe tu mensaje…"
-            [(ngModel)]="newMsg"
-            [disabled]="!chatReady"
-            (keyup.enter)="sendMessage()"
-          ></ion-input>
-          <ion-button
-            slot="end"
-            [disabled]="!chatReady || !newMsg.trim()"
-            (click)="sendMessage();">
-            Enviar
-          </ion-button>
-        </ion-item>
-      </ion-content>
-    </ng-template>
-  </ion-modal>
+      <ion-item class="composer" lines="none" slot="fixed">
+        <ion-input
+          type="text"
+          placeholder="Escribe tu mensaje…"
+          [(ngModel)]="newMsg"
+          [disabled]="!chatReady"
+          (keyup.enter)="sendMessage()"
+        ></ion-input>
+        <ion-button
+          slot="end"
+          [disabled]="!chatReady || !newMsg.trim()"
+          (click)="sendMessage();"
+        >
+          Enviar
+        </ion-button>
+      </ion-item>
+    </ion-content>
+  </ng-template>
+</ion-modal>
 
-  <footer>
-    <hr />
-    <button class="btn_footer" (click)="salir()">Cerrar Sesión</button>
-    <hr />
-  </footer>
+<footer>
+  <hr />
+  <button class="btn_footer" (click)="salir()">Cerrar Sesión</button>
+  <hr />
+</footer>
 }

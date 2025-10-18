@@ -25,7 +25,6 @@ export class Chat {
 
   private async getMyDisplayName(anonimoId?: string): Promise<string> {
   try {
-    // 🟢 Caso cliente anónimo
     if (anonimoId) {
       const { data, error } = await supabase
         .from("clientes_anonimos")
@@ -40,7 +39,6 @@ export class Chat {
       return data?.nombre?.trim() || "Cliente Anónimo";
     }
 
-    // 🟢 Caso usuario autenticado
     const { data: au, error: errAuth } = await supabase.auth.getUser();
     if (errAuth || !au?.user) {
       console.warn("[ChatService] getMyDisplayName auth error:", errAuth?.message);
@@ -121,19 +119,42 @@ export class Chat {
   }
 
   subscribeToMessages(chatId: string, onInsert: (m: ChatMessage) => void): void {
-    this.unsubscribe();
-    this.channel = supabase
-      .channel(`chat:${chatId}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages", filter: `chat_id=eq.${chatId}` }, (payload) => onInsert(payload.new as ChatMessage))
-      .subscribe();
-  }
-
-  unsubscribe(): void {
-    if (this.channel) {
-      supabase.removeChannel(this.channel);
-      this.channel = undefined;
+  if (this.channel) {
+    const channelName = (this.channel as any).name ?? "";
+    if (channelName.includes(`chat:${chatId}`)) {
+      return;
     }
   }
+
+  this.channel = supabase
+    .channel(`chat:${chatId}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "chat_messages",
+        filter: `chat_id=eq.${chatId}`,
+      },
+      (payload) => {
+        const msg = payload.new as ChatMessage;
+        if (msg) onInsert(msg);
+      }
+    )
+    .subscribe((status) => {
+      if (status === "SUBSCRIBED") {
+        console.log(`[ChatService] Suscrito en tiempo real al chat ${chatId}`);
+      }
+    });
+}
+
+  unsubscribe(): void {
+  if (this.channel) {
+    supabase.removeChannel(this.channel);
+    console.log("[ChatService] Canal eliminado");
+    this.channel = undefined;
+  }
+}
 
   private async getClienteTokensPreferChat(chatId: string, mesaId: number): Promise<string[]> {
     const { data: parts } = await supabase.from("chat_participants").select("user_id,push_token").eq("chat_id", chatId).eq("role", "cliente").limit(1);
