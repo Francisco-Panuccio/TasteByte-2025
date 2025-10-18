@@ -17,15 +17,16 @@
         <ion-card-content>
           <div class="items-list">
             @for (it of items; track it.id) {
-              <ion-item lines="none" class="item-row">
-                <ion-label>
-                  <h2>{{ it.nombre }}</h2>
-                  <p>{{ it.tipo }}</p>
-                </ion-label>
-                <ion-note slot="end">
-                  {{ it.cantidad }} × {{ it.precio_unit | currency:"ARS":"symbol-narrow":"1.0-0" }}
-                </ion-note>
-              </ion-item>
+              <div class="item">
+                <div class="data">
+                  <p>{{ it.nombre }}</p>
+                  <p>{{ it.tipo | titlecase}}</p>
+                </div>
+                <div class="qty">
+                  <p>{{ it.precio_unit | currency:"ARS":"symbol-narrow":"1.0-0" }}</p>
+                  <p>x{{ it.cantidad }}</p>
+                </div>
+              </div>
             }
           </div>
 
@@ -33,7 +34,7 @@
             <p><b>Subtotal:</b> {{ ped?.total | currency:"ARS":"symbol-narrow":"1.0-0" }}</p>
 
             @if(descuento > 0) {
-              <p class="descuento">Descuento aplicado: -{{ descuento }}%</p>
+              <p class="descuento">💸Descuento aplicado: - {{ descuento }}%</p>
             }
 
             <div class="div_propina">

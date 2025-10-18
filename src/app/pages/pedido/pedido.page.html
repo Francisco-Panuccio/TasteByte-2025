@@ -2,50 +2,63 @@
   <app-loading/>
 } @else {
   <header>
-      <title>Pedido • Mesa {{ ped?.mesa?.numero ?? ped?.mesa_id }}</title>
+    <img src="assets/icon/cubiertos.png">
+    <title>Pedido Mesa {{ ped?.mesa?.numero ?? ped?.mesa_id }}</title>
+    <img src="assets/icon/cubiertos.png">
   </header>
 
   <ion-content>
-      @if(!loading && !ped) {
-        <div class="vacio">Pedido no encontrado</div>
-      } @else {
-        @for (it of items; track it.producto_id || it.id || $index) {
-          <ion-item>
-            <ion-label>
-              <div>{{ it.nombre }}</div>
-              <small>{{ it.tipo }} • {{ it.duracion_min }} min</small>
-            </ion-label>
-            <ion-note slot="end" style="font-size: 16px;">{{ it.cantidad }} × {{ it.precio_unit | currency:"ARS":"symbol-narrow":"1.0-0" }}</ion-note>
-          </ion-item>
-        }
+    @if(!loading && !ped) {
+      <div class="vacio">Pedido no Encontrado</div>
+    } @else {
+        <div class="contenedor">
+          <div class="div_total">
+            <div class="div_data"> 
+              <div class="div_p">
+                <p><span class="condition">Estado: </span> {{ ped?.estado | titlecase }}</p>
+                <p><span class="wait">Espera: </span> {{ ped?.eta_minutos }} minutos</p>
+              </div>
 
-        <div class="div_total">
-          <p><span style="color: black;">Total: </span> {{ ped?.total | currency:"ARS":"symbol-narrow" }}</p>
-          <p><span style="color: black;">Espera: </span> {{ ped?.eta_minutos }} min</p>
-          <p><span style="color: black;">Estado: </span> {{ ped?.estado | titlecase }}</p>
-
-          @if(ped?.totalConDescuento) {
-            <p style="color: green; font-weight: bold;">
-              💸 Total con descuento: {{ ped?.totalConDescuento | currency:"ARS":"symbol-narrow" }}
-            </p>
-          }
-
-          @if(ped?.estado === 'recibido') {
-            <div class="div_btn_recibido">
-                <ion-button class="btn_recibido" (click)="confirmarRecibido();" [disabled]="verificando">
-                Pedido Recibido
-              </ion-button>
+              <div class="div_orden">
+                @if(ped?.totalConDescuento) {
+                  <p>
+                    Total con Descuento: {{ ped?.totalConDescuento | currency:"ARS":"symbol-narrow":"1.0-0" }}
+                  </p>
+                } @else {
+                  <p><span>Total: </span> {{ ped?.total | currency:"ARS":"symbol-narrow":"1.0-0" }}</p>
+                }              
+              </div>
             </div>
-          }
+          </div>
+
+          <div class="div_items">
+            @for (it of items; track it.producto_id || it.id || $index) {
+              <ion-item>
+                <ion-label>
+                  <div class="name">{{ it.nombre }}</div>
+                  <small>{{ it.duracion_min }} minutos</small>
+                </ion-label>
+                <ion-note slot="end">{{ it.cantidad }} × {{ it.precio_unit | currency:"ARS":"symbol-narrow":"1.0-0" }}</ion-note>
+              </ion-item>
+            }
+
+            @if(ped?.estado === 'recibido') {
+              <div class="div_btn_recibido">
+                  <ion-button class="btn-tertiary" (click)="confirmarRecibido();" [disabled]="verificando">
+                  Pedido Recibido
+                </ion-button>
+              </div>
+            }  
+          </div>
         </div>
       }
   </ion-content>
 
   <footer>
-    <ion-toolbar>
-      <ion-buttons class="ion_btns">
-        <ion-button class="btn_logged" (click)="volver()">Volver</ion-button>
-      </ion-buttons>
-    </ion-toolbar>
+    <hr>
+    <button class="btn_footer" (click)="volver()">
+      Volver
+    </button>
+    <hr>
   </footer>
 }

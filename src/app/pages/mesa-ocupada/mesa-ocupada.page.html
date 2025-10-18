@@ -11,7 +11,7 @@
     <ion-content [scrollY]="false" [class.blocked]="submitting || pedidoBloqueado">
       @if(bannerMsg){
         <div class="pedido-banner" role="status">
-          {{ bannerMsg }}
+          <span>{{ bannerMsg }}</span>
           <div class="div_img">
             <img src="assets/images/camarero.png">
           </div>
@@ -140,15 +140,16 @@
     <ion-content>
       @if(bannerMsg){
         <div class="pedido-banner" role="status">
-          {{ bannerMsg }}
+          <span>{{ bannerMsg }}</span>
           <div class="div_img">
             <img src="assets/images/camarero.png">
           </div>
         </div>
       } @else {
-        <header class="carrito-header">
+        <div class="carrito-header">
           <h2>🛒 Carrito de Pedido</h2>
-        </header>
+          <button class="btn_pedido" (click)="showCarrito()">Ver Menú</button>
+        </div>
 
         <div class="carrito-lista">
           @if(itemsSel.length > 0) {

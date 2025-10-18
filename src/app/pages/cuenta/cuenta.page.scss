@@ -30,7 +30,7 @@ ion-card-title {
   text-align: center;
   font-weight: 600;
   color: var(--color-text);
-  margin: 0;
+  margin: 0 0 10px 0;
 }
 
 ion-card-header,
@@ -39,27 +39,68 @@ ion-card-content {
 }
 
 .items-list {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
   margin: 10px 0;
+
+  .item {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    background-color: var(--color-input);
+    border-radius: 10px;
+    padding: 5px;
+    border: 2px solid var(--color-text);
+
+    .data {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding-left: 5px;
+
+      p {
+        font-size: 18px;
+        font-weight: 600;
+      }
+    }
+
+    .qty {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      border-left: 2px solid var(--color-text);
+      padding: 0 5px 0 15px;
+
+      p {
+        font-size: 16px;
+        font-weight: 600;
+      }
+    }
+  }
 }
 
-.item-row {
-  --min-height: 70px;
-  font-size: 1.2rem;
-  border-bottom: 1px solid var(--color-text)
-}
 
 .totales {
   text-align: center;
 
   p {
-    font-size: 30px;
-    margin: 0;
+    font-size: 25px;
+    font-weight: 600;
+    margin: 10px 0 0 0;
   }
 }
 
 .descuento {
-  color: green;
-  font-weight: bold;
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 20px !important;
+  margin: 5px 0 0 0 !important;
 }
 
 .div_propina {
@@ -81,9 +122,8 @@ ion-card-content {
 }
 
 .total_final {
-  font-size: 40px;
-  font-weight: 600;
-  color: var(--color-text);
+  font-size: 40px !important;
+  margin: 0 !important;
 }
 
 .div_boton {
@@ -91,7 +131,7 @@ ion-card-content {
   justify-content: center;
   align-items: center;
   gap: 15px;
-  margin-top: 12px;
+  margin-top: 5px;
 }
 
 .btn-tertiary {
