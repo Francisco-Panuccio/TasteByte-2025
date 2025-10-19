@@ -307,8 +307,9 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
 
   private async ensureChatAndSubscribe(): Promise<void> {
     if (!this.mesaId) { return; }
-    const chat = await this.chatSvc.getOrCreateForMesa(this.mesaId, "cliente");
+    const chat = await this.chatSvc.getOrCreateForMesa(this.mesaId, "cliente", this.anonimoId);
     this.chatId = chat.id;
+
     await this.chatSvc.bindMyPushToken(this.chatId, this.anonimoId);
     const msgs = await this.chatSvc.loadMessages(chat.id, 200);
     this.seenIds.clear();
@@ -319,6 +320,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
       return { ...vm, role };
     });
     this.scrollToBottomAfterRender();
+
     this.chatSvc.subscribeToMessages(chat.id, async (m: ChatMessage) => {
       if (this.seenIds.has(m.id)) { return; }
       const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
@@ -326,24 +328,17 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
       const role: "mozo" | "cliente" = "mozo";
       this.messages.push({ ...vm, role });
       this.seenIds.add(m.id);
-      if (!this.chatOpen) {
-        (await this.toast.create({
-          message: `Mozo: ${vm.text}`,
-          duration: 3000,
-          position: "top",
-          cssClass: "toast",
-          buttons: [{ text: "Abrir", handler: () => this.openChat() }]
-        })).present();
-      } else {
+      if (this.chatOpen) {
         this.scrollToBottom();
       }
     });
   }
 
+
   async openChat() {
     if (this.submitting) { return; }
     if (!this.chatId && this.mesaId) {
-      const chat = await this.chatSvc.getOrCreateForMesa(this.mesaId, "cliente");
+      const chat = await this.chatSvc.getOrCreateForMesa(this.mesaId, "cliente", this.anonimoId);
       this.chatId = chat.id;
       await this.chatSvc.bindMyPushToken(this.chatId, this.anonimoId);
     }
@@ -351,6 +346,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     this.chatReady = true;
     this.scrollToBottomAfterRender();
   }
+
 
   async closeChat() {
     await this.chatModal?.dismiss();
@@ -584,8 +580,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
               message: "Su pedido fue rechazado, por favor modifíquelo correctamente y reenvíelo.",
               position: "top",
               cssClass: "toasty",
-              duration: undefined,
-              buttons: [{ text: "Cerrar", role: "cancel" }]
+              duration: 1200
             })).present();
           }
         });

@@ -93,18 +93,24 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
+      object-position: center;
     }
   }
+}
+
+.last-btn {
+  box-shadow: 1px 1px 2px 2px var(--color-text) inset;
+  animation: pulseIngreso 2s infinite ease-in-out;
 }
 
 .last-btn::part(native) {
   --background: var(--color-btn-primary);
   --padding-inline-start: 0;
   --padding-inline-end: 0;
+  --padding-start: 0;
+  --padding-end: 0;
   --padding-bottom: 0;
   --padding-top: 0;
-  box-shadow: 1px 1px 2px 2px var(--color-text) inset;
-  animation: pulseIngreso 2s infinite ease-in-out;
 }
 
 .div_mesa {
@@ -124,23 +130,23 @@ ion-button {
 }
 
 .btn_pedido {
-  --background: rgb(112, 112, 112);
+  --background: var(--color-background);
 }
 
 .btn_encuesta {
-  --background: rgb(70, 194, 87);
+  --background: var(--color-btn-tertiary);
 }
 
 .btn_juegos {
-  --background: rgb(107, 170, 238);
+  --background: var(--color-error);
 }
 
 .btn_cuenta {
-  --background: rgb(182, 159, 10);
+  --background: rgb(154, 149, 8);
 }
 
 .btn_chat {
-  --background: rgb(227, 84, 173);
+  --background: var(--color-btn-secondary);
 }
 
 // Estilos del Chat

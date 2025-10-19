@@ -39,7 +39,7 @@ export class Push {
   private resolveReadyOnce() {
     try {
       this.readyResolve?.();
-    } catch {}
+    } catch { }
   }
 
   private pushSubject = new Subject<Record<string, any>>();
@@ -57,7 +57,7 @@ export class Push {
 
   async init(usuarioRowId?: number | null, role?: Role): Promise<void> {
 
-    
+
     if (Capacitor.getPlatform() === "web") {
       this.resolveReadyOnce();
       return;
@@ -152,35 +152,34 @@ export class Push {
   }
 
   private async ensureChannels(): Promise<void> {
-  try {
-    await PushNotifications.createChannel({
-      id: "orders",
-      name: "Pedidos",
-      description: "Notificaciones de pedidos listos",
-      importance: 5, // Máximo
-      visibility: 1,
-      sound: "default"
-    });
-    console.log("📡 Canal 'orders' creado o ya existente.");
-  } catch (err) {
-    console.warn("⚠️ No se pudo crear canal push:", err);
-  }
+    try {
+      await PushNotifications.createChannel({
+        id: "orders",
+        name: "Pedidos",
+        description: "Notificaciones de pedidos listos",
+        importance: 5, // Máximo
+        visibility: 1,
+        sound: "default"
+      });
+      console.log("📡 Canal 'orders' creado o ya existente.");
+    } catch (err) {
+      console.warn("⚠️ No se pudo crear canal push:", err);
+    }
 
-  try {
-    await LocalNotifications.createChannel({
-      id: "orders",
-      name: "Pedidos",
-      description: "Notificaciones de pedidos listos",
-      importance: 5,
-      sound: "default",
-      visibility: 1
-    });
-    console.log("📡 Canal LocalNotifications 'orders' creado.");
-  } catch (err) {
-    console.warn("⚠️ No se pudo crear canal local:", err);
+    try {
+      await LocalNotifications.createChannel({
+        id: "orders",
+        name: "Pedidos",
+        description: "Notificaciones de pedidos listos",
+        importance: 5,
+        sound: "default",
+        visibility: 1
+      });
+      console.log("📡 Canal LocalNotifications 'orders' creado.");
+    } catch (err) {
+      console.warn("⚠️ No se pudo crear canal local:", err);
+    }
   }
-}
-
 
   private async upsertToken(
     token: string,
@@ -291,60 +290,59 @@ export class Push {
   }
 
   async sendLocal(title: string, body: string) {
-  try {
-    await this.ready();
-    console.log("📱 Disparando notificación local:", title, body);
+    try {
+      await this.ready();
+      console.log("📱 Disparando notificación local:", title, body);
+      await LocalNotifications.schedule({
+        notifications: [{
+          id: Date.now(),
+          title,
+          body,
+          channelId: 'orders',
+          sound: 'default',
+          smallIcon: 'ic_stat_orders',
+          largeIcon: 'ic_launcher',
+        }]
+      });
+    } catch (err) {
+      console.error("❌ Error en sendLocal:", err);
+    }
+  }
+
+  listenPedidosListosMozo(cb: (data: any) => void) {
+    console.log("👂 Escuchando inserts en push_eventos...");
+
+    return supabase
+      .channel('push_eventos_global')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'push_eventos' },
+        (payload: any) => {
+          const nuevo: Record<string, any> = payload.new;
+          console.log("📦 Realtime global: insert recibido →", nuevo);
+
+          if (nuevo && nuevo["tipo"] === "pedido_listo") {
+            cb(nuevo);
+          }
+        }
+      )
+      .subscribe((status: any) => {
+        console.log("📡 Estado del canal push_eventos:", status);
+      });
+  }
+
+  async testNotificacionLocal() {
+    console.log("📣 Testeando notificación local...");
+    await LocalNotifications.requestPermissions();
+    await this.ensureChannels();
     await LocalNotifications.schedule({
       notifications: [{
         id: Date.now(),
-        title,
-        body,
-        channelId: 'orders',
-        sound: 'default',
-        smallIcon: 'ic_stat_orders',
-        largeIcon: 'ic_launcher',
+        title: "🔔 Test Manual",
+        body: "Esto es una notificación de prueba",
+        channelId: "orders",
+        sound: "default"
       }]
     });
-  } catch (err) {
-    console.error("❌ Error en sendLocal:", err);
   }
-}
-
-
- listenPedidosListosMozo(cb: (data: any) => void) {
-  console.log("👂 Escuchando inserts en push_eventos...");
-
-  return supabase
-    .channel('push_eventos_global')
-    .on(
-      'postgres_changes',
-      { event: 'INSERT', schema: 'public', table: 'push_eventos' },
-      (payload: any) => {
-        const nuevo: Record<string, any> = payload.new;
-        console.log("📦 Realtime global: insert recibido →", nuevo);
-
-        if (nuevo && nuevo["tipo"] === "pedido_listo") {
-          cb(nuevo);
-        }
-      }
-    )
-    .subscribe((status: any) => {
-      console.log("📡 Estado del canal push_eventos:", status);
-    });
-}
-
-async testNotificacionLocal() {
-  console.log("📣 Testeando notificación local...");
-  await LocalNotifications.requestPermissions();
-  await this.ensureChannels();
-  await LocalNotifications.schedule({
-    notifications: [{
-      id: Date.now(),
-      title: "🔔 Test Manual",
-      body: "Esto es una notificación de prueba",
-      channelId: "orders",
-      sound: "default"
-    }]
-  });
-}
 }

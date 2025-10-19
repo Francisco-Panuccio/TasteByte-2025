@@ -12,7 +12,7 @@ ion-segment-button {
   --color-checked: var(--color-text);
   border-bottom: 2px solid var(--color-text);
   border-top: none;
-  font-size: 18px;
+  font-size: 16px;
 }
 
 ion-segment-button:nth-child(1),
@@ -74,6 +74,7 @@ ion-content::part(scroll) {
     aspect-ratio: auto;
     overflow: hidden;
     border-radius: 12px;
+    border: 2px solid var(--color-text);
 
     .track {
       display: flex;
@@ -85,7 +86,6 @@ ion-content::part(scroll) {
       -ms-overflow-style: none;
       scrollbar-width: none;
       height: 100%;
-      border: 2px solid var(--color-text);
     }
 
     .slide {
@@ -93,11 +93,12 @@ ion-content::part(scroll) {
       min-width: 100%;
       width: 100%;
       height: 100%;
-      object-fit: fill;
+      object-fit: auto;
       object-position: center;
       scroll-snap-align: start;
       scroll-snap-stop: always;
-      border: 2px solid var(--color-text);
+      border-right: 2px solid var(--color-text);
+      border-left: 2px solid var(--color-text);
     }
   }
 }
@@ -123,7 +124,8 @@ ion-content::part(scroll) {
   margin-top: -20px;
 }
 
-.qty {
+.qty,
+.qty-cart {
   gap: 8px;
   grid-area: qty;
   display: flex;
@@ -438,6 +440,8 @@ ion-content.blocked {
   }
 }
 
+.carrito-container {}
+
 .carrito-lista {
   padding: 15px;
   display: flex;
@@ -445,6 +449,29 @@ ion-content.blocked {
   gap: 15px;
   color: var(--color-text);
   background-color: var(--color-background);
+
+  .qty-cart {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0;
+    width: 100%;
+
+    ion-button {
+      margin: 0 !important;
+      border-top: none;
+      width: 100%;
+      border-radius: 0 0 0 10px;
+      --border-radius: 0 0 0 10px;
+      --background: var(--color-btn-tertiary);
+    }
+
+    ion-button:nth-child(2) {
+      border-left: none;
+      border-radius: 0 0 10px 0 !important;
+      --border-radius: 0 0 10px 0 !important;
+    }
+  }
 }
 
 .carrito-item {
@@ -452,7 +479,7 @@ ion-content.blocked {
   justify-content: space-between;
   align-items: center;
   border: 2px solid var(--color-text);
-  border-radius: 14px;
+  border-radius: 10px 10px 0 0;
   background-color: var(--color-btn-secondary);
   padding: 10px 14px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
