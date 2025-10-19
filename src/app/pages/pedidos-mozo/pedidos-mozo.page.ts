@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, ViewChild } from '@angular/core';
 import { IonContent, IonModal, ToastController } from '@ionic/angular';
 import { Chat } from 'src/app/services/chat/chat';
-import { ChatMessage } from 'src/app/interfaces/chat-message'; // ✅ agregado
+import { ChatMessage } from 'src/app/interfaces/chat-message';
 import { Mesas } from 'src/app/services/mesas/mesas';
 import { Pedidos } from 'src/app/services/pedidos/pedidos';
 import { supabase } from 'src/supabase.client';
@@ -93,7 +93,6 @@ export class PedidosMozoPage implements OnInit {
       )
       .subscribe();
 
-    // ✅ NUEVA SUSCRIPCIÓN GLOBAL AL CHAT
     supabase
       .channel('mozo_chat_realtime')
       .on(
@@ -119,17 +118,17 @@ export class PedidosMozoPage implements OnInit {
           };
 
           if (this.chatOpen && msg.chat_id === this.chatId) {
-  // Evitar duplicar mensajes ya insertados por subscribeToMessages
-  const yaExiste = this.messages.some((m) => m.id === msg.id);
-  if (yaExiste) return;
+            // Evitar duplicar mensajes ya insertados por subscribeToMessages
+            const yaExiste = this.messages.some((m) => m.id === msg.id);
+            if (yaExiste) return;
 
-  const vm = this.chatSvc.toViewMessage(msg, this.myUserId!);
-  this.messages.push({
-    ...vm,
-    role: vm.from === "yo" ? "mozo" : "cliente",
-  });
-  this.scrollToBottomAfterRender();
-}
+            const vm = this.chatSvc.toViewMessage(msg, this.myUserId!);
+            this.messages.push({
+              ...vm,
+              role: vm.from === "yo" ? "mozo" : "cliente",
+            });
+            this.scrollToBottomAfterRender();
+          }
 
 
           if (this.inboxOpen) {
@@ -310,6 +309,9 @@ export class PedidosMozoPage implements OnInit {
               if (estado === 'pagado') {
                 title = 'Pago confirmado';
                 body = `Mesa ${mesaNumero}: tu pago fue validado ✅`;
+              } else if (estado === 'recibido') {
+                title = 'Pedido Recibido';
+                body = `Mesa ${mesaNumero}: tu pedido fue entregado`;
               } else {
                 title =
                   estado === 'aceptado'
@@ -338,18 +340,18 @@ export class PedidosMozoPage implements OnInit {
             });
           }
         }
-      } catch (e) {}
+      } catch (e) { }
 
       const msg =
         estado === 'pagado'
           ? 'Pago validado'
           : estado === 'rechazado'
-          ? 'Pedido rechazado'
-          : estado === 'aceptado'
-          ? 'Pedido aceptado'
-          : estado === 'recibido'
-          ? 'Pedido entregado'
-          : 'Estado actualizado';
+            ? 'Pedido rechazado'
+            : estado === 'aceptado'
+              ? 'Pedido aceptado'
+              : estado === 'recibido'
+                ? 'Pedido entregado'
+                : 'Estado actualizado';
 
       (
         await this.toast.create({
@@ -399,62 +401,57 @@ export class PedidosMozoPage implements OnInit {
   }
 
   async abrirChat(mesaId: number) {
-  if (this.busy) return;
+    if (this.busy) return;
 
-  this.mesaChatId = mesaId;
+    this.mesaChatId = mesaId;
 
-  // Asegurarse de tener número de mesa
-  if (!this.mesasNum.has(mesaId)) {
-    const m = await this.mesasSrv.getById(mesaId);
-    if (m) this.mesasNum.set(m.id!, m.numero!);
-  }
+    if (!this.mesasNum.has(mesaId)) {
+      const m = await this.mesasSrv.getById(mesaId);
+      if (m) this.mesasNum.set(m.id!, m.numero!);
+    }
 
-  // Obtener o crear chat
-  const chat = await this.chatSvc.getOrCreateForMesa(mesaId, "mozo");
-  this.chatId = chat.id;
+    const chat = await this.chatSvc.getOrCreateForMesa(mesaId, "mozo");
+    this.chatId = chat.id;
 
-  // Cargar mensajes previos
-  const msgs = await this.chatSvc.loadMessages(chat.id, 200);
-  const seen = new Set<string>();
-  this.messages = msgs.map((m) => {
-    seen.add(m.id);
-    const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
-    return { ...vm, role: vm.from === "yo" ? "mozo" : "cliente" };
-  });
-  this.scrollToBottomAfterRender();
-
-  this.chatOpen = true;
-
-  // Desuscribir cualquier canal anterior
-  this.chatSvc.unsubscribe();
-
-  // Suscripción realtime con filtro anti-duplicados
-  this.chatSvc.subscribeToMessages(chat.id, async (m: ChatMessage) => {
-    // ⚙️ Evitar duplicados ya cargados
-    if (seen.has(m.id)) return;
-    seen.add(m.id);
-
-    // Evitar duplicados visuales (por si el evento se repite)
-    const yaExiste = this.messages.some((msg) => msg.id === m.id);
-    if (yaExiste) return;
-
-    const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
-
-    // Insertar el mensaje en la lista visible
-    this.messages.push({
-      ...vm,
-      role: vm.from === "yo" ? "mozo" : "cliente",
+    const msgs = await this.chatSvc.loadMessages(chat.id, 200);
+    const seen = new Set<string>();
+    this.messages = msgs.map((m) => {
+      seen.add(m.id);
+      const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
+      return { ...vm, role: vm.from === "yo" ? "mozo" : "cliente" };
     });
-
     this.scrollToBottomAfterRender();
-  });
-}
 
+    this.chatOpen = true;
+
+    this.chatSvc.unsubscribe();
+
+    // Suscripción realtime con filtro anti-duplicados
+    this.chatSvc.subscribeToMessages(chat.id, async (m: ChatMessage) => {
+      // ⚙️ Evitar duplicados ya cargados
+      if (seen.has(m.id)) return;
+      seen.add(m.id);
+
+      // Evitar duplicados visuales (por si el evento se repite)
+      const yaExiste = this.messages.some((msg) => msg.id === m.id);
+      if (yaExiste) return;
+
+      const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
+
+      // Insertar el mensaje en la lista visible
+      this.messages.push({
+        ...vm,
+        role: vm.from === "yo" ? "mozo" : "cliente",
+      });
+
+      this.scrollToBottomAfterRender();
+    });
+  }
 
   private scrollToBottom(ms: number = 200) {
     try {
       this.chatContent?.scrollToBottom(ms);
-    } catch {}
+    } catch { }
   }
 
   private scrollToBottomAfterRender() {
@@ -462,18 +459,18 @@ export class PedidosMozoPage implements OnInit {
   }
 
   async cerrarChat() {
-  await this.chatModal?.dismiss();
-  this.chatOpen = false;
-  this.chatSvc.unsubscribe();
-  
-  await this.cargarInbox();
-  this.inboxOpen = true;
+    await this.chatModal?.dismiss();
+    this.chatOpen = false;
+    this.chatSvc.unsubscribe();
 
-  const modal = this.inboxModal;
-  if (modal) {
-    await modal.present();
+    await this.cargarInbox();
+    this.inboxOpen = true;
+
+    const modal = this.inboxModal;
+    if (modal) {
+      await modal.present();
+    }
   }
-}
 
 
   async enviar() {
@@ -580,10 +577,6 @@ export class PedidosMozoPage implements OnInit {
     );
   }
 
-  async rechazarPago(pedidoId: string) {
-    await this.setEstado(pedidoId, 'rechazado');
-  }
-
   private async notificarAreasNuevoPedido(p: any) {
     const pid = String(p?.id ?? '');
     if (!pid || this.sentNuevoPedido.has(pid)) return;
@@ -615,22 +608,22 @@ export class PedidosMozoPage implements OnInit {
   }
 
   private async verificarPedidosCompletos() {
-  const list = this.pedidos || [];
-  for (const p of list) {
-    const id = String(p?.id ?? '');
-    if (!id || this.sentPedidoCompleto.has(id)) continue;
-    const hasBar = p?.estadoBar != null && String(p.estadoBar).length > 0;
-    const hasCocina = p?.estadoCocina != null && String(p.estadoCocina).length > 0;
-    const doneBar = p?.estadoBar === 'terminado';
-    const doneCocina = p?.estadoCocina === 'terminado';
-    const ready =
-      (hasBar && hasCocina && doneBar && doneCocina) ||
-      (hasBar && !hasCocina && doneBar) ||
-      (!hasBar && hasCocina && doneCocina);
-    if (!ready) continue;
-    this.sentPedidoCompleto.add(id);
+    const list = this.pedidos || [];
+    for (const p of list) {
+      const id = String(p?.id ?? '');
+      if (!id || this.sentPedidoCompleto.has(id)) continue;
+      const hasBar = p?.estadoBar != null && String(p.estadoBar).length > 0;
+      const hasCocina = p?.estadoCocina != null && String(p.estadoCocina).length > 0;
+      const doneBar = p?.estadoBar === 'terminado';
+      const doneCocina = p?.estadoCocina === 'terminado';
+      const ready =
+        (hasBar && hasCocina && doneBar && doneCocina) ||
+        (hasBar && !hasCocina && doneBar) ||
+        (!hasBar && hasCocina && doneCocina);
+      if (!ready) continue;
+      this.sentPedidoCompleto.add(id);
+    }
   }
-}
 
 
   private async validarEstadoAreas(
@@ -705,7 +698,7 @@ export class PedidosMozoPage implements OnInit {
             mesa: String(mesaNumero),
           }
         );
-      } catch {}
+      } catch { }
 
       return {
         valido: true,

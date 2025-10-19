@@ -59,7 +59,14 @@
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  background-color: var(--color-container);
+  background:
+    radial-gradient(circle 200px at -20px 170px,
+      rgba(255, 255, 255, .10) 0 60%,
+      rgba(255, 255, 255, 0) 60%),
+    radial-gradient(circle 200px at 360px 170px,
+      rgba(255, 255, 255, .10) 0 60%,
+      rgba(255, 255, 255, 0) 60%),
+    var(--color-container);
   border-radius: 20px;
   border: 2px solid var(--color-black);
   margin: 0 auto 20px auto;
@@ -86,17 +93,24 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
+      object-position: center;
     }
   }
 }
 
+.last-btn {
+  box-shadow: 1px 1px 2px 2px var(--color-text) inset;
+  animation: pulseIngreso 2s infinite ease-in-out;
+}
+
 .last-btn::part(native) {
-  --background: var(--color-input);
+  --background: var(--color-btn-primary);
   --padding-inline-start: 0;
   --padding-inline-end: 0;
+  --padding-start: 0;
+  --padding-end: 0;
   --padding-bottom: 0;
   --padding-top: 0;
-  box-shadow: 1px 1px 2px 2px var(--color-text) inset;
 }
 
 .div_mesa {
@@ -116,19 +130,23 @@ ion-button {
 }
 
 .btn_pedido {
-  --background: rgb(112, 112, 112);
+  --background: var(--color-background);
 }
 
 .btn_encuesta {
-  --background: rgb(70, 194, 87);
+  --background: var(--color-btn-tertiary);
 }
 
 .btn_juegos {
-  --background: rgb(107, 170, 238);
+  --background: var(--color-error);
 }
 
 .btn_cuenta {
-  --background: rgb(182, 159, 10);
+  --background: rgb(154, 149, 8);
+}
+
+.btn_chat {
+  --background: var(--color-btn-secondary);
 }
 
 // Estilos del Chat
@@ -307,12 +325,14 @@ footer {
 @keyframes pulseIngreso {
   0% {
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(70, 194, 87, 0.6);
+    box-shadow: 0 0 0 0 var(--color-text);
   }
+
   70% {
     transform: scale(1.04);
     box-shadow: 0 0 0 10px rgba(70, 194, 87, 0);
   }
+
   100% {
     transform: scale(1);
     box-shadow: 0 0 0 0 rgba(70, 194, 87, 0);

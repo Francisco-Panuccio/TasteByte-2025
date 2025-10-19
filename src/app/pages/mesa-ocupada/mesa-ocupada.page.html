@@ -154,16 +154,23 @@
         <div class="carrito-lista">
           @if(itemsSel.length > 0) {
             @for(item of itemsSel; track item.productoId) {
-              <div class="carrito-item">
-                <div class="item-info">
-                  <strong>{{ item.nombre | titlecase }}</strong>
-                  <p>{{ item.tipo | titlecase }}</p>
+              <div class="carrito-container">
+                <div class="carrito-item">
+                  <div class="item-info">
+                    <strong>{{ item.nombre | titlecase }}</strong>
+                    <p>{{ item.tipo | titlecase }}</p>
+                  </div>
+  
+                  <div class="item-detalle">
+                    <span>Cantidad: {{ item.cantidad }}</span>
+                    <span>Precio: {{ item.precioUnit | currency:"ARS":"symbol-narrow":"1.0-0" }}</span>
+                    <span>Subtotal: {{ item.cantidad * item.precioUnit | currency:"ARS":"symbol-narrow":"1.0-0" }}</span>
+                  </div>
                 </div>
-
-                <div class="item-detalle">
-                  <span>Cantidad: {{ item.cantidad }}</span>
-                  <span>Precio: {{ item.precioUnit | currency:"ARS":"symbol-narrow":"1.0-0" }}</span>
-                  <span>Subtotal: {{ item.cantidad * item.precioUnit | currency:"ARS":"symbol-narrow":"1.0-0" }}</span>
+                
+                <div class="qty-cart">
+                  <ion-button [disabled]="submitting || pedidoBloqueado" size="small" (click)="dec(item.productoId);">–</ion-button>
+                  <ion-button [disabled]="submitting || pedidoBloqueado" size="small" (click)="inc({ id: item.productoId, nombre: item.nombre, tipo: item.tipo, precio: item.precioUnit, duracionMin: item.duracionMin });">+</ion-button>
                 </div>
               </div>
             }
@@ -184,7 +191,7 @@
           } @else {
             <div class="carrito-vacio">
               <img src="assets/images/carritoVacio.png" alt="Carrito vacío">
-              <p>No hay productos en tu pedido todavía.</p>
+              <p>No hay productos en su pedido aún.</p>
             </div>
           }
         </div>
@@ -194,62 +201,9 @@
 
   <footer>
     <hr>
-    <button class="btn_footer" [disabled]="submitting || pedidoBloqueado || !mesaAsignada" (click)="openChat()">
-      Mozo
-    </button>
-    <hr>
     <button class="btn_footer" (click)="volver()">
       Volver
     </button>
     <hr>
   </footer>
-
-  <ion-modal
-    #chatModal
-    [isOpen]="chatOpen"
-    [breakpoints]="[1]"
-    [initialBreakpoint]="1"
-    backdropDismiss="false"
-    handle="false"
-    (didDismiss)="chatOpen=false">
-    <ng-template>
-      <header class="header-chat">
-        <div>
-          <img src="assets/icon/cubiertos.png">
-          <title class="title2">Chat Mozo</title>
-          <img src="assets/icon/cubiertos.png">
-        </div>
-        <button (click)="closeChat()">❌ Cerrar ❌</button>
-      </header>
-
-      <ion-content #chatContent class="ion-content-chat">
-        <div class="chat">
-          <div class="msg"
-               [class.mine]="m.from==='yo'"
-               [class.mozo-msg]="m.role==='mozo'"
-               [class.cliente-msg]="m.role==='cliente'"
-               *ngFor="let m of messages; trackBy: trackMsg;">
-            <div class="bubble">
-              <div class="body">{{ m.text | titlecase }}</div>
-              <div [class.mozo-meta]="m.role==='mozo'"
-                   [class.cliente-meta]="m.role==='cliente'">
-                {{ m.role==='mozo' ? 'Mozo' : ('Mesa ' + (mesa?.numero ?? 'NN')) }} • {{ m.time }}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <ion-item class="composer" lines="none" slot="fixed">
-          <ion-input
-            type="text"
-            placeholder="Escribe tu mensaje…"
-            [(ngModel)]="newMsg"
-            [disabled]="submitting || !chatReady"
-            (keyup.enter)="sendMessage();">
-          </ion-input>
-          <ion-button slot="end" [disabled]="submitting || !chatReady || !newMsg.trim()" (click)="sendMessage();">Enviar</ion-button>
-        </ion-item>
-      </ion-content>
-    </ng-template>
-  </ion-modal>
 }

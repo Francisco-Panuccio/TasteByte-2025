@@ -41,7 +41,6 @@
           <button class="btn_rechazar" *ngIf="p.estado==='pendiente'" (click)="setEstado(p.id,'rechazado')" [disabled]="busy">Rechazar</button>
 
           <button class="btn_aceptar" *ngIf="p.estado==='impagado'" (click)="validarPago(p.id)" [disabled]="busy">Validar Pago</button>
-          <button class="btn_rechazar" *ngIf="p.estado==='impagado'" (click)="rechazarPago(p.id)" [disabled]="busy">Rechazar Pago</button>
 
           <button class="btn_rechazar" *ngIf="canEliminar(p)" (click)="eliminar(p)" [disabled]="busy">Eliminar</button>
         </div>

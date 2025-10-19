@@ -9,7 +9,7 @@
     @if(!play) {
       <h2 class="h2-play">¿La siguiente carta será mayor o menor?</h2>
     } @else {
-      <h2 class="h2-noplay">¿La siguiente carta será mayor o menor?</h2>
+      <h2 [ngClass]="juegoFinalizado ? 'h2-noplay2' : 'h2-noplay'">¿La siguiente carta será mayor o menor?</h2>
     }
 
     <div class="carta">

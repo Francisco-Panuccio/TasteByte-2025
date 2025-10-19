@@ -7,7 +7,7 @@
     <img src="assets/icon/cubiertos.png">
   </header>
 
-  <ion-content>
+  <ion-content class="ion-padding">
     @if(clientes.length > 0) {
       <div class="div_list">
         <div class="item" *ngFor="let c of clientes; let i = index">
@@ -18,7 +18,7 @@
   
             <div class="item-data">
               <p class="name">{{ c.nombre | titlecase}}</p>
-              <p><span>⚪Ingresó:</span> {{ c.creado_en | date:'short' }}</p>
+              <p class="ingreso"><span>⚪Ingresó:</span> {{ c.creado_en | date:'short' }}</p>
               <p><span>🟡Estado:</span> {{ c.estado | titlecase}}</p>
               @if(esCliente && (c.cliente_anonimo_id === anonimoId || c.cliente_id === usuarioId)) {
                 <p><span>🟢Posición en la Fila: {{ i + 1 }}</span></p>

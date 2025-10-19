@@ -74,7 +74,8 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   loading = true;
   tienePermiso = false;
   yaRegistrado = false;
-  mostrarJuegosPedido = false;
+  mostrarJuegos = false;
+  mostrarPedido = false;
   mostrarCuenta = false;
 
   mesaAsignadaId: number | null = null;
@@ -90,223 +91,222 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private usuarios: Usuarios,
     private session: ClienteSessionService
-  ) {}
+  ) { }
 
   async ngOnInit() {
-  if (this.session.mesaAsignadaId && this.session.tienePermiso) {
-    this.mesaAsignadaId = this.session.mesaAsignadaId;
-    this.pedidoId = this.session.pedidoId;
-    this.estadoPedido = this.session.estadoPedido;
-    this.tienePermiso = true;
-    this.yaRegistrado = true;
-    this.qrValido = true;
-    this.tieneMesa = true;
+    if (this.session.mesaAsignadaId && this.session.tienePermiso) {
+      this.mesaAsignadaId = this.session.mesaAsignadaId;
+      this.pedidoId = this.session.pedidoId;
+      this.estadoPedido = this.session.estadoPedido;
+      this.tienePermiso = true;
+      this.yaRegistrado = true;
+      this.qrValido = true;
+      this.tieneMesa = true;
 
-    this.actualizarFlags();
-    await this.ensureChatAndSubscribe();
-    this.loading = false;
-    return;
-  }
-
-  if (this.session.tienePermiso) {
-    this.tienePermiso = this.session.tienePermiso;
-    this.qrValido = this.session.qrValido;
-    this.yaRegistrado = this.session.yaRegistrado;
-    this.anonimoId = this.session.anonimoId ?? undefined;
-    this.usuarioId = this.session.usuarioId
-      ? Number(this.session.usuarioId)
-      : null;
-    this.clienteId = this.session.clienteId
-      ? Number(this.session.clienteId)
-      : null;
-    this.userUid = this.session.userUid ?? undefined;
-  }
-
-  this.route.queryParams.subscribe(async (params) => {
-    this.clienteId = params['clienteId']
-      ? Number(params['clienteId'])
-      : this.clienteId;
-    this.usuarioId = params['usuarioId']
-      ? Number(params['usuarioId'])
-      : this.usuarioId;
-    this.anonimoId = params['anonimoId'] ?? this.anonimoId;
-    this.tienePermiso = params['tienePermiso'] ?? this.tienePermiso;
-    this.userUid = params['userId'] ?? this.userUid;
-    this.mostrarCuenta = params['mostrarCuenta'] ?? this.mostrarCuenta;
-
-    if (!this.clienteId && !this.anonimoId && !this.usuarioId) {
-      this.router.navigate(['/login'], { replaceUrl: true });
+      this.actualizarFlags();
+      await this.ensureChatAndSubscribe();
+      this.loading = false;
       return;
     }
 
-    const { data: au } = await supabase.auth.getUser();
-
-    if (this.anonimoId) {
-      this.myUserId = `anon-${this.anonimoId}`;
-
-      const { data: anon } = await supabase
-        .from('clientes_anonimos')
-        .select('nombre, foto_url')
-        .eq('id', this.anonimoId)
-        .maybeSingle();
-
-      this.nombreCliente = anon?.nombre || 'Cliente Anónimo';
-      this.clienteFoto = anon?.foto_url || '';
-      this.email = '☠︎ anonimo ☠︎';
-      this.usuarioId = null;
-    } else {
-      this.myUserId = au.user?.id ?? undefined;
-
-      const usuarioDB = await this.usuarios.getByEmail(au.user!.email!);
-      this.id = usuarioDB!.id;
-      this.email = `${usuarioDB!.correo_electronico}`.trim();
-
-      const { data: usuario } = await supabase
-        .from('usuarios')
-        .select('nombres, apellidos, foto_url')
-        .eq('id', this.id)
-        .maybeSingle();
-
-      this.nombreCliente = usuario
-        ? `${usuario.nombres} ${usuario.apellidos}`
-        : 'Cliente';
-      this.clienteFoto = usuario?.foto_url ?? '';
-      this.usuarioId = this.id;
+    if (this.session.tienePermiso) {
+      this.tienePermiso = this.session.tienePermiso;
+      this.qrValido = this.session.qrValido;
+      this.yaRegistrado = this.session.yaRegistrado;
+      this.anonimoId = this.session.anonimoId ?? undefined;
+      this.usuarioId = this.session.usuarioId
+        ? Number(this.session.usuarioId)
+        : null;
+      this.clienteId = this.session.clienteId
+        ? Number(this.session.clienteId)
+        : null;
+      this.userUid = this.session.userUid ?? undefined;
     }
 
-    if (this.usuarioId === null) {
-      this.usuarioId = this.id;
-    }
+    this.route.queryParams.subscribe(async (params) => {
+      this.clienteId = params['clienteId']
+        ? Number(params['clienteId'])
+        : this.clienteId;
+      this.usuarioId = params['usuarioId']
+        ? Number(params['usuarioId'])
+        : this.usuarioId;
+      this.anonimoId = params['anonimoId'] ?? this.anonimoId;
+      this.tienePermiso = params['tienePermiso'] ?? this.tienePermiso;
+      this.userUid = params['userId'] ?? this.userUid;
+      this.mostrarCuenta = params['mostrarCuenta'] ?? this.mostrarCuenta;
 
-    if (!this.usuarioId && this.clienteId) {
-      const { data: cli } = await supabase
-        .from('clientes')
-        .select('usuario_id')
-        .eq('id', this.clienteId)
-        .maybeSingle();
-      this.usuarioId =
-        typeof cli?.usuario_id === 'number' ? cli?.usuario_id : null;
-    }
+      if (!this.clienteId && !this.anonimoId && !this.usuarioId) {
+        this.router.navigate(['/login'], { replaceUrl: true });
+        return;
+      }
 
-    if (this.usuarioId) {
-      const { data: usuario } = await supabase
-        .from('usuarios')
-        .select('nombres, apellidos, foto_url')
-        .eq('id', this.id)
-        .maybeSingle();
-      this.nombreCliente = usuario
-        ? `${usuario.nombres} ${usuario.apellidos}`
-        : 'Cliente';
-      this.clienteFoto = usuario?.foto_url ?? '';
-    } else if (this.anonimoId) {
-      const { data: anonimo } = await supabase
-        .from('clientes_anonimos')
-        .select('nombre')
-        .eq('id', this.anonimoId)
-        .maybeSingle();
-      this.nombreCliente = anonimo?.nombre || 'Cliente Anónimo';
-    }
+      const { data: au } = await supabase.auth.getUser();
 
-    await this.push.init(this.usuarioId ?? null, 'cliente');
-    await this.push.ready();
+      if (this.anonimoId) {
+        this.myUserId = `anon-${this.anonimoId}`;
 
-    await this.cargarMesaAsignada();
+        const { data: anon } = await supabase
+          .from('clientes_anonimos')
+          .select('nombre, foto_url')
+          .eq('id', this.anonimoId)
+          .maybeSingle();
 
-    this.subscription = supabase
-      .channel('asignaciones_mesa_sub')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'asignaciones_mesa',
-          filter: this.clienteId
-            ? `cliente_id=eq.${this.clienteId}`
-            : `cliente_anonimo_id=eq.${this.anonimoId}`,
-        },
-        async (payload: any) => {
-          if (
-            payload.eventType === 'INSERT' ||
-            payload.eventType === 'UPDATE'
-          ) {
-            if (payload.new && typeof payload.new.mesa_id === 'number') {
-              this.mesaAsignadaId = payload.new.mesa_id;
-              this.yaRegistrado = true;
-              this.tieneMesa = true;
-              this.zone.run(() => {
-                this.mostrarToast(
-                  `Ya puede tomar asiento en la mesa #${this.mesaAsignadaId}.`,
-                  'Mesa Asginada'
-                );
-              });
+        this.nombreCliente = anon?.nombre || 'Cliente Anónimo';
+        this.clienteFoto = anon?.foto_url || '';
+        this.email = '☠︎ anonimo ☠︎';
+        this.usuarioId = null;
+      } else {
+        this.myUserId = au.user?.id ?? undefined;
 
-              this.session.mesaAsignadaId = this.mesaAsignadaId;
-              this.session.yaRegistrado = true;
-              this.session.tienePermiso = true;
+        const usuarioDB = await this.usuarios.getByEmail(au.user!.email!);
+        this.id = usuarioDB!.id;
+        this.email = `${usuarioDB!.correo_electronico}`.trim();
 
-              await this.ensureChatAndSubscribe();
+        const { data: usuario } = await supabase
+          .from('usuarios')
+          .select('nombres, apellidos, foto_url')
+          .eq('id', this.id)
+          .maybeSingle();
+
+        this.nombreCliente = usuario
+          ? `${usuario.nombres} ${usuario.apellidos}`
+          : 'Cliente';
+        this.clienteFoto = usuario?.foto_url ?? '';
+        this.usuarioId = this.id;
+      }
+
+      if (this.usuarioId === null) {
+        this.usuarioId = this.id;
+      }
+
+      if (!this.usuarioId && this.clienteId) {
+        const { data: cli } = await supabase
+          .from('clientes')
+          .select('usuario_id')
+          .eq('id', this.clienteId)
+          .maybeSingle();
+        this.usuarioId =
+          typeof cli?.usuario_id === 'number' ? cli?.usuario_id : null;
+      }
+
+      if (this.usuarioId) {
+        const { data: usuario } = await supabase
+          .from('usuarios')
+          .select('nombres, apellidos, foto_url')
+          .eq('id', this.id)
+          .maybeSingle();
+        this.nombreCliente = usuario
+          ? `${usuario.nombres} ${usuario.apellidos}`
+          : 'Cliente';
+        this.clienteFoto = usuario?.foto_url ?? '';
+      } else if (this.anonimoId) {
+        const { data: anonimo } = await supabase
+          .from('clientes_anonimos')
+          .select('nombre')
+          .eq('id', this.anonimoId)
+          .maybeSingle();
+        this.nombreCliente = anonimo?.nombre || 'Cliente Anónimo';
+      }
+
+      await this.push.init(this.usuarioId ?? null, 'cliente');
+      await this.push.ready();
+
+      await this.cargarMesaAsignada();
+
+      this.subscription = supabase
+        .channel('asignaciones_mesa_sub')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'asignaciones_mesa',
+            filter: this.clienteId
+              ? `cliente_id=eq.${this.clienteId}`
+              : `cliente_anonimo_id=eq.${this.anonimoId}`,
+          },
+          async (payload: any) => {
+            if (
+              payload.eventType === 'INSERT' ||
+              payload.eventType === 'UPDATE'
+            ) {
+              if (payload.new && typeof payload.new.mesa_id === 'number') {
+                this.mesaAsignadaId = payload.new.mesa_id;
+                this.yaRegistrado = true;
+                this.tieneMesa = true;
+                this.zone.run(() => {
+                  this.mostrarToast(
+                    `Ya puede tomar asiento en la mesa #${this.mesaAsignadaId}.`,
+                    'Mesa Asginada'
+                  );
+                });
+
+                this.session.mesaAsignadaId = this.mesaAsignadaId;
+                this.session.yaRegistrado = true;
+                this.session.tienePermiso = true;
+
+                await this.ensureChatAndSubscribe();
+              }
+            } else if (payload.eventType === 'DELETE') {
+              await this.limpiarIntentosJuegos();
+              this.resetVista();
             }
-          } else if (payload.eventType === 'DELETE') {
-            await this.limpiarIntentosJuegos();
-            this.resetVista();
           }
-        }
-      )
-      .subscribe();
+        )
+        .subscribe();
 
-    this.listaEsperaSub = supabase
-      .channel('lista_espera_sub')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'lista_espera' },
-        async (payload: any) => {
-          const esAnon = !!this.anonimoId;
-          const filtro = esAnon
-            ? supabase
+      this.listaEsperaSub = supabase
+        .channel('lista_espera_sub')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'lista_espera' },
+          async (payload: any) => {
+            const esAnon = !!this.anonimoId;
+            const filtro = esAnon
+              ? supabase
                 .from('lista_espera')
                 .select('id')
                 .eq('cliente_anonimo_id', this.anonimoId!)
                 .limit(1)
-            : supabase
+              : supabase
                 .from('lista_espera')
                 .select('id')
                 .eq('cliente_id', this.clienteId!)
                 .limit(1);
 
-          const { data: sigue, error } = await filtro.maybeSingle();
+            const { data: sigue, error } = await filtro.maybeSingle();
 
-          this.zone.run(() => {
-            const estaba = this.yaRegistrado;
-            this.yaRegistrado = !!sigue;
-            this.session.yaRegistrado = !!sigue;
+            this.zone.run(() => {
+              const estaba = this.yaRegistrado;
+              this.yaRegistrado = !!sigue;
+              this.session.yaRegistrado = !!sigue;
 
-            if (estaba && !this.yaRegistrado) {
-              this.mostrarToast('Fuiste removido de la lista de espera.');
+              if (estaba && !this.yaRegistrado) {
+                this.mostrarToast('Fuiste removido de la lista de espera.');
+              }
+
+              try {
+                this.cd.detectChanges();
+              } catch { }
+            });
+
+            if (payload.eventType !== 'INSERT') {
+              setTimeout(() => {
+                this.cargarMesaAsignada().then(() => {
+                  try {
+                    this.cd.detectChanges();
+                  } catch { }
+                });
+              }, 300);
             }
-
-            try {
-              this.cd.detectChanges();
-            } catch {}
-          });
-
-          if (payload.eventType !== 'INSERT') {
-            setTimeout(() => {
-              this.cargarMesaAsignada().then(() => {
-                try {
-                  this.cd.detectChanges();
-                } catch {}
-              });
-            }, 300);
           }
-        }
-      )
-      .subscribe();
+        )
+        .subscribe();
 
-    setTimeout(() => (this.loading = false), 2000);
-    await this.ensureChatAndSubscribe();
-  });
-}
-
+      setTimeout(() => (this.loading = false), 2000);
+      await this.ensureChatAndSubscribe();
+    });
+  }
 
   ngOnDestroy() {
     if (this.subscription) supabase.removeChannel(this.subscription);
@@ -314,7 +314,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     if (this.listaEsperaSub) supabase.removeChannel(this.listaEsperaSub);
     try {
       this.chatSvc.unsubscribe?.();
-    } catch {}
+    } catch { }
   }
 
   async escanearQr() {
@@ -643,31 +643,28 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   }
 
   private actualizarFlags() {
-  if (!this.pedidoId) {
-    this.mostrarCuenta = false;
-    this.mostrarJuegosPedido = false;
-    return;
+    if (!this.pedidoId) {
+      this.mostrarCuenta = false;
+      this.mostrarPedido = false;
+      this.mostrarJuegos = false;
+      return;
+    }
+
+    this.mostrarPedido = this.estadoPedido === 'pendiente' || this.estadoPedido === 'aceptado' || this.estadoPedido === 'recibido' || this.estadoPedido === 'terminado';
+    this.mostrarJuegos = this.estadoPedido === 'aceptado' || this.estadoPedido === 'recibido';
+    this.mostrarCuenta = this.estadoPedido === 'recibido' || this.estadoPedido === 'terminado';
+
+    if (['impagado', 'cancelado'].includes(this.estadoPedido ?? '')) {
+      this.mostrarCuenta = false;
+      this.mostrarJuegos = false;
+      this.mostrarPedido = false;
+    }
+
+    if (this.estadoPedido === 'pagado') {
+      this.limpiarIntentosJuegos();
+      this.resetVista();
+    }
   }
-
-  const pedidoConfirmado =
-    this.estadoPedido === 'aceptado' || this.estadoPedido === 'recibido';
-
-  this.mostrarJuegosPedido = pedidoConfirmado;
-  this.mostrarCuenta =
-    this.estadoPedido === 'recibido' || this.estadoPedido === 'terminado';
-
-  if (['impagado', 'cancelado'].includes(this.estadoPedido ?? '')) {
-    this.mostrarCuenta = false;
-    this.mostrarJuegosPedido = false;
-  }
-
-  if (this.estadoPedido === 'pagado') {
-    this.limpiarIntentosJuegos();
-    this.resetVista();
-  }
-}
-
-
 
   private resetVista() {
     this.mesaAsignadaId = null;
@@ -676,7 +673,8 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     this.yaRegistrado = false;
     this.tieneMesa = false;
     this.mostrarCuenta = false;
-    this.mostrarJuegosPedido = false;
+    this.mostrarPedido = false;
+    this.mostrarJuegos = false;
     this.qrValido = true;
     this.tienePermiso = true;
   }
@@ -697,7 +695,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
           .from('intentos_juegos')
           .delete()
           .eq('cliente_id', this.clienteId);
-    } catch {}
+    } catch { }
   }
 
   async pedirCuenta(): Promise<void> {
@@ -725,7 +723,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   async salir() {
     try {
       await supabase.auth.signOut();
-    } catch {}
+    } catch { }
     this.session.limpiar();
     this.router.navigate(['/login'], { replaceUrl: true });
   }
@@ -748,64 +746,46 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   }
 
   private async ensureChatAndSubscribe(): Promise<void> {
-  if (!this.mesaAsignadaId) return;
+    if (!this.mesaAsignadaId) return;
+    
+    if (!this.myUserId) {
+      const { data: au } = await supabase.auth.getUser();
+      this.myUserId = this.anonimoId
+        ? `anon-${this.anonimoId}`
+        : au.user?.id ?? undefined;
+    }
 
-  // Asegurarse de tener mi userId
-  if (!this.myUserId) {
-    const { data: au } = await supabase.auth.getUser();
-    this.myUserId = this.anonimoId
-      ? `anon-${this.anonimoId}`
-      : au.user?.id ?? undefined;
-  }
+    const chat = await this.chatSvc.getOrCreateForMesa(
+      this.mesaAsignadaId,
+      "cliente",
+      this.anonimoId
+    );
 
-  // Obtener o crear chat
-  const chat = await this.chatSvc.getOrCreateForMesa(
-    this.mesaAsignadaId,
-    "cliente",
-    this.anonimoId
-  );
+    this.chatId = chat.id;
 
-  this.chatId = chat.id;
+    await this.chatSvc.bindMyPushToken(this.chatId, this.anonimoId);
 
-  // Asociar token push al chat
-  await this.chatSvc.bindMyPushToken(this.chatId, this.anonimoId);
-
-  // Cargar mensajes previos
-  const msgs = await this.chatSvc.loadMessages(chat.id, 200);
-  this.seenIds.clear();
-  this.messages = msgs.map((m: any) => {
-    this.seenIds.add(m.id);
-    return this.chatSvc.toViewMessage(m, this.myUserId!);
-  });
-
-  this.scrollToBottomAfterRender();
-
-  // Suscripción en tiempo real
-  this.chatSvc.subscribeToMessages(chat.id, async (m: ChatMessage) => {
-    if (this.seenIds.has(m.id)) return; // evitar duplicados
-    this.seenIds.add(m.id);
-
-    const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
-
-    this.zone.run(() => {
-      this.messages.push(vm);
-      this.scrollToBottomAfterRender();
+    const msgs = await this.chatSvc.loadMessages(chat.id, 200);
+    this.seenIds.clear();
+    this.messages = msgs.map((m: any) => {
+      this.seenIds.add(m.id);
+      return this.chatSvc.toViewMessage(m, this.myUserId!);
     });
 
-    // Si el chat está cerrado, mostrar notificación tipo toast
-    if (!this.chatOpen) {
-      (
-        await this.toast.create({
-          message: `Mozo: ${vm.text}`,
-          duration: 3000,
-          position: "top",
-          cssClass: "toast",
-          buttons: [{ text: "Abrir", handler: () => this.openChat() }],
-        })
-      ).present();
-    }
-  });
-}
+    this.scrollToBottomAfterRender();
+
+    this.chatSvc.subscribeToMessages(chat.id, async (m: ChatMessage) => {
+      if (this.seenIds.has(m.id)) return;
+      this.seenIds.add(m.id);
+
+      const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
+
+      this.zone.run(() => {
+        this.messages.push(vm);
+        this.scrollToBottomAfterRender();
+      });
+    });
+  }
 
 
   async openChat() {
@@ -883,7 +863,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   private scrollToBottom(ms: number = 200) {
     try {
       this.chatContent?.scrollToBottom(ms);
-    } catch {}
+    } catch { }
   }
   private scrollToBottomAfterRender() {
     requestAnimationFrame(() => setTimeout(() => this.scrollToBottom(200), 0));
