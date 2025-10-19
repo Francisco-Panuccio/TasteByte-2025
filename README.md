@@ -24,8 +24,8 @@
   <img src="src/assets/imagesGithub/home-cocinero.jpeg" alt="Home Cocinero" width="400" height="800">
   <img src="src/assets/imagesGithub/home-bartender.jpeg" alt="Home Bartender" width="400" height="800">
   <img src="src/assets/imagesGithub/home-cliente-entrada.jpeg" alt="Home Cliente Entrada" width="400" height="800">
-  <img src="src/assets/imagesGithub/home-cliente-1.jpeg" alt="Home Cliente 1" width="400" height="800">
   <img src="src/assets/imagesGithub/home-cliente-2.jpeg" alt="Home Cliente 2" width="400" height="800">
+  <img src="src/assets/imagesGithub/home-cliente-1.jpeg" alt="Home Cliente 1" width="400" height="800">
   <img src="src/assets/imagesGithub/home-cliente-3.jpeg" alt="Home Cliente 3" width="400" height="800">
   <img src="src/assets/imagesGithub/alta-plato.jpeg" alt="Alta Plato" width="400" height="800">
   <img src="src/assets/imagesGithub/alta-mesa.jpeg" alt="Alta Mesa" width="400" height="800">
@@ -156,10 +156,6 @@
 - Fecha Inicial: 29/09/2025
 - Fecha Final: 3/10/2025
 - Branch: panuccio/altas
-
-<p align="center">
-  <img src="src/assets/imagesGithub/notification.jpeg" alt="Notificacion" width="400" height="800">
-</p>
 
 * Roman
 - Objetivos: 21 (Solicitud de Cuenta), Punto 22 (Confirmación de Pago y Liberación de Mesa)
