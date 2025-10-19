@@ -7,6 +7,8 @@
 * Roman Tomas
 * Avallone Joaquin
 
+## Correcciones
+
 ## Responsabilidades (Primera Semana) 🛠️
 * Panuccio
 - Objetivos: Integración Completa con BD, Servicios Generales para las Altas, Item 2 (Alta Plato) y 4 (Alta Mesa)
@@ -15,14 +17,18 @@
 - Branch: panuccio/altas
 
 <p align="center">
-  <img src="src/assets/imagesGithub/home_dueno.jpeg" alt="Home Dueño" width="400" height="800">
-  <img src="src/assets/imagesGithub/home_maitre.jpeg" alt="Home Maitre" width="400" height="800">
-  <img src="src/assets/imagesGithub/home_mozo.jpeg" alt="Home Mozo" width="400" height="800">
-  <img src="src/assets/imagesGithub/home_cocinero.jpeg" alt="Home Cocinero" width="400" height="800">
-  <img src="src/assets/imagesGithub/home_cliente.jpeg" alt="Home Cliente" width="400" height="800">
-  <img src="src/assets/imagesGithub/home_bartender.jpeg" alt="Home Bartender" width="400" height="800">
-  <img src="src/assets/imagesGithub/alta_plato.jpeg" alt="Alta Plato" width="400" height="800">
-  <img src="src/assets/imagesGithub/alta_mesa.jpeg" alt="Alta Mesa" width="400" height="800">
+  <img src="src/assets/imagesGithub/home-dueno.jpeg" alt="Home Dueño" width="400" height="800">
+  <img src="src/assets/imagesGithub/home-supervisor.jpeg" alt="Home Supervisor" width="400" height="800">
+  <img src="src/assets/imagesGithub/home-maitre.jpeg" alt="Home Maitre" width="400" height="800">
+  <img src="src/assets/imagesGithub/home-mozo.jpeg" alt="Home Mozo" width="400" height="800">
+  <img src="src/assets/imagesGithub/home-cocinero.jpeg" alt="Home Cocinero" width="400" height="800">
+  <img src="src/assets/imagesGithub/home-bartender.jpeg" alt="Home Bartender" width="400" height="800">
+  <img src="src/assets/imagesGithub/home-cliente-entrada.jpeg" alt="Home Cliente Entrada" width="400" height="800">
+  <img src="src/assets/imagesGithub/home-cliente-1.jpeg" alt="Home Cliente 1" width="400" height="800">
+  <img src="src/assets/imagesGithub/home-cliente-2.jpeg" alt="Home Cliente 2" width="400" height="800">
+  <img src="src/assets/imagesGithub/home-cliente-3.jpeg" alt="Home Cliente 3" width="400" height="800">
+  <img src="src/assets/imagesGithub/alta-plato.jpeg" alt="Alta Plato" width="400" height="800">
+  <img src="src/assets/imagesGithub/alta-mesa.jpeg" alt="Alta Mesa" width="400" height="800">
 </p>
 
 * Roman
@@ -35,8 +41,10 @@
   <img src="src/assets/imagesGithub/splash.jpeg" alt="Splash Screen" width="400" height="800">
   <img src="src/assets/imagesGithub/loading.jpeg" alt="Loading" width="400" height="800">
   <img src="src/assets/imagesGithub/login.jpeg" alt="Login" width="400" height="800">
+  <img src="src/assets/imagesGithub/validacion.jpeg" alt="Validacion" width="400" height="800">
+  <img src="src/assets/imagesGithub/error-login.jpeg" alt="Error Login" width="400" height="800">
   <img src="src/assets/imagesGithub/register.jpeg" alt="Register" width="400" height="800">
-  <img src="src/assets/imagesGithub/alta_empleado.jpeg" alt="Alta Empleado" width="400" height="800">
+  <img src="src/assets/imagesGithub/alta-empleado.jpeg" alt="Alta Empleado" width="400" height="800">
 </p>
 
 
@@ -47,9 +55,9 @@
 - Branch: avallone
 
 <p align="center">
-  <img src="src/assets/imagesGithub/alta_bebida.jpeg" alt="Alta Bebida" width="400" height="800">
-  <img src="src/assets/imagesGithub/alta_cliente_regi.jpeg" alt="Alta Cliente Registrado" width="400" height="800">
-  <img src="src/assets/imagesGithub/alta_cliente_anon.jpeg" alt="Alta Cliente Anónimo" width="400" height="800">
+  <img src="src/assets/imagesGithub/alta-bebida.jpeg" alt="Alta Bebida" width="400" height="800">
+  <img src="src/assets/imagesGithub/alta-cliente-registrado.jpeg" alt="Alta Cliente Registrado" width="400" height="800">
+  <img src="src/assets/imagesGithub/alta-cliente-anonimo.jpeg" alt="Alta Cliente Anonimo" width="400" height="800">
 </p>
 
 ## Responsabilidades (Segunda Semana) 🛠️
@@ -60,10 +68,16 @@
 - Branch: panuccio/altas
 
 <p align="center">
-  <img src="src/assets/imagesGithub/mesa_ocupada.jpeg" alt="Mesa Ocupada" width="400" height="800">
-  <img src="src/assets/imagesGithub/chat_cliente.jpeg" alt="Chat Cliente" width="400" height="800">
+  <img src="src/assets/imagesGithub/mesa-ocupada.jpeg" alt="Mesa Ocupada" width="400" height="800">
+  <img src="src/assets/imagesGithub/carrito.jpeg" alt="Carrito" width="400" height="800">
+  <img src="src/assets/imagesGithub/carrito-vacio.jpeg" alt="Carrito Vacio" width="400" height="800">
+  <img src="src/assets/imagesGithub/esperando.jpeg" alt="Esperando" width="400" height="800">
+  <img src="src/assets/imagesGithub/chat-cliente.jpeg" alt="Chat Cliente" width="400" height="800">
   <img src="src/assets/imagesGithub/pedido.jpeg" alt="Pedido" width="400" height="800">
-  <img src="src/assets/imagesGithub/chat_mozo.jpeg" alt="Chat Mozo" width="400" height="800">
+  <img src="src/assets/imagesGithub/pedido-descuento.jpeg" alt="Pedido Descuento" width="400" height="800">
+  <img src="src/assets/imagesGithub/pedido-recibido.jpeg" alt="Pedido Recibido" width="400" height="800">
+  <img src="src/assets/imagesGithub/chat.jpeg" alt="Chat" width="400" height="800">
+  <img src="src/assets/imagesGithub/chat-mozo.jpeg" alt="Chat Mozo" width="400" height="800">
   <img src="src/assets/imagesGithub/notificacion.jpeg" alt="Notificación" width="400" height="800">
 </p>
 
@@ -74,8 +88,11 @@
 - Branch: roman
 
 <p align="center">
-  <img src="src/assets/imagesGithub/anon_register.jpeg" alt="Registro Anónimo" width="400" height="800">
-  <img src="src/assets/imagesGithub/qr.jpeg" alt="QR" width="400" height="800">
+  <img src="src/assets/imagesGithub/ingreso-anonimo.jpeg" alt="Ingreso Anonimo" width="400" height="800">
+  <img src="src/assets/imagesGithub/lista-mesas.jpeg" alt="Listado de Mesas" width="400" height="800">
+  <img src="src/assets/imagesGithub/lista-espera-maitre.jpeg" alt="Listado Espera Maitre" width="400" height="800">
+  <img src="src/assets/imagesGithub/ver-espera-cliente.jpeg" alt="Listado Espera Cliente" width="400" height="800">
+  <img src="src/assets/imagesGithub/sin-espera.jpeg" alt="Sin Espera" width="400" height="800">
 </p>
 
 * Avallone
@@ -85,7 +102,7 @@
 - Branch: avallone
 
 <p align="center">
-  <img src="src/assets/imagesGithub/clientes_pendientes.jpeg" alt="Clientes Pendientes" width="400" height="800">
+  <img src="src/assets/imagesGithub/clientes-pendientes.jpeg" alt="Clientes Pendientes" width="400" height="800">
   <img src="src/assets/imagesGithub/email.jpeg" alt="Email" width="400" height="200">
 </p>
 
@@ -98,11 +115,15 @@
 - Branch: panuccio/altas
 
 <p align="center">
+  <img src="src/assets/imagesGithub/mozo-pedido.jpeg" alt="Mozo Pedido" width="400" height="800">
+  <img src="src/assets/imagesGithub/mozo-validar.jpeg" alt="Mozo Validar" width="400" height="800">
+  <img src="src/assets/imagesGithub/mozo-entregar.jpeg" alt="Mozo Entregar" width="400" height="800">
+  <img src="src/assets/imagesGithub/mozo-vacio.jpeg" alt="Mozo Vacio" width="400" height="800">
   <img src="src/assets/imagesGithub/encuestas.jpeg" alt="Encuestas" width="400" height="800">
-  <img src="src/assets/imagesGithub/graficos_uno.jpeg" alt="Gráficos 1" width="400" height="800">
-  <img src="src/assets/imagesGithub/graficos_dos.jpeg" alt="Gráficos 2" width="400" height="800">
-  <img src="src/assets/imagesGithub/encuesta_uno.jpeg" alt="Realizar Encuesta 1" width="400" height="800">
-  <img src="src/assets/imagesGithub/encuesta_dos.jpeg" alt="Realizar Encuesta 2" width="400" height="800">
+  <img src="src/assets/imagesGithub/grafico-1.jpeg" alt="Graficos 1" width="400" height="800">
+  <img src="src/assets/imagesGithub/grafico-2.jpeg" alt="Graficos 2" width="400" height="800">
+  <img src="src/assets/imagesGithub/nueva-encuesta-1.jpeg" alt="Nueva Encuesta 1" width="400" height="800">
+  <img src="src/assets/imagesGithub/nueva-encuesta-2.jpeg" alt="Nueva Encuesta 2" width="400" height="800">
 </p>
 
 * Roman
@@ -112,9 +133,9 @@
 - Branch: roman
 
 <p align="center">
-  <img src="src/assets/imagesGithub/juegos_main.jpeg" alt="Main Juegos" width="400" height="800">
+  <img src="src/assets/imagesGithub/juegos.jpeg" alt="Juegos" width="400" height="800">
   <img src="src/assets/imagesGithub/ahorcado.jpeg" alt="Ahorcado" width="400" height="800">
-  <img src="src/assets/imagesGithub/mayor_menor.jpeg" alt="Mayor o Menor" width="400" height="800">
+  <img src="src/assets/imagesGithub/mayor-menor.jpeg" alt="Mayor o Menor" width="400" height="800">
   <img src="src/assets/imagesGithub/memotest.jpeg" alt="Memotest" width="400" height="800">
 </p>
 
@@ -126,6 +147,7 @@
 
 <p align="center">
   <img src="src/assets/imagesGithub/cocina.jpeg" alt="Cocina" width="400" height="800">
+  <img src="src/assets/imagesGithub/cocina-vacio.jpeg" alt="Cocina Vacia" width="400" height="800">
 </p>
 
 ## Responsabilidades (Cuarta Semana) 🛠️
@@ -136,7 +158,7 @@
 - Branch: panuccio/altas
 
 <p align="center">
-  <img src="src/assets/imagesGithub/push_notification.jpeg" alt="Notificación" width="400" height="800">
+  <img src="src/assets/imagesGithub/notification.jpeg" alt="Notificacion" width="400" height="800">
 </p>
 
 * Roman
@@ -146,8 +168,8 @@
 - Branch: roman
 
 <p align="center">
-  <img src="src/assets/imagesGithub/main_pedir_cuenta.jpeg" alt="Pedir Cuenta" width="400" height="800">
-  <img src="src/assets/imagesGithub/cuenta.jpeg" alt="Cuenta" width="400" height="800">
+  <img src="src/assets/imagesGithub/cuenta.jpeg" alt="Pedir Cuenta" width="400" height="800">
+  <img src="src/assets/imagesGithub/cuenta-completa.jpeg" alt="Cuenta Completa" width="400" height="800">
 </p>
 
 * Avallone
@@ -158,6 +180,7 @@
 
 <p align="center">
   <img src="src/assets/imagesGithub/bar.jpeg" alt="Bar" width="400" height="800">
+  <img src="src/assets/imagesGithub/bar-vacio.jpeg" alt="Bar Vacio" width="400" height="800">
 </p>
 
 
