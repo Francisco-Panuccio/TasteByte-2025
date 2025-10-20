@@ -42,7 +42,7 @@ export class CuentaPage implements OnInit {
       '';
 
     if (!this.pedidoId) {
-      await this.mostrarToast('⚠ No se detectó pedido.');
+      await this.mostrarToast('No se detectó pedido.');
       this.router.navigate(['/encuestas-espera']);
       return;
     }
@@ -174,11 +174,11 @@ export class CuentaPage implements OnInit {
     });
   }
 
-  private async mostrarToast(mensaje: string, color: string = 'primary') {
+  private async mostrarToast(mensaje: string) {
     const t = await this.toast.create({
       message: mensaje,
       duration: 1500,
-      color,
+      cssClass: "toast",
       position: 'top'
     });
     await t.present();

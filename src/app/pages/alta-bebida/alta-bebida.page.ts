@@ -159,7 +159,7 @@ export class AltaBebidaPage implements OnInit {
 
       const libres = Math.max(0, this.faltanFotos);
       if (libres === 0) {
-        await this.mostrarToast("Ya cargaste 3 fotos", "Aviso");
+        await this.mostrarToast("Ya cargó 3 fotos", "Aviso");
         return;
       }
 
@@ -210,7 +210,7 @@ export class AltaBebidaPage implements OnInit {
 
       let restantes = this.faltanFotos;
       if (restantes === 0) {
-        await this.mostrarToast("Ya cargaste 3 fotos", "Aviso");
+        await this.mostrarToast("Ya cargó 3 fotos", "Aviso");
         return;
       }
 
@@ -275,7 +275,7 @@ export class AltaBebidaPage implements OnInit {
     if (!(await this.exigeBartender())) return;
     if (this.formAltaBebida.invalid) {
       this.formAltaBebida.markAllAsTouched();
-      await this.mostrarToast("Completá los campos obligatorios", "Error");
+      await this.mostrarToast("Complete los campos obligatorios", "Error");
       return;
     }
 
@@ -295,7 +295,7 @@ export class AltaBebidaPage implements OnInit {
       const nombre = String(this.f["nombre"].value).trim();
       const exists = await this.bebidas.existsByNombre(nombre);
       if (exists) {
-        await this.mostrarToast("La bebida ya existe en la carta", "Error");
+        await this.mostrarToast("Bebida existente en la carta", "Error");
         this.loading = false;
         return;
       }

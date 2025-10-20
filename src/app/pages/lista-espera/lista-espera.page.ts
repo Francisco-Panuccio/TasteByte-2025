@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { ModalController, NavController, ToastController } from '@ionic/angular';
-import { ActivatedRoute, Router } from '@angular/router'; 
+import { ActivatedRoute, Router } from '@angular/router';
 import { supabase } from 'src/supabase.client';
 import { ListadoMesasPage } from '../listado-mesas/listado-mesas.page';
 import { Push } from 'src/app/services/push/push';
@@ -19,8 +19,8 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
   esMaitre = false;
   anonimoId: string | null = null;
   usuarioId: string | null = null;
-  clienteId: string | null = null; 
-  userUid: string | null = null; 
+  clienteId: string | null = null;
+  userUid: string | null = null;
   modalAbierto = false;
   from: 'cliente' | 'maitre' | null = null;
   private rtChannel?: ReturnType<typeof supabase.channel>;
@@ -139,68 +139,64 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
   }
 
   async aprobar(cliente: any) {
-  this.modalAbierto = true;
+    this.modalAbierto = true;
 
-  const modal = await this.modalCtrl.create({
-    component: ListadoMesasPage,
-    backdropDismiss: true,
-  });
-  await modal.present();
+    const modal = await this.modalCtrl.create({
+      component: ListadoMesasPage,
+      backdropDismiss: true,
+    });
+    await modal.present();
 
-  const { data: mesaSeleccionada, role } = await modal.onDidDismiss();
-  this.modalAbierto = false;
+    const { data: mesaSeleccionada, role } = await modal.onDidDismiss();
+    this.modalAbierto = false;
 
-  if (!mesaSeleccionada || role === 'cancel' || role === 'backdrop') {
-    await this.mostrarToast('Operación cancelada');
-    return;
-  }
-
-  await supabase.from('chats').delete().eq('mesa_id', mesaSeleccionada.id);
-
-  const { error: errorLista } = await supabase
-    .from('lista_espera')
-    .update({ estado: 'aprobado', mesa_id: mesaSeleccionada.id })
-    .eq('id', cliente.id);
-  if (errorLista) return;
-
-  const { data: le } = await supabase
-    .from('lista_espera')
-    .select('cliente_id, cliente_anonimo_id, push_token')
-    .eq('id', cliente.id)
-    .maybeSingle();
-
-  const payload: any = { mesa_id: mesaSeleccionada.id, estado: 'asignada' };
-  if (le?.cliente_id) payload.cliente_id = le.cliente_id;
-  if (le?.cliente_anonimo_id) payload.cliente_anonimo_id = le.cliente_anonimo_id;
-
-  await supabase.from('asignaciones_mesa').insert(payload);
-
-  try {
-    const tok = le?.push_token as string | undefined;
-    if (tok) {
-      await this.push.send(
-        tok,
-        'Mesa asignada',
-        `Se te acaba de asignar la mesa ${mesaSeleccionada.numero}.`,
-        {
-          tipo: 'mesa_asignada',
-          mesa_id: mesaSeleccionada.id,
-          mesa_numero: mesaSeleccionada.numero,
-          screen: 'mi-mesa',
-        }
-      );
+    if (!mesaSeleccionada || role === 'cancel' || role === 'backdrop') {
+      await this.mostrarToast('Operación cancelada');
+      return;
     }
-  } catch (e) {
-    console.error('[push][mesa_asignada][error]', e);
+
+    await supabase.from('chats').delete().eq('mesa_id', mesaSeleccionada.id);
+
+    const { error: errorLista } = await supabase
+      .from('lista_espera')
+      .update({ estado: 'aprobado', mesa_id: mesaSeleccionada.id })
+      .eq('id', cliente.id);
+    if (errorLista) return;
+
+    const { data: le } = await supabase
+      .from('lista_espera')
+      .select('cliente_id, cliente_anonimo_id, push_token')
+      .eq('id', cliente.id)
+      .maybeSingle();
+
+    const payload: any = { mesa_id: mesaSeleccionada.id, estado: 'asignada' };
+    if (le?.cliente_id) payload.cliente_id = le.cliente_id;
+    if (le?.cliente_anonimo_id) payload.cliente_anonimo_id = le.cliente_anonimo_id;
+
+    await supabase.from('asignaciones_mesa').insert(payload);
+
+    try {
+      const tok = le?.push_token as string | undefined;
+      if (tok) {
+        await this.push.send(
+          tok,
+          'Mesa asignada',
+          `Se te acaba de asignar la mesa ${mesaSeleccionada.numero}.`,
+          {
+            tipo: 'mesa_asignada',
+            mesa_id: mesaSeleccionada.id,
+            mesa_numero: mesaSeleccionada.numero,
+            screen: 'mi-mesa',
+          }
+        );
+      }
+    } catch (e) {
+      console.error('[push][mesa_asignada][error]', e);
+    }
+
+    this.clientes = this.clientes.filter((c) => c.id !== cliente.id);
+    await this.mostrarToast('Cliente Aprobado');
   }
-
-  this.clientes = this.clientes.filter((c) => c.id !== cliente.id);
-  await this.mostrarToast('Cliente Aprobado');
-}
-
-
-
-
 
   async quitar(cliente: any) {
     const { error } = await supabase.from('lista_espera').delete().eq('id', cliente.id);
@@ -233,45 +229,33 @@ export class ListaEsperaPage implements OnInit, OnDestroy {
     return idx >= 0 ? idx + 1 : null;
   }
 
-async volver() {
+  async volver() {
+    if (this.from === 'cliente') {
+      this.loading = true;
 
-  if (this.from === 'cliente') {
-    this.loading = true;
+      setTimeout(() => {
+        const params: any = {
+          anonimoId: this.anonimoId ?? this.session.anonimoId,
+          usuarioId: this.usuarioId ?? this.session.usuarioId,
+          clienteId: this.clienteId ?? this.session.clienteId,
+          userId: this.userUid ?? this.session.userUid,
+          tienePermiso: this.session.tienePermiso || true,
+          qrValido: this.session.qrValido || true,
+          mostrarCuenta:
+            this.session.estadoPedido === 'terminado' ? true : false,
+        };
 
-    setTimeout(() => {
-      const params: any = {
-        anonimoId: this.anonimoId ?? this.session.anonimoId,
-        usuarioId: this.usuarioId ?? this.session.usuarioId,
-        clienteId: this.clienteId ?? this.session.clienteId,
-        userId: this.userUid ?? this.session.userUid,
-        tienePermiso: this.session.tienePermiso || true,
-        qrValido: this.session.qrValido || true,
-        mostrarCuenta:
-          this.session.estadoPedido === 'terminado' ? true : false,
-      };
+        this.router.navigate(['/encuestas-espera'], {
+          queryParams: params,
+        });
 
-      this.router.navigate(['/encuestas-espera'], {
-        queryParams: params,
+        this.loading = false;
+      }, 400);
+    } else {
+      this.navCtrl.navigateBack('/home', {
+        animated: true,
+        state: { from: 'lista-espera' },
       });
-
-      this.loading = false;
-    }, 400);
-  } else {
-    this.navCtrl.navigateBack('/home', {
-      animated: true,
-      state: { from: 'lista-espera' },
-    });
+    }
   }
-}
-
-
-
-
-
-
-
-
-
-
-
 }

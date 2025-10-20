@@ -117,7 +117,7 @@ export class AltaPlatoPage {
 
       const libres = Math.max(0, this.faltanFotos);
       if (libres === 0) {
-        await this.mostrarToast("Ya cargaste 3 fotos", "Aviso");
+        await this.mostrarToast("Ya cargó 3 fotos", "Aviso");
         return;
       }
 
@@ -168,7 +168,7 @@ export class AltaPlatoPage {
 
       let restantes = this.faltanFotos;
       if (restantes === 0) {
-        await this.mostrarToast("Ya cargaste 3 fotos", "Aviso");
+        await this.mostrarToast("Ya cargó 3 fotos", "Aviso");
         return;
       }
 
@@ -220,7 +220,7 @@ export class AltaPlatoPage {
   async enviar() {
     if (this.formAltaPlato.invalid) {
       this.formAltaPlato.markAllAsTouched();
-      await this.mostrarToast("Completá los campos obligatorios", "Error");
+      await this.mostrarToast("Complete los campos obligatorios", "Error");
       return;
     }
 
