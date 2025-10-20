@@ -239,7 +239,7 @@ export class AltaClientePage implements OnInit {
 
   async enviar(tipo: string) {
     const form = tipo === "registrado" ? this.formAltaCliente : this.formAltaAnonimo;
-    if (form.invalid) { form.markAllAsTouched(); await this.mostrarToast("Completá los campos obligatorios.", "Error"); return; }
+    if (form.invalid) { form.markAllAsTouched(); await this.mostrarToast("Complete los campos obligatorios.", "Error"); return; }
 
     this.loading = true;
     try {
@@ -316,7 +316,7 @@ export class AltaClientePage implements OnInit {
           const estado = (usuarioDB as any)?.estado ?? "pendiente";
           if (estado !== "activo") {
             await supabase.auth.signOut();
-            await this.mostrarToast("Te avisaremos cuando sea aprobada", "Cuenta en revisión", 1000);
+            await this.mostrarToast("Le avisaremos cuando sea aprobada", "Cuenta en revisión", 1000);
             this.router.navigateByUrl("/login", { replaceUrl: true });
             return;
           }

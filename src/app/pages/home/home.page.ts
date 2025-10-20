@@ -5,8 +5,6 @@ import { Usuarios } from 'src/app/services/usuarios/usuarios';
 import { Usuario } from 'src/app/interfaces/usuario';
 import { Push } from 'src/app/services/push/push';
 import { supabase } from 'src/supabase.client';
-import { Qr } from 'src/app/services/qr/qr';
-import { ToastController } from '@ionic/angular';
 
 type Role =
   | 'mozo'
@@ -47,8 +45,6 @@ export class HomePage implements OnInit {
     private usuarios: Usuarios,
     private push: Push,
     private route: ActivatedRoute,
-    private qr: Qr,
-    private toast: ToastController
   ) {}
 
   private perfilToRole(perfil?: string): Role | undefined {

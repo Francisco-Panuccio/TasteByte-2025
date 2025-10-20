@@ -100,7 +100,7 @@ export class AltaMesaPage implements OnInit {
   async enviar() {
     if (this.formAltaMesa.invalid) {
       this.formAltaMesa.markAllAsTouched();
-      await this.mostrarToast("Completá los campos obligatorios", "Error");
+      await this.mostrarToast("Complete los campos obligatorios", "Error");
       return;
     }
 

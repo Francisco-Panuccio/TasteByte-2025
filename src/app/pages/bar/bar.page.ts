@@ -124,9 +124,9 @@ export class BarPage implements OnInit, OnDestroy {
       );
 
       if (checkError) {
-        console.error("❌ Error al verificar si el pedido está completo:", checkError);
+        console.error("Error al verificar si el pedido está completo:", checkError);
       } else if (completo === true) {
-        console.log("✅ Pedido completamente listo (todos los sectores terminaron).");
+        console.log("Pedido completamente listo (todos los sectores terminaron).");
 
         const { error: insertError } = await supabase
           .from("push_eventos")
@@ -138,9 +138,9 @@ export class BarPage implements OnInit, OnDestroy {
           });
 
         if (insertError) {
-          console.error("❌ Error insertando push_eventos:", insertError);
+          console.error("Error insertando push_eventos:", insertError);
         } else {
-          console.log("✅ Evento push_eventos insertado correctamente.");
+          console.log("Evento push_eventos insertado correctamente.");
         }
 
         try {
@@ -154,12 +154,12 @@ export class BarPage implements OnInit, OnDestroy {
               mesaId: pedido.mesa_id
             }
           );
-          console.log("📤 Push enviada al mozo (pedido completo).");
+          console.log("Push enviada al mozo (pedido completo).");
         } catch (pushError) {
-          console.error("❌ Error enviando push al mozo:", pushError);
+          console.error("Error enviando push al mozo:", pushError);
         }
       } else {
-        console.log("⏳ Pedido aún no completo: falta otro sector (Cocina o Bar).");
+        console.log("Pedido aún no completo: falta otro sector (Cocina o Bar).");
       }
 
       this.cargar();

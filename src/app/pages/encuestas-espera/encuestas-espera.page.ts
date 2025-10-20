@@ -345,7 +345,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
           }
 
           this.mostrarToast(
-            '✔️ Ingreso validado. Ya tenes acceso a algunas funciones.'
+            'Ingreso validado. Ya tenes acceso a algunas funciones.'
           );
         } else {
           this.mostrarToast('Ya habías escaneado el QR de ingreso.');

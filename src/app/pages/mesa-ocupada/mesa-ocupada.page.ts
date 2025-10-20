@@ -13,6 +13,9 @@ import { supabase } from "src/supabase.client";
 import { Keyboard } from "@capacitor/keyboard";
 import { Pedidos } from "src/app/services/pedidos/pedidos";
 import { Push } from "src/app/services/push/push";
+import { MotionControls } from "src/app/services/motion/motion";
+import { PluginListenerHandle } from "@capacitor/core";
+import { AccelListenerEvent, Motion, OrientationListenerEvent } from "@capacitor/motion";
 
 type Tab = "platos" | "bebidas" | "postres";
 type AddItem = { id: number; nombre: string; precio: number; duracionMin: number; tipo: "plato" | "bebida" | "postre" };
@@ -42,6 +45,23 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   private seenIds = new Set<string>();
   private unsubEstado?: () => void;
   private despachados = new Set<string>();
+
+  private accelSub?: PluginListenerHandle;
+  private orientSub?: PluginListenerHandle;
+  private lastGammaSign = 0;
+  private toggles: number[] = [];
+  private lastHoldStart: Record<"L" | "R" | "F" | "B", number> = { L: 0, R: 0, F: 0, B: 0 };
+  private _lastFire: Record<string, number> = {};
+  private readonly TILT_TH = 22;
+  private readonly HOLD_MS = 200;
+  private readonly SHAKE_WIN_MS = 1200;
+  private readonly SHAKE_AX_TH = 9.5;
+  private readonly SHAKE_TOGGLES = 6;
+
+  private lastRollDeg = 0;
+  private readonly ROLL_GUARD = 12;
+  private lastShakeSignX = 0;
+  private togglesX: number[] = [];
 
   chatId?: string;
   myUserId?: string;
@@ -141,9 +161,244 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
       await this.ensureChatAndSubscribe();
     } catch (e: any) {
       this.error = e?.message || "Error cargando mesa";
-      (await this.toast.create({ message: this.error, duration: 1500 })).present();
+      (await this.toast.create({ message: this.error, cssClass: "toast", duration: 1500 })).present();
     } finally {
       setTimeout(() => (this.loading = false), 2000);
+    }
+  }
+
+  ngAfterViewInit(): void {
+    this.presentingEl = document.querySelector("ion-router-outlet") as HTMLElement;
+    const setVars = () => {
+      const sticky = document.querySelector(".resumen-flotante") as HTMLElement | null;
+      const seg = document.querySelector("ion-segment") as HTMLElement | null;
+      const foot = document.querySelector("ion-footer, footer") as HTMLElement | null;
+      const sh = sticky ? Math.round(sticky.getBoundingClientRect().height) : 0;
+      const sg = seg ? Math.round(seg.getBoundingClientRect().height) : 0;
+      const fh = foot ? Math.round(foot.getBoundingClientRect().height) : 0;
+      document.documentElement.style.setProperty("--sticky-h", `${sh}px`);
+      document.documentElement.style.setProperty("--seg-h", `${sg}px`);
+      document.documentElement.style.setProperty("--foot-h", `${fh}px`);
+      document.documentElement.style.setProperty("--grid-pad", `20px`);
+    };
+    setVars();
+    window.addEventListener("resize", setVars);
+
+    void this.startMotion();
+  }
+
+  ngOnDestroy() { this.chatSvc.unsubscribe(); this.backUnsub?.(); this.unsubEstado?.(); this.stopMotion(); }
+
+  private async startMotion(): Promise<void> {
+    this.stopMotion();
+    this.orientSub = await Motion.addListener("orientation", (e: OrientationListenerEvent) => {
+      const beta = e.beta ?? 0;
+      const gamma = e.gamma ?? 0;
+      const now = Date.now();
+
+      this.lastRollDeg = gamma;
+
+      if (gamma <= -this.TILT_TH) this.markHold("L", now, () => this.siguienteFoto());
+      else this.lastHoldStart.L = 0;
+      if (gamma >= this.TILT_TH) this.markHold("R", now, () => this.anteriorFoto());
+      else this.lastHoldStart.R = 0;
+
+      const sign = gamma > this.TILT_TH ? 1 : gamma < -this.TILT_TH ? -1 : 0;
+      if (Math.abs(gamma) <= this.ROLL_GUARD) {
+        if (beta >= this.TILT_TH) this.markHold("F", now, () => this.siguienteProducto());
+        else this.lastHoldStart.F = 0;
+
+        if (beta <= -this.TILT_TH) this.markHold("B", now, () => this.anteriorProducto());
+        else this.lastHoldStart.B = 0;
+      } else {
+        this.lastHoldStart.F = 0;
+        this.lastHoldStart.B = 0;
+      }
+    });
+
+    this.accelSub = await Motion.addListener("accel", (ev) => {
+      const a = ev.accelerationIncludingGravity ?? ev.acceleration; if (!a) return;
+      const now = Date.now();
+      const x = a.x ?? 0;
+      if (Math.abs(x) < this.SHAKE_AX_TH) return;
+
+      const s = x > 0 ? 1 : -1;
+      if (s !== this.lastShakeSignX) {
+        this.lastShakeSignX = s;
+        this.togglesX.push(now);
+        while (this.togglesX.length && now - this.togglesX[0] > this.SHAKE_WIN_MS) this.togglesX.shift();
+        if (this.togglesX.length >= this.SHAKE_TOGGLES) {
+          this.togglesX.length = 0;
+          this.resetAlPrimerProducto();
+        }
+      }
+    });
+  }
+
+  private stopMotion(): void {
+    this.accelSub?.remove(); this.accelSub = undefined;
+    this.orientSub?.remove(); this.orientSub = undefined;
+    this.togglesX.length = 0;
+    this.lastShakeSignX = 0;
+    this.lastRollDeg = 0;
+    this.lastHoldStart = { L: 0, R: 0, F: 0, B: 0 };
+    this._lastFire = {};
+  }
+
+  private markHold(key: "L" | "R" | "F" | "B", now: number, fire: () => void): void {
+    if (!this.lastHoldStart[key]) this.lastHoldStart[key] = now;
+    if (now - this.lastHoldStart[key] >= this.HOLD_MS) fire();
+  }
+
+  private getVisibleCards(): HTMLElement[] {
+    return Array.from(document.querySelectorAll(".grid .card")) as HTMLElement[];
+  }
+
+  private getActiveCard(): HTMLElement | null {
+    const cards = this.getVisibleCards();
+    if (!cards.length) return null;
+    const midY = window.innerHeight / 2;
+    let best: HTMLElement | null = null;
+    let dBest = Infinity;
+    for (const c of cards) {
+      const r = c.getBoundingClientRect();
+      const cY = r.top + r.height / 2;
+      const d = Math.abs(cY - midY);
+      if (d < dBest) { dBest = d; best = c; }
+    }
+    return best;
+  }
+
+  private getActiveTrack(): HTMLElement | null {
+    const card = this.getActiveCard();
+    if (!card) return null;
+    return card.querySelector(".track") as HTMLElement | null;
+  }
+
+  private getSlidesOf(track: HTMLElement | null): HTMLElement[] {
+    if (!track) return [];
+    return Array.from(track.querySelectorAll(".slide")) as HTMLElement[];
+  }
+
+  private getGrid(): HTMLElement | null {
+    return document.querySelector(".grid") as HTMLElement | null;
+  }
+
+  private getCards(): HTMLElement[] {
+    const g = this.getGrid();
+    return g ? (Array.from(g.querySelectorAll(":scope > .card")) as HTMLElement[]) : [];
+  }
+
+  private computeSlideIndex(track: HTMLElement | null): number {
+    if (!track) return 0;
+    const slides = this.getSlidesOf(track);
+    if (!slides.length) return 0;
+    const scroll = track.scrollLeft;
+    let idx = 0, best = Infinity;
+    slides.forEach((s, i) => {
+      const d = Math.abs(s.offsetLeft - scroll);
+      if (d < best) { best = d; idx = i; }
+    });
+    return idx;
+  }
+
+  private scrollToSlide(track: HTMLElement | null, index: number): void {
+    if (!track) return;
+    const slides = this.getSlidesOf(track);
+    if (!slides.length) return;
+    const idx = Math.max(0, Math.min(index, slides.length - 1));
+    const target = slides[idx];
+    try { track.scrollTo({ left: target.offsetLeft, behavior: "smooth" }); }
+    catch { track.scrollLeft = target.offsetLeft; }
+  }
+
+  private getCarritoItems(): HTMLElement[] {
+    return Array.from(document.querySelectorAll(".carrito-lista .carrito-item")) as HTMLElement[];
+  }
+
+  private computeCardIndex(): number {
+    const g = this.getGrid(), cards = this.getCards();
+    if (!g || !cards.length) return 0;
+    const gr = g.getBoundingClientRect();
+    const mid = gr.top + gr.height / 2;
+    let idx = 0, best = Infinity;
+    cards.forEach((c, i) => {
+      const r = c.getBoundingClientRect();
+      const d = Math.abs((r.top + r.height / 2) - mid);
+      if (d < best) { best = d; idx = i; }
+    });
+    return idx;
+  }
+
+  private computeCarritoIndex(): number {
+    const items = this.getCarritoItems();
+    if (!items.length) return 0;
+    const midY = window.innerHeight / 2;
+    let idx = 0, best = Infinity;
+    items.forEach((el, i) => {
+      const r = el.getBoundingClientRect();
+      const cY = r.top + r.height / 2;
+      const d = Math.abs(cY - midY);
+      if (d < best) { best = d; idx = i; }
+    });
+    return idx;
+  }
+
+  private scrollToCarrito(index: number): void {
+    const items = this.getCarritoItems();
+    if (!items.length) return;
+    const idx = Math.max(0, Math.min(index, items.length - 1));
+    const el = items[idx];
+    try { el.scrollIntoView({ block: "center", behavior: "smooth" }); }
+    catch { el.scrollIntoView(); }
+  }
+
+  private scrollToCard(index: number): void {
+    const g = this.getGrid(), cards = this.getCards();
+    if (!g || !cards.length) return;
+    const idx = Math.max(0, Math.min(index, cards.length - 1));
+    const r = cards[idx].getBoundingClientRect();
+    const gr = g.getBoundingClientRect();
+    const top = g.scrollTop + (r.top - gr.top);
+    try { g.scrollTo({ top, behavior: "smooth" }); } catch { g.scrollTop = top; }
+  }
+
+  private siguienteFoto(): void {
+    const track = this.getActiveTrack();
+    const i = this.computeSlideIndex(track);
+    this.scrollToSlide(track, i + 1);
+  }
+
+  private anteriorFoto(): void {
+    const track = this.getActiveTrack();
+    const i = this.computeSlideIndex(track);
+    this.scrollToSlide(track, i - 1);
+  }
+
+  private siguienteProducto(): void {
+    if (this.carritoFlag) {
+      const i = this.computeCarritoIndex(); this.scrollToCarrito(i + 1);
+    } else {
+      const i = this.computeCardIndex(); this.scrollToCard(i + 1);
+    }
+  }
+
+  private anteriorProducto(): void {
+    if (this.carritoFlag) {
+      const i = this.computeCarritoIndex(); this.scrollToCarrito(i - 1);
+    } else {
+      const i = this.computeCardIndex(); this.scrollToCard(i - 1);
+    }
+  }
+
+  private resetAlPrimerProducto(): void {
+    if (this.carritoFlag) {
+      this.scrollToCarrito(0);
+    } else {
+      this.scrollToCard(0);
+      const first = this.getCards()[0];
+      const track = first ? (first.querySelector(".track") as HTMLElement | null) : null;
+      this.scrollToSlide(track, 0);
     }
   }
 
@@ -278,26 +533,6 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   get pedidoBloqueado(): boolean {
     return !!this.pedidoEnCurso && this.estadoPedido !== "rechazado";
   }
-
-  ngAfterViewInit(): void {
-    this.presentingEl = document.querySelector("ion-router-outlet") as HTMLElement;
-    const setVars = () => {
-      const sticky = document.querySelector(".resumen-flotante") as HTMLElement | null;
-      const seg = document.querySelector("ion-segment") as HTMLElement | null;
-      const foot = document.querySelector("ion-footer, footer") as HTMLElement | null;
-      const sh = sticky ? Math.round(sticky.getBoundingClientRect().height) : 0;
-      const sg = seg ? Math.round(seg.getBoundingClientRect().height) : 0;
-      const fh = foot ? Math.round(foot.getBoundingClientRect().height) : 0;
-      document.documentElement.style.setProperty("--sticky-h", `${sh}px`);
-      document.documentElement.style.setProperty("--seg-h", `${sg}px`);
-      document.documentElement.style.setProperty("--foot-h", `${fh}px`);
-      document.documentElement.style.setProperty("--grid-pad", `20px`);
-    };
-    setVars();
-    window.addEventListener("resize", setVars);
-  }
-
-  ngOnDestroy() { this.chatSvc.unsubscribe(); this.backUnsub?.(); this.unsubEstado?.(); }
 
   private hhmm(d: Date): string {
     const hh = String(d.getHours()).padStart(2, "0");
@@ -548,7 +783,8 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
         .catch(async e => (await this.toast.create({
           message: `No se notificó a mozos: ${e?.message ?? e}`,
           duration: 2500,
-          position: "top"
+          position: "top",
+          cssClass: "toast"
         })).present());
 
       this.unsubEstado?.();
@@ -579,7 +815,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
             (await this.toast.create({
               message: "Su pedido fue rechazado, por favor modifíquelo correctamente y reenvíelo.",
               position: "top",
-              cssClass: "toasty",
+              cssClass: "toast",
               duration: 1200
             })).present();
           }
@@ -596,7 +832,8 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
       (await this.toast.create({
         message: e?.message ?? "Error al enviar pedido",
         duration: 1800,
-        position: "top"
+        position: "top",
+        cssClass: "toast"
       })).present();
       this.submitting = false;
     }
