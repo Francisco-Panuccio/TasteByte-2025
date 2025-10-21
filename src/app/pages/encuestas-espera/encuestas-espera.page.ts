@@ -746,46 +746,74 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   }
 
   private async ensureChatAndSubscribe(): Promise<void> {
-    if (!this.mesaAsignadaId) return;
-    
-    if (!this.myUserId) {
-      const { data: au } = await supabase.auth.getUser();
-      this.myUserId = this.anonimoId
-        ? `anon-${this.anonimoId}`
-        : au.user?.id ?? undefined;
-    }
+  const mesaId = this.mesaAsignadaId;
+  if (!mesaId) return;
 
-    const chat = await this.chatSvc.getOrCreateForMesa(
-      this.mesaAsignadaId,
-      "cliente",
-      this.anonimoId
-    );
+  // myUserId (anon / normal)
+  if (!this.myUserId) {
+    const { data: au } = await supabase.auth.getUser();
+    this.myUserId = this.anonimoId
+      ? `anon-${this.anonimoId}`
+      : (au.user?.id ?? undefined);
+  }
 
-    this.chatId = chat.id;
+  // Chat de mesa
+  const chat = await this.chatSvc.getOrCreateForMesa(mesaId, "cliente", this.anonimoId);
+  this.chatId = chat.id;
 
-    await this.chatSvc.bindMyPushToken(this.chatId, this.anonimoId);
+  // Vincular push (no bloquea)
+  this.chatSvc.bindMyPushToken(this.chatId, this.anonimoId).catch(() => {});
 
-    const msgs = await this.chatSvc.loadMessages(chat.id, 200);
-    this.seenIds.clear();
-    this.messages = msgs.map((m: any) => {
-      this.seenIds.add(m.id);
-      return this.chatSvc.toViewMessage(m, this.myUserId!);
-    });
+  // ⏱️ CORTE DE TURNO
+  const since = await this.chatSvc.getMesaSince(mesaId);
 
-    this.scrollToBottomAfterRender();
+  // 🧼 Reset local SIEMPRE antes de cargar (evita mezclas)
+  this.seenIds.clear();
+  this.messages = [];
 
-    this.chatSvc.subscribeToMessages(chat.id, async (m: ChatMessage) => {
+  // Cargar SOLO mensajes del turno actual
+  const msgs = await this.chatSvc.loadMessagesSince(this.chatId, since, 200);
+
+  // Dedup defensivo
+  const unique = new Map<string, ChatMessage>();
+  for (const m of msgs) unique.set(m.id, m);
+
+  this.messages = Array.from(unique.values()).map((m) =>
+    this.chatSvc.toViewMessage(m, this.myUserId!)
+  );
+  for (const m of unique.values()) this.seenIds.add(m.id);
+
+  this.scrollToBottomAfterRender();
+
+  // Quitar listener viejo y volver a suscribir usando el corte
+  try { this.chatSvc.unsubscribe?.(); } catch {}
+
+  this.chatSvc.subscribeToMessages(
+    this.chatId,
+    (m) => {
+      // 🚫 NO renderizar mis propios inserts (evita duplicado local)
+      if (m.user_id === this.myUserId) return;
+
+      // 🔒 Ignorar duplicados
       if (this.seenIds.has(m.id)) return;
       this.seenIds.add(m.id);
 
       const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
+      // Si por timing ya estuviera, no lo pushes
+      const ya = this.messages.some(x => x.id === vm.id);
+      if (ya) return;
 
       this.zone.run(() => {
         this.messages.push(vm);
         this.scrollToBottomAfterRender();
       });
-    });
-  }
+    },
+    since // ⏱️ filtro en tiempo real
+  );
+}
+
+
+
 
 
   async openChat() {
