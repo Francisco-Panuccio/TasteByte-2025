@@ -283,7 +283,16 @@ export class AltaClientePage implements OnInit {
         });
 
         try {
-          await this.email.sendEmail(email, "Registro Recibido - En Revisión", "registro_pendiente", { nombres });
+          await this.email.enviarEmailPersonalizado(
+            "🍴Registro Exitoso🍴",
+            email,
+            "Bienvenido a TasteByte",
+            `<p>Buenas ${nombres + " " + apellidos}, gracias por registrarse.</p>
+            <p>Su cuenta se encuentra actualmente pendiente de revisión, disculpe las molestias.</p>
+            <p>En minutos un dueño o supervisor autorizará su ingreso.</p>
+            <p>Muchas gracias, esperamos que disfrute nuestras comidas en TasteByte.</p>`,
+            "Registro Recibido - En Revisión"
+          );
         } catch { }
 
         try {

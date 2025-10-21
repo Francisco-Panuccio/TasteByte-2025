@@ -5,6 +5,7 @@ import { Usuarios } from 'src/app/services/usuarios/usuarios';
 import { Usuario } from 'src/app/interfaces/usuario';
 import { Push } from 'src/app/services/push/push';
 import { supabase } from 'src/supabase.client';
+import { Email } from 'src/app/services/email/email';
 
 type Role =
   | 'mozo'
@@ -29,7 +30,6 @@ export class HomePage implements OnInit {
   isMaitre = false;
   isCliente = false;
   isMozo = false;
-  private yaMostroLoading = false;
   private skipNextLoading = false;
 
   userId = '';
@@ -45,7 +45,7 @@ export class HomePage implements OnInit {
     private usuarios: Usuarios,
     private push: Push,
     private route: ActivatedRoute,
-  ) {}
+  ) { }
 
   private perfilToRole(perfil?: string): Role | undefined {
     const p = (perfil ?? '')
@@ -167,10 +167,10 @@ export class HomePage implements OnInit {
           .from('push_tokens')
           .update({ active: false })
           .eq('token', tok);
-    } catch {}
+    } catch { }
     try {
       await (this.auth as any).signOut();
-    } catch {}
+    } catch { }
     this.router.navigateByUrl('/login', { replaceUrl: true });
   }
 
