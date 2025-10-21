@@ -1,0 +1,153 @@
+<ng-container *ngIf="data as d">
+  <div #root class="div_container">
+    <div class="wrapper text-center bold text-20" style="width:100%; border-bottom: 0; font-weight: 700;">
+      ORIGINAL
+    </div>
+
+    <div class="flex relative">
+      <div class="wrapper inline-block w50 flex" style="border-right: 0">
+        <h3 class="text-center" style="font-size: 24px; margin-bottom: 3px; width: 100%; font-weight: 700;">TASTEBYTE
+        </h3>
+        <p style="line-height: 1.5; margin-bottom: 0; align-self: flex-end;">
+          <b style="font-weight: 800;">Razón Social: </b> <span style="font-weight: 600;">TASTEBYTE</span>
+          <br><b style="font-weight: 800;">Domicilio Comercial: </b> Av. Bartolomé Mitre 750
+          <br><b style="font-weight: 800;">Condición frente al IVA: Responsable Monotributo</b>
+        </p>
+      </div>
+      <div class="wrapper inline-block w50">
+        <h3 class="text-center" style="font-size:24px;margin-bottom: 3px; font-weight: 700;">FACTURA</h3>
+        <p style="line-height: 1.5;margin-bottom: 0;">
+          <b style="font-weight: 800;">Punto de Venta: 00001 Comp. Nro: 00000111</b>
+          <br><b style="font-weight: 800;">Fecha de Emisión: 12/01/2021</b>
+          <br><b style="font-weight: 800;">CUIT:</b> 11234567899
+          <br><b style="font-weight: 800;">Ingresos Brutos:</b> exento
+          <br><b style="font-weight: 800;">Fecha de Inicio de Actividades:</b> 12/01/2000
+        </p>
+      </div>
+      <div class="wrapper floating-mid">
+        <h3 class="no-margin text-center" style="font-size: 36px; font-weight: 600;">C</h3>
+        <h5 class="no-margin text-center" style="font-size: 12px; font-weight: 800;">COD. 007</h5>
+      </div>
+    </div>
+
+    <div class="wrapper flex space-around" style="margin-top: 5px;">
+      <span style="font-weight: 600;"><b style="font-weight: 800;">Período Facturado Desde:</b> 12/01/2000</span>
+      <span style="font-weight: 600;"><b style="font-weight: 800;">Hasta:</b> 12/01/2010</span>
+      <span style="font-weight: 600;"><b style="font-weight: 800;">Fecha de Vto. para el pago:</b> 22/01/2000</span>
+    </div>
+
+    <div class="wrapper" style="margin-top: 5px;font-size: 12px;">
+      <div class="flex" style="margin-bottom: 15px;">
+        <span style="width:30%"><b style="font-weight: 800;">CUIT/DNI:</b> {{data.receptor.cuitOdni}}</span>
+        <span><b style="font-weight: 800;">Apellido y Nombre / Razón Social:</b> {{data.receptor.nombreCompleto}}</span>
+      </div>
+      <div class="flex" style="flex-wrap: nowrap;margin-bottom: 5px;">
+        <span style="width:70%"><b style="font-weight: 800;">Condición frente al IVA:</b> Responsable Inscripto</span>
+        <span><b style="font-weight: 800;">Domicilio:</b> Calle Falsa 123 - Capital Federal, Ciudad de Buenos
+          Aires</span>
+      </div>
+      <div class="flex">
+        <span><b style="font-weight: 800;">Condición de venta:</b> Otra</span>
+      </div>
+    </div>
+
+    <table style="margin-top: 5px; page-break-inside:auto;">
+      <thead style="display: table-header-group;">
+        <tr>
+          <th style="font-weight: 800;">Código</th>
+          <th style="font-weight: 800;">Producto / Servicio</th>
+          <th style="font-weight: 800;">Cantidad</th>
+          <th style="font-weight: 800;">Precio Unit.</th>
+          <th style="font-weight: 800;">Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let it of data.items" style="page-break-inside: avoid;">
+          <td style="text-align: center;">{{it.codigo}}</td>
+          <td style="text-align: center;">{{ it.descripcion }}</td>
+          <td style="text-align: center;">{{ it.cantidad | number:'1.2-2' }}</td>
+          <td style="text-align: center;">{{ it.precioUnit | number:'1.2-2' }}</td>
+          <td style="text-align: center;">{{ it.subtotal | number:'1.2-2' }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="html2pdf__page-break">
+      <div class="footer">
+        <div class="flex wrapper space-between">
+          <div style="width:55%">
+            <p style="font-weight: 800;">Otros tributos</p>
+            <table>
+              <thead>
+                <th style="font-weight: 800;">Descripción</th>
+                <th style="font-weight: 800;">Detalle</th>
+                <th style="font-weight: 800;">Alíc. %</th>
+                <th style="font-weight: 800;">Importe</th>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Per./Ret. de Impuesto a las Ganancias</td>
+                  <td></td>
+                  <td></td>
+                  <td class="text-right">0,00</td>
+                </tr>
+                <tr>
+                  <td>Per./Ret. de IVA</td>
+                  <td></td>
+                  <td></td>
+                  <td class="text-right">0,00</td>
+                </tr>
+                <tr>
+                  <td>Impuestos Internos</td>
+                  <td></td>
+                  <td></td>
+                  <td class="text-right">0,00</td>
+                </tr>
+                <tr>
+                  <td>Impuestos Municipales</td>
+                  <td></td>
+                  <td></td>
+                  <td class="text-right">0,00</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="width:40%;margin-top: 40px;" class="flex wrapper">
+            <span class="text-right" style="width:60%;"><b style="font-weight: 800;">Importe Neto Gravado:
+                $</b></span><span class="text-right" style="width:40%"><b style="font-weight: 800;">0,00</b></span>
+            <span class="text-right" style="width:60%;"><b style="font-weight: 800;">IVA 27%: $</b></span><span
+              class="text-right" style="width:40%"><b style="font-weight: 800;">0,00</b></span>
+            <span class="text-right" style="width:60%;"><b style="font-weight: 800;">IVA 21%: $</b></span><span
+              class="text-right" style="width:40%"><b style="font-weight: 800;">0,00</b></span>
+            <span class="text-right" style="width:60%;"><b style="font-weight: 800;">IVA 10.5%: $</b></span><span
+              class="text-right" style="width:40%"><b style="font-weight: 800;">0,00</b></span>
+            <span class="text-right" style="width:60%;"><b style="font-weight: 800;">IVA 5%: $</b></span><span
+              class="text-right" style="width:40%"><b style="font-weight: 800;">0,00</b></span>
+            <span class="text-right" style="width:60%;"><b style="font-weight: 800;">IVA 2.5%: $</b></span><span
+              class="text-right" style="width:40%"><b style="font-weight: 800;">0,00</b></span>
+            <span class="text-right" style="width:60%;"><b style="font-weight: 800;">IVA 0%: $</b></span><span
+              class="text-right" style="width:40%"><b style="font-weight: 800;">0,00</b></span>
+            <span class="text-right" style="width:60%;"><b style="font-weight: 800;">Importe Otros Tributos:
+                $</b></span><span class="text-right" style="width:40%"><b style="font-weight: 800;">0,00</b></span>
+            <span class="text-right" style="width:60%;"><b style="font-weight: 800;">Importe Total:
+                $</b></span><span class="text-right" style="width:40%"><b style="font-weight: 800;">{{data.totales.total
+                |
+                number:"1.2-2"}}</b></span>
+          </div>
+        </div>
+        <div class="flex relative orden" style="margin-top: 5px; border: 2px solid black;">
+          <div class="div1">
+            <img src="assets/images/afip-logo.jpg" style="max-width:130px">
+            <h4 class="italic bold">Comprobante Autorizado</h4>
+            <img src="assets/icon/logo.png" style="max-width:130px">
+          </div>
+          <div class="div2">
+            <p><b style="font-weight: 800;">CAE N°: </b><span class="text-left">12345678901234</span></p>
+            <p><b style="font-weight: 800;">Fecha de Vto. de CAE: </b><span>12/01/2012</span></p>
+            <p class="small italic bold" style="font-size: 9px;">Esta Administración Federal no se responsabilizapor los datos ingresados en el detalle de la operación</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-container>

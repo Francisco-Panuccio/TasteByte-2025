@@ -8,6 +8,7 @@ import { PedidosMozoPageRoutingModule } from './pedidos-mozo-routing.module';
 
 import { PedidosMozoPage } from './pedidos-mozo.page';
 import { LoadingPage } from '../loading/loading.page';
+import { FacturaPage } from '../factura/factura.page';
 
 @NgModule({
   imports: [
@@ -15,7 +16,8 @@ import { LoadingPage } from '../loading/loading.page';
     FormsModule,
     IonicModule,
     PedidosMozoPageRoutingModule,
-    LoadingPage
+    LoadingPage,
+    FacturaPage
   ],
   declarations: [PedidosMozoPage]
 })

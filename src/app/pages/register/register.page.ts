@@ -9,6 +9,7 @@ import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
 import { Email } from "src/app/services/email/email";
 import { Push } from "src/app/services/push/push";
 import { BarcodeFormat, BarcodeScanner } from "@capacitor-mlkit/barcode-scanning";
+import { ToastController } from "@ionic/angular";
 
 @Component({
   selector: "app-register",
@@ -19,6 +20,7 @@ import { BarcodeFormat, BarcodeScanner } from "@capacitor-mlkit/barcode-scanning
 export class RegisterPage implements OnInit {
   private email = inject(Email);
   private push = inject(Push);
+  private toast = inject(ToastController);
 
   loading = true;
   errorMsg = false;
@@ -182,13 +184,19 @@ export class RegisterPage implements OnInit {
 
       const usuarioDB = await this.usuarios.createFromUser(user, this.fotoUrl);
 
+      if (usuarioDB) { 
+        await this.mostrarToast("Registro exitoso"); 
+      } else {
+        await this.mostrarToast("Error al registrarse"); 
+      }
+
       if (isCliente) {
         const clienteNombre = `${user.apellido} ${user.nombre}`;
         await this.email.enviarEmailPersonalizado(
           "🍴Registro Exitoso🍴",
           email,
           "Bienvenido a TasteByte",
-          `<p>Buenas ${user.nombre + " " + user.apellido}, gracias por registrarse.</p>
+          `<p>Hola ${user.nombre + " " + user.apellido}, gracias por registrarse.</p>
             <p>Su cuenta se encuentra actualmente pendiente de revisión, disculpe las molestias.</p>
             <p>En minutos un dueño o supervisor autorizará su ingreso.</p>
             <p>Muchas gracias, esperamos que disfrute nuestras comidas en TasteByte.</p>`,
@@ -242,5 +250,15 @@ export class RegisterPage implements OnInit {
 
   closeError() {
     this.errorMsg = false;
+  }
+
+  private async mostrarToast(message: string): Promise<void> {
+    const t = await this.toast.create({
+      message,
+      duration: 1500,
+      cssClass: "toast",
+      position: "top"
+    });
+    await t.present();
   }
 }

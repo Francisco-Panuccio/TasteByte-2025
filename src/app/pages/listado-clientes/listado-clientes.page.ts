@@ -126,7 +126,7 @@ export class ListadoClientesPage implements OnInit, OnDestroy {
         "🎉¡Registro Aprobado!🎉",
         cliente.usuario.correo_electronico,
         "Bienvenido a TasteByte",
-        `<p>Buenas ${cliente.usuario.nombres + " " + cliente.usuario.apellidos}, su cuenta ya está activa.</p>
+        `<p>Hola ${cliente.usuario.nombres + " " + cliente.usuario.apellidos}, su cuenta ya está activa.</p>
             <p>Ya puede experimentar todas las funcionalidades de nuestra aplicación.</p>
             <p>Muchas gracias, esperamos que disfrute nuestras comidas en TasteByte.</p>`,
         "Registro Recibido - Aprobado"
@@ -148,7 +148,7 @@ export class ListadoClientesPage implements OnInit, OnDestroy {
         "❌¡Registro Rechazado!❌",
         cliente.usuario.correo_electronico,
         "Bienvenido a TasteByte",
-        `<p>Buenas ${cliente.usuario.nombres + " " + cliente.usuario.apellidos}, su cuenta fue rechazada.</p>
+        `<p>Hola ${cliente.usuario.nombres + " " + cliente.usuario.apellidos}, su cuenta fue rechazada.</p>
             <p>En caso de que sospeche que se trata de un error, le pedimos que vuelva a intentar registrarse.</p>
             <p>Luego del registro, un dueño o supervisor revisará nuevamente su ingreso.</p>
             <p>Muchas gracias, esperamos que pronto pueda disfrutar de nuestras comidas en TasteByte.</p>`,
