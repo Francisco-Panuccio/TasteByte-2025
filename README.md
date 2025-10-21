@@ -105,9 +105,9 @@
 
 <p align="center">
   <img src="src/assets/imagesGithub/clientes-pendientes.jpeg" alt="Clientes Pendientes" width="400" height="800">
-  <img src="src/assets/imagesGithub/email-1.jpeg" alt="Email 1" width="400" height="200">
-  <img src="src/assets/imagesGithub/email-2.jpeg" alt="Email 2" width="400" height="200">
-  <img src="src/assets/imagesGithub/email-3.jpeg" alt="Email 3" width="400" height="200">
+  <img src="src/assets/imagesGithub/email-1.jpeg" alt="Email 1" width="400" height="800">
+  <img src="src/assets/imagesGithub/email-2.jpeg" alt="Email 2" width="400" height="800">
+  <img src="src/assets/imagesGithub/email-3.jpeg" alt="Email 3" width="400" height="800">
 </p>
 
 
