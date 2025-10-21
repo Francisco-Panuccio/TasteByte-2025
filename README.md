@@ -27,6 +27,7 @@
   <img src="src/assets/imagesGithub/home-cliente-2.jpeg" alt="Home Cliente 2" width="400" height="800">
   <img src="src/assets/imagesGithub/home-cliente-1.jpeg" alt="Home Cliente 1" width="400" height="800">
   <img src="src/assets/imagesGithub/home-cliente-3.jpeg" alt="Home Cliente 3" width="400" height="800">
+  <img src="src/assets/imagesGithub/home-cliente-4.jpeg" alt="Home Cliente 4" width="400" height="800">
   <img src="src/assets/imagesGithub/alta-plato.jpeg" alt="Alta Plato" width="400" height="800">
   <img src="src/assets/imagesGithub/alta-mesa.jpeg" alt="Alta Mesa" width="400" height="800">
 </p>
@@ -42,6 +43,7 @@
   <img src="src/assets/imagesGithub/loading.jpeg" alt="Loading" width="400" height="800">
   <img src="src/assets/imagesGithub/login.jpeg" alt="Login" width="400" height="800">
   <img src="src/assets/imagesGithub/validacion.jpeg" alt="Validacion" width="400" height="800">
+  <img src="src/assets/imagesGithub/validacion-cuenta.jpeg" alt="Validacion Cuenta" width="400" height="800">
   <img src="src/assets/imagesGithub/error-login.jpeg" alt="Error Login" width="400" height="800">
   <img src="src/assets/imagesGithub/register.jpeg" alt="Register" width="400" height="800">
   <img src="src/assets/imagesGithub/alta-empleado.jpeg" alt="Alta Empleado" width="400" height="800">
@@ -103,7 +105,9 @@
 
 <p align="center">
   <img src="src/assets/imagesGithub/clientes-pendientes.jpeg" alt="Clientes Pendientes" width="400" height="800">
-  <img src="src/assets/imagesGithub/email.jpeg" alt="Email" width="400" height="200">
+  <img src="src/assets/imagesGithub/email-1.jpeg" alt="Email 1" width="400" height="200">
+  <img src="src/assets/imagesGithub/email-2.jpeg" alt="Email 2" width="400" height="200">
+  <img src="src/assets/imagesGithub/email-3.jpeg" alt="Email 3" width="400" height="200">
 </p>
 
 
