@@ -1,0 +1,141 @@
+:host {
+  display: block;
+}
+
+.div_container {
+  font-family: Arial, sans-serif;
+  font-size: 15px;
+  background-color: white;
+  color: black;
+  width: 190mm;
+  max-width: 190mm;
+  box-sizing: border-box;
+  margin: 0 auto;
+}
+
+.wrapper {
+  border: 2px solid black;
+  padding: 5px;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.italic {
+  font-style: italic;
+}
+
+.inline-block {
+  display: inline-block;
+  font-size: 15px !important;
+
+  p {
+    margin-top: 25px;
+  }
+}
+
+.flex {
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.no-margin {
+  margin: 0;
+}
+
+.relative {
+  position: relative;
+}
+
+.floating-mid {
+  left: 0;
+  right: 0;
+  margin-left: auto;
+  margin-right: auto;
+  width: 85px;
+  position: absolute;
+  top: 1px;
+  background: white;
+}
+
+.space-around {
+  justify-content: space-around;
+}
+
+.space-between {
+  justify-content: space-between;
+}
+
+.w50 {
+  width: 50%;
+}
+
+th {
+  border: 2px solid black;
+  background: #ccc;
+  padding: 5px;
+}
+
+td {
+  padding: 5px;
+  font-size: 11px;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.text-20 {
+  font-size: 20px;
+}
+
+.footer {
+  page-break-inside: avoid;
+}
+
+.orden {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 5px;
+
+  div {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+.div1 {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+
+  h4 {
+    margin: 16px;
+  }
+}
+
+.div2 {
+  p {
+    margin: 0;
+  }
+}

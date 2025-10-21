@@ -98,7 +98,11 @@ const routes: Routes = [
   {
     path: 'cuenta',
     loadChildren: () => import('./pages/cuenta/cuenta.module').then( m => m.CuentaPageModule)
+  },  {
+    path: 'factura',
+    loadChildren: () => import('./pages/factura/factura.module').then( m => m.FacturaPageModule)
   },
+
 ];
 
 @NgModule({

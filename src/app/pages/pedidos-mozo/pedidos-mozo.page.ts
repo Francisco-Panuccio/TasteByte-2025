@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, inject, OnInit, ViewChild } from '@angular/core';
 import { IonContent, IonModal, ToastController } from '@ionic/angular';
 import { Chat } from 'src/app/services/chat/chat';
 import { ChatMessage } from 'src/app/interfaces/chat-message';
@@ -6,6 +6,9 @@ import { Mesas } from 'src/app/services/mesas/mesas';
 import { Pedidos } from 'src/app/services/pedidos/pedidos';
 import { supabase } from 'src/supabase.client';
 import { Push } from 'src/app/services/push/push';
+import { FacturaData, FacturaPage, ItemFactura } from '../factura/factura.page';
+import { Email } from 'src/app/services/email/email';
+import { Pdf } from 'src/app/services/pdf/pdf';
 
 type Filtro =
   | 'pendiente'
@@ -15,18 +18,27 @@ type Filtro =
   | 'terminado'
   | 'impagado';
 
+const FACTURA_EMPTY: FacturaData = {
+  receptor: { cuitOdni: "", nombreCompleto: "" },
+  items: [],
+  totales: { total: 0 }
+};
+
 @Component({
   selector: 'app-pedidos-mozo',
   templateUrl: './pedidos-mozo.page.html',
   styleUrls: ['./pedidos-mozo.page.scss'],
   standalone: false,
 })
-export class PedidosMozoPage implements OnInit {
+export class PedidosMozoPage implements OnInit, AfterViewInit {
   private pedidosSrv = inject(Pedidos);
   private chatSvc = inject(Chat);
   private toast = inject(ToastController);
   private mesasSrv = inject(Mesas);
   private push = inject(Push);
+  private pdf = inject(Pdf);
+  private email = inject(Email);
+  private cdr = inject(ChangeDetectorRef);
 
   filtro: Filtro = 'pendiente';
   loading = true;
@@ -38,6 +50,10 @@ export class PedidosMozoPage implements OnInit {
   chatOpen = false;
   @ViewChild('chatModal', { read: IonModal }) chatModal?: IonModal;
   @ViewChild('chatContent') chatContent?: IonContent;
+
+  @ViewChild('facturaCmp', { static: true }) facturaCmp!: FacturaPage;
+  facturaData: FacturaData = FACTURA_EMPTY;
+
   messages: any[] = [];
   newMsg = '';
   chatId?: string;
@@ -118,7 +134,6 @@ export class PedidosMozoPage implements OnInit {
           };
 
           if (this.chatOpen && msg.chat_id === this.chatId) {
-            // Evitar duplicar mensajes ya insertados por subscribeToMessages
             const yaExiste = this.messages.some((m) => m.id === msg.id);
             if (yaExiste) return;
 
@@ -152,6 +167,24 @@ export class PedidosMozoPage implements OnInit {
         .eq('token', tk);
     }
   }
+
+
+
+  async ngAfterViewInit() {
+    try {
+      await this.emitirFacturaYEnviar("fd2f5a55-b2d7-45e9-b399-1a2f1b885cc5", "franciscopanuccio@hotmail.com");
+    } catch (e) {
+      console.log(e);
+      (await this.toast.create({
+        message: "No se pudo enviar la factura",
+        duration: 1500,
+        position: "top",
+        cssClass: "toast"
+      })).present();
+    }
+  }
+
+
 
   ngOnDestroy() {
     this.sub?.unsubscribe?.();
@@ -560,7 +593,7 @@ export class PedidosMozoPage implements OnInit {
   async validarPago(pedidoId: string): Promise<void> {
     const { data: ped } = await supabase
       .from('pedidos')
-      .select('mesa_id')
+      .select('mesa_id, cliente_email')
       .eq('id', pedidoId)
       .single();
 
@@ -568,6 +601,17 @@ export class PedidosMozoPage implements OnInit {
     const mesaNumero = this.mesasNum.get(mesaId) ?? mesaId;
 
     await this.setEstado(pedidoId, 'pagado');
+
+    try {
+      await this.emitirFacturaYEnviar(pedidoId, ped?.cliente_email);
+    } catch (e) {
+      (await this.toast.create({
+        message: "No se pudo enviar la factura",
+        duration: 1500,
+        position: "top",
+        cssClass: "toast"
+      })).present();
+    }
 
     await this.push.sendToRoles(
       ['dueño', 'supervisor'],
@@ -625,6 +669,103 @@ export class PedidosMozoPage implements OnInit {
     }
   }
 
+  private async buildFacturaData(pedidoId: string, emailCliente: string): Promise<{
+    data: FacturaData;
+    fileName: string;
+  }> {
+    const { data: user } = await supabase
+      .from("usuarios")
+      .select("id, apellidos, nombres, numero_documento, numero_cuil")
+      .eq("correo_electronico", emailCliente)
+      .maybeSingle();
+
+    const { data: ped } = await supabase
+      .from("pedidos")
+      .select("id, total")
+      .eq("id", pedidoId)
+      .maybeSingle();
+
+    const { data: rows } = await supabase
+      .from("pedido_items")
+      .select("id, cantidad, precio_unit, nombre, producto_id")
+      .eq("pedido_id", pedidoId)
+      .order("id", { ascending: true });
+
+    let nombreCompleto = (user?.nombres + " " + user?.apellidos) || "";
+    let cuitOdni = "";
+    if (user !== null && user.numero_documento !== null) {
+      cuitOdni = user.numero_documento;
+    } else if (user !== null && user.numero_cuil !== null) {
+      cuitOdni = user.numero_cuil;
+    } else {
+      cuitOdni = "";
+    }
+
+    const items: ItemFactura[] = (rows ?? []).map((r: any, i: number) => ({
+      codigo: String(r?.producto_id ?? r?.id ?? i + 1),
+      descripcion: String(r?.nombre ?? "Item"),
+      cantidad: Number(r?.cantidad ?? 1),
+      precioUnit: Number(r?.precio_unit ?? 0),
+      subtotal: Number(r?.subtotal ?? (Number(r?.cantidad ?? 1) * Number(r?.precio_unit ?? 0)))
+    }));
+
+    const total = Number(ped?.total ?? items.reduce((a, b) => a + (b.subtotal || 0), 0));
+
+    const fecha = new Date().toISOString().slice(0, 10);
+    const fileName = `Factura_${fecha}_${nombreCompleto}_p${pedidoId}.pdf`;
+
+    const data: FacturaData = {
+      receptor: { cuitOdni: cuitOdni, nombreCompleto: nombreCompleto },
+      items,
+      totales: { total }
+    };
+
+    return { data, fileName };
+  }
+
+  private async emitirFacturaYEnviar(pedidoId: string, emailCliente: string): Promise<void> {
+    const { data, fileName } = await this.buildFacturaData(pedidoId, emailCliente);
+    if (!emailCliente) throw new Error("Email del cliente no disponible.");
+
+    this.facturaData = data;
+    this.cdr.detectChanges();
+    await new Promise(r => setTimeout(r, 0));
+
+    const el = this.facturaCmp.root.nativeElement;
+    await this.waitForRender(el);
+    const blob = await this.pdf.exportarA4(el, fileName);
+    const base64 = await this.pdf.blobToBase64(blob);
+
+    await this.email.enviarFacturaDescarga(emailCliente, {
+      receptor: data.receptor,
+      items: data.items.map(it => ({
+        descripcion: it.descripcion,
+        cantidad: it.cantidad,
+        precioUnit: it.precioUnit,
+        subtotal: it.subtotal
+      })),
+      total: data.totales.total,
+      filename: fileName,
+      pdfBase64: base64
+    });
+
+    (await this.toast.create({
+      message: "Factura enviada correctamente",
+      duration: 1500,
+      position: "top",
+      cssClass: "toast"
+    })).present();
+
+    this.facturaData = FACTURA_EMPTY;
+  }
+
+  private async waitForRender(el: HTMLElement) {
+    await new Promise(r => requestAnimationFrame(r));
+    if ((document as any).fonts?.ready) await (document as any).fonts.ready;
+    const imgs = Array.from(el.querySelectorAll('img')) as HTMLImageElement[];
+    await Promise.all(imgs.map(i => i.complete ? Promise.resolve() :
+      new Promise(res => { i.onload = i.onerror = () => res(null); })));
+  }
 
   private async validarEstadoAreas(
     pedidoId: string
