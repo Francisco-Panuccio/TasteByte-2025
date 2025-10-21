@@ -118,12 +118,15 @@ export class Chat {
     return (data ?? []) as ChatMessage[];
   }
 
-  subscribeToMessages(chatId: string, onInsert: (m: ChatMessage) => void): void {
+subscribeToMessages(
+  chatId: string,
+  onInsert: (m: ChatMessage) => void,
+  sinceISO?: string
+): void {
   if (this.channel) {
-    const channelName = (this.channel as any).name ?? "";
-    if (channelName.includes(`chat:${chatId}`)) {
-      return;
-    }
+    const nm = (this.channel as any).name ?? "";
+    if (nm === `chat:${chatId}`) return;
+    supabase.removeChannel(this.channel);
   }
 
   this.channel = supabase
@@ -138,14 +141,11 @@ export class Chat {
       },
       (payload) => {
         const msg = payload.new as ChatMessage;
-        if (msg) onInsert(msg);
+        if (sinceISO && new Date(msg.created_at) < new Date(sinceISO)) return;
+        onInsert(msg);
       }
     )
-    .subscribe((status) => {
-      if (status === "SUBSCRIBED") {
-        console.log(`[ChatService] Suscrito en tiempo real al chat ${chatId}`);
-      }
-    });
+    .subscribe();
 }
 
   unsubscribe(): void {
@@ -223,4 +223,34 @@ toViewMessage(
     const to = Array.from(new Set((data ?? []).map((r: any) => r.token as string).filter(Boolean)));
     if (to.length) await this.push.send(to, "Nuevo pedido", `Mesa ${mesaNumero} • ${totalARS}`, { tipo: "pedido", pedidoId, mesaId });
   }
+
+  // ✅ NUEVO: devolver el “corte” de turno de la mesa
+async getMesaSince(mesaId: number): Promise<string> {
+  // Usa la fecha de asignación más reciente como corte
+  const { data: row } = await supabase
+    .from("asignaciones_mesa")
+    .select("asignada_en")
+    .eq("mesa_id", mesaId)
+    .in("estado", ["pendiente","asignada","sentado"])
+    .order("asignada_en", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  return (row?.asignada_en as string) ?? new Date().toISOString();
+}
+
+// ✅ NUEVO: traer mensajes SOLO desde el corte
+async loadMessagesSince(chatId: string, sinceISO: string, limit = 200): Promise<ChatMessage[]> {
+  const { data } = await supabase
+    .from("chat_messages")
+    .select("*")
+    .eq("chat_id", chatId)
+    .gte("created_at", sinceISO)
+    .order("created_at", { ascending: true })
+    .limit(limit);
+  return (data ?? []) as ChatMessage[];
+}
+
+
+
 }
