@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, inject, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit, ViewChild } from '@angular/core';
 import { IonContent, IonModal, ToastController } from '@ionic/angular';
 import { Chat } from 'src/app/services/chat/chat';
 import { ChatMessage } from 'src/app/interfaces/chat-message';
@@ -30,7 +30,7 @@ const FACTURA_EMPTY: FacturaData = {
   styleUrls: ['./pedidos-mozo.page.scss'],
   standalone: false,
 })
-export class PedidosMozoPage implements OnInit, AfterViewInit {
+export class PedidosMozoPage implements OnInit {
   private pedidosSrv = inject(Pedidos);
   private chatSvc = inject(Chat);
   private toast = inject(ToastController);
@@ -167,24 +167,6 @@ export class PedidosMozoPage implements OnInit, AfterViewInit {
         .eq('token', tk);
     }
   }
-
-
-
-  async ngAfterViewInit() {
-    try {
-      await this.emitirFacturaYEnviar("fd2f5a55-b2d7-45e9-b399-1a2f1b885cc5", "franciscopanuccio@hotmail.com");
-    } catch (e) {
-      console.log(e);
-      (await this.toast.create({
-        message: "No se pudo enviar la factura",
-        duration: 1500,
-        position: "top",
-        cssClass: "toast"
-      })).present();
-    }
-  }
-
-
 
   ngOnDestroy() {
     this.sub?.unsubscribe?.();
@@ -626,6 +608,7 @@ export class PedidosMozoPage implements OnInit, AfterViewInit {
     try {
       await this.emitirFacturaYEnviar(pedidoId, ped?.cliente_email);
     } catch (e) {
+      console.log(e);
       (await this.toast.create({
         message: "No se pudo enviar la factura",
         duration: 1500,
