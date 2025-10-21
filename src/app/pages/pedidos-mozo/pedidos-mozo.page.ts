@@ -434,52 +434,73 @@ export class PedidosMozoPage implements OnInit, AfterViewInit {
   }
 
   async abrirChat(mesaId: number) {
-    if (this.busy) return;
+  if (this.busy) return;
 
-    this.mesaChatId = mesaId;
+  this.mesaChatId = mesaId;
 
-    if (!this.mesasNum.has(mesaId)) {
-      const m = await this.mesasSrv.getById(mesaId);
-      if (m) this.mesasNum.set(m.id!, m.numero!);
-    }
-
-    const chat = await this.chatSvc.getOrCreateForMesa(mesaId, "mozo");
-    this.chatId = chat.id;
-
-    const msgs = await this.chatSvc.loadMessages(chat.id, 200);
-    const seen = new Set<string>();
-    this.messages = msgs.map((m) => {
-      seen.add(m.id);
-      const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
-      return { ...vm, role: vm.from === "yo" ? "mozo" : "cliente" };
-    });
-    this.scrollToBottomAfterRender();
-
-    this.chatOpen = true;
-
-    this.chatSvc.unsubscribe();
-
-    // Suscripción realtime con filtro anti-duplicados
-    this.chatSvc.subscribeToMessages(chat.id, async (m: ChatMessage) => {
-      // ⚙️ Evitar duplicados ya cargados
-      if (seen.has(m.id)) return;
-      seen.add(m.id);
-
-      // Evitar duplicados visuales (por si el evento se repite)
-      const yaExiste = this.messages.some((msg) => msg.id === m.id);
-      if (yaExiste) return;
-
-      const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
-
-      // Insertar el mensaje en la lista visible
-      this.messages.push({
-        ...vm,
-        role: vm.from === "yo" ? "mozo" : "cliente",
-      });
-
-      this.scrollToBottomAfterRender();
-    });
+  if (!this.mesasNum.has(mesaId)) {
+    const m = await this.mesasSrv.getById(mesaId);
+    if (m) this.mesasNum.set(m.id!, m.numero!);
   }
+
+  const chat = await this.chatSvc.getOrCreateForMesa(mesaId, "mozo");
+  this.chatId = chat.id;
+
+  // 🕓 Obtener la fecha de asignación más reciente (corte)
+  const { data: asignacion } = await supabase
+    .from("asignaciones_mesa")
+    .select("asignada_en")
+    .eq("mesa_id", mesaId)
+    .in("estado", ["pendiente", "asignada", "sentado"])
+    .order("asignada_en", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const since = asignacion?.asignada_en ?? new Date().toISOString();
+
+  // ✅ Cargar mensajes solo desde el turno actual
+  const { data: rows } = await supabase
+    .from("chat_messages")
+    .select("*")
+    .eq("chat_id", chat.id)
+    .gte("created_at", since)
+    .order("created_at", { ascending: true })
+    .limit(200);
+
+  const msgs = rows ?? [];
+  const seen = new Set<string>();
+
+  this.messages = msgs.map((m) => {
+    seen.add(m.id);
+    const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
+    return { ...vm, role: vm.from === "yo" ? "mozo" : "cliente" };
+  });
+  this.scrollToBottomAfterRender();
+
+  this.chatOpen = true;
+
+  // 🔁 Cancelar suscripciones previas
+  this.chatSvc.unsubscribe();
+
+  // 📡 Suscribirse solo a mensajes nuevos desde el corte
+  this.chatSvc.subscribeToMessages(chat.id, async (m: ChatMessage) => {
+    if (new Date(m.created_at) < new Date(since)) return; // Ignorar antiguos
+    if (seen.has(m.id)) return;
+    seen.add(m.id);
+
+    const yaExiste = this.messages.some((msg) => msg.id === m.id);
+    if (yaExiste) return;
+
+    const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
+    this.messages.push({
+      ...vm,
+      role: vm.from === "yo" ? "mozo" : "cliente",
+    });
+
+    this.scrollToBottomAfterRender();
+  });
+}
+
 
   private scrollToBottom(ms: number = 200) {
     try {

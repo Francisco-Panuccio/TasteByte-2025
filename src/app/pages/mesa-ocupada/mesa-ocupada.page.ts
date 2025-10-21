@@ -2,11 +2,9 @@ import { AfterViewInit, Component, inject, NgZone, OnDestroy, OnInit, ViewChild 
 import { ActivatedRoute, Router } from "@angular/router";
 import { IonContent, IonModal, Platform, ToastController } from "@ionic/angular";
 import { Bebida } from "src/app/interfaces/bebida";
-import { ChatMessage } from "src/app/interfaces/chat-message";
 import { Mesa } from "src/app/interfaces/mesa";
 import { Plato } from "src/app/interfaces/plato";
 import { Bebidas } from "src/app/services/bebidas/bebidas";
-import { Chat } from "src/app/services/chat/chat";
 import { Mesas } from "src/app/services/mesas/mesas";
 import { Platos } from "src/app/services/platos/platos";
 import { supabase } from "src/supabase.client";
@@ -35,21 +33,16 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   private bebidasSrv = inject(Bebidas);
   private route = inject(ActivatedRoute);
   private toast = inject(ToastController);
-  private chatSvc = inject(Chat);
   private router = inject(Router);
   private pedidos = inject(Pedidos);
   private push = inject(Push);
 
-  private kbOpen = false;
   private backUnsub?: () => void;
-  private seenIds = new Set<string>();
   private unsubEstado?: () => void;
-  private despachados = new Set<string>();
 
   private accelSub?: PluginListenerHandle;
   private orientSub?: PluginListenerHandle;
-  private lastGammaSign = 0;
-  private toggles: number[] = [];
+
   private lastHoldStart: Record<"L" | "R" | "F" | "B", number> = { L: 0, R: 0, F: 0, B: 0 };
   private _lastFire: Record<string, number> = {};
   private readonly TILT_TH = 22;
@@ -63,7 +56,6 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   private lastShakeSignX = 0;
   private togglesX: number[] = [];
 
-  chatId?: string;
   myUserId?: string;
   error?: string;
   tab: Tab = "platos";
@@ -75,14 +67,8 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   mesaAsignada = false;
   loading = true;
   submitting = false;
-  chatReady = false;
 
-  chatOpen = false;
   presentingEl?: HTMLElement;
-  @ViewChild("chatContent") chatContent?: IonContent;
-  @ViewChild("chatModal", { read: IonModal }) chatModal?: IonModal;
-  messages: { id: string; from: "yo" | "mozo"; role: "mozo" | "cliente"; text: string; time: string }[] = [];
-  newMsg = "";
   myName = "Cliente";
 
   qtyMap = new Map<number, number>();
@@ -108,8 +94,6 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
 
   async ngOnInit() {
     const sub = this.platform.backButton.subscribeWithPriority(9999, () => {
-      if (this.kbOpen) { Keyboard.hide(); return; }
-      if (this.chatOpen) { this.closeChat(); return; }
     });
     this.backUnsub = () => sub.unsubscribe();
     try {
@@ -135,8 +119,6 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
 
       this.userUid = this.anonimoId ? "" : (au.user?.id ?? "");
 
-      this.myUserId = this.anonimoId ? `anon-${this.anonimoId}` : await this.chatSvc.getMyUserId();
-
       await this.push.init(this.usuarioId ?? null, "cliente");
       await this.push.ready();
 
@@ -158,7 +140,6 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
         return;
       }
 
-      await this.ensureChatAndSubscribe();
     } catch (e: any) {
       this.error = e?.message || "Error cargando mesa";
       (await this.toast.create({ message: this.error, cssClass: "toast", duration: 1500 })).present();
@@ -187,7 +168,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     void this.startMotion();
   }
 
-  ngOnDestroy() { this.chatSvc.unsubscribe(); this.backUnsub?.(); this.unsubEstado?.(); this.stopMotion(); }
+  ngOnDestroy() { this.backUnsub?.(); this.unsubEstado?.(); this.stopMotion(); }
 
   private async startMotion(): Promise<void> {
     this.stopMotion();
@@ -540,81 +521,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     return `${hh}:${mm}`;
   }
 
-  private async ensureChatAndSubscribe(): Promise<void> {
-    if (!this.mesaId) { return; }
-    const chat = await this.chatSvc.getOrCreateForMesa(this.mesaId, "cliente", this.anonimoId);
-    this.chatId = chat.id;
-
-    await this.chatSvc.bindMyPushToken(this.chatId, this.anonimoId);
-    const msgs = await this.chatSvc.loadMessages(chat.id, 200);
-    this.seenIds.clear();
-    this.messages = msgs.map((m: any) => {
-      this.seenIds.add(m.id);
-      const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
-      const role = vm.from === "yo" ? "cliente" : "mozo";
-      return { ...vm, role };
-    });
-    this.scrollToBottomAfterRender();
-
-    this.chatSvc.subscribeToMessages(chat.id, async (m: ChatMessage) => {
-      if (this.seenIds.has(m.id)) { return; }
-      const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
-      if (vm.from === "yo") { this.seenIds.add(m.id); return; }
-      const role: "mozo" | "cliente" = "mozo";
-      this.messages.push({ ...vm, role });
-      this.seenIds.add(m.id);
-      if (this.chatOpen) {
-        this.scrollToBottom();
-      }
-    });
-  }
-
-
-  async openChat() {
-    if (this.submitting) { return; }
-    if (!this.chatId && this.mesaId) {
-      const chat = await this.chatSvc.getOrCreateForMesa(this.mesaId, "cliente", this.anonimoId);
-      this.chatId = chat.id;
-      await this.chatSvc.bindMyPushToken(this.chatId, this.anonimoId);
-    }
-    this.chatOpen = true;
-    this.chatReady = true;
-    this.scrollToBottomAfterRender();
-  }
-
-
-  async closeChat() {
-    await this.chatModal?.dismiss();
-    this.chatOpen = false;
-    this.chatReady = false;
-  }
-
-  async sendMessage() {
-    if (this.submitting || !this.chatReady) { return; }
-    const txt = this.newMsg.trim();
-    if (!txt || !this.chatId) { return; }
-    const tempId = "temp-" + Date.now();
-    const now = new Date();
-    this.messages.push({ id: tempId, from: "yo", role: "cliente", text: txt, time: this.hhmm(now) });
-    this.scrollToBottomAfterRender();
-    this.newMsg = "";
-    const saved = await this.chatSvc.sendMessage(this.chatId, txt, this.anonimoId);
-    const vm = this.chatSvc.toViewMessage(saved, this.myUserId!);
-    const role: "mozo" | "cliente" = "cliente";
-    const idx = this.messages.findIndex(m => m.id === tempId);
-    if (idx >= 0) {
-      this.messages[idx] = { id: vm.id, from: vm.from, role, text: vm.text, time: vm.time };
-    } else {
-      if (!this.seenIds.has(saved.id)) {
-        this.messages.push({ id: vm.id, from: vm.from, role, text: vm.text, time: vm.time });
-      }
-    }
-    this.seenIds.add(saved.id);
-  }
-
-  trackMsg = (_: number, m: { id: string }) => m.id;
-  private scrollToBottom(ms: number = 200) { try { this.chatContent?.scrollToBottom(ms); } catch { } }
-  private scrollToBottomAfterRender() { requestAnimationFrame(() => setTimeout(() => this.scrollToBottom(200), 0)); }
+ 
 
   incByPlato(p: Plato) {
     if (this.submitting || this.pedidoBloqueado) { return; }
@@ -776,16 +683,6 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
       this.pedidoEnCurso = true;
       this.applyEstado("pendiente");
       this.pedidoActualId = pedidoId!;
-
-      const mesaNumero = this.mesa?.numero ?? "NN";
-      await this.chatSvc
-        .notifyMozosNuevoPedido(mesaNumero as any, this.formatARS(this.total), pedidoId!, this.mesaId)
-        .catch(async e => (await this.toast.create({
-          message: `No se notificó a mozos: ${e?.message ?? e}`,
-          duration: 2500,
-          position: "top",
-          cssClass: "toast"
-        })).present());
 
       this.unsubEstado?.();
       this.unsubEstado = this.pedidos.onEstadoPedido(pedidoId!, async (estado: any) => {
