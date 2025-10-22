@@ -55,6 +55,13 @@ title {
   ion-range {
     --bar-background: var(--color-text);
     --bar-background-active: var(--color-text);
+    --pin-color: var(--color-black);
+    --pin-background: var(--color-text);
+  }
+
+  ion-range::part(pin) {
+    font-size: 14px;
+    font-weight: 600;
   }
 }
 
@@ -63,6 +70,18 @@ title {
   p {
     margin-bottom: 5px;
   }
+}
+
+.p_calificacion {
+  margin: 22px 0 0 0;
+}
+
+.span_calificacion {
+  font-size: 22px !important;
+  color: var(--color-text);
+  font-weight: 600;
+  letter-spacing: 1px;
+  margin: 5px 0;
 }
 
 ion-segment {
