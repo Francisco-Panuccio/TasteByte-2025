@@ -396,18 +396,18 @@ export class PedidosMozoPage implements OnInit {
             });
           }
         }
-      } catch (e) {}
+      } catch (e) { }
 
       const msg =
         estado === 'pagado'
           ? 'Pago validado'
           : estado === 'rechazado'
-          ? 'Pedido rechazado'
-          : estado === 'aceptado'
-          ? 'Pedido aceptado'
-          : estado === 'recibido'
-          ? 'Pedido entregado'
-          : 'Estado actualizado';
+            ? 'Pedido rechazado'
+            : estado === 'aceptado'
+              ? 'Pedido aceptado'
+              : estado === 'recibido'
+                ? 'Pedido entregado'
+                : 'Estado actualizado';
 
       (
         await this.toast.create({
@@ -523,7 +523,7 @@ export class PedidosMozoPage implements OnInit {
   private scrollToBottom(ms: number = 200) {
     try {
       this.chatContent?.scrollToBottom(ms);
-    } catch {}
+    } catch { }
   }
 
   private scrollToBottomAfterRender() {
@@ -726,73 +726,72 @@ export class PedidosMozoPage implements OnInit {
   }
 
   private async buildFacturaData(
-  pedidoId: string,
-  emailCliente?: string | null
-): Promise<{ data: FacturaData; fileName: string }> {
+    pedidoId: string,
+    emailCliente?: string | null
+  ): Promise<{ data: FacturaData; fileName: string }> {
 
-  let user: any = null;
-  if (emailCliente) {
-    const { data: u } = await supabase
-      .from("usuarios")
-      .select("id, apellidos, nombres, numero_documento, numero_cuil")
-      .eq("correo_electronico", emailCliente)
+    let user: any = null;
+    if (emailCliente) {
+      const { data: u } = await supabase
+        .from("usuarios")
+        .select("id, apellidos, nombres, numero_documento, numero_cuil")
+        .eq("correo_electronico", emailCliente)
+        .maybeSingle();
+      user = u;
+    }
+
+    const { data: ped } = await supabase
+      .from("pedidos")
+      .select("id, total")
+      .eq("id", pedidoId)
       .maybeSingle();
-    user = u;
+
+    const { data: rows } = await supabase
+      .from("pedido_items")
+      .select("id, cantidad, precio_unit, nombre, producto_id")
+      .eq("pedido_id", pedidoId)
+      .order("id", { ascending: true });
+
+    const nombreCompleto = user
+      ? `${user.nombres} ${user.apellidos}`.trim()
+      : "Cliente Anonimo";
+
+    const cuitOdni =
+      user?.numero_documento ||
+      user?.numero_cuil ||
+      "No especificado";
+
+    const items: ItemFactura[] = (rows ?? []).map((r: any, i: number) => ({
+      codigo: String(r?.producto_id ?? r?.id ?? i + 1),
+      descripcion: String(r?.nombre ?? "Item"),
+      cantidad: Number(r?.cantidad ?? 1),
+      precioUnit: Number(r?.precio_unit ?? 0),
+      subtotal:
+        Number(r?.cantidad ?? 1) * Number(r?.precio_unit ?? 0),
+    }));
+
+    const total = Number(
+      ped?.total ?? items.reduce((a, b) => a + (b.subtotal || 0), 0)
+    );
+
+    const fecha = new Date().toISOString().slice(0, 10);
+    const safeNombre = nombreCompleto
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, "_")
+      .replace(/[^a-zA-Z0-9_-]/g, "");
+
+    const fileName = `Factura_${fecha}_${safeNombre}_p${pedidoId}.pdf`;
+
+    const data: FacturaData = {
+      fecha: new Date(),
+      receptor: { cuitOdni, nombreCompleto },
+      items,
+      totales: { total },
+    };
+
+    return { data, fileName };
   }
-
-  const { data: ped } = await supabase
-    .from("pedidos")
-    .select("id, total")
-    .eq("id", pedidoId)
-    .maybeSingle();
-
-  const { data: rows } = await supabase
-    .from("pedido_items")
-    .select("id, cantidad, precio_unit, nombre, producto_id")
-    .eq("pedido_id", pedidoId)
-    .order("id", { ascending: true });
-
-  const nombreCompleto = user
-    ? `${user.nombres} ${user.apellidos}`.trim()
-    : "Cliente Anonimo";
-
-  const cuitOdni =
-    user?.numero_documento ||
-    user?.numero_cuil ||
-    "No especificado";
-
-  const items: ItemFactura[] = (rows ?? []).map((r: any, i: number) => ({
-    codigo: String(r?.producto_id ?? r?.id ?? i + 1),
-    descripcion: String(r?.nombre ?? "Item"),
-    cantidad: Number(r?.cantidad ?? 1),
-    precioUnit: Number(r?.precio_unit ?? 0),
-    subtotal:
-      Number(r?.cantidad ?? 1) * Number(r?.precio_unit ?? 0),
-  }));
-
-  const total = Number(
-    ped?.total ?? items.reduce((a, b) => a + (b.subtotal || 0), 0)
-  );
-
-  const fecha = new Date().toISOString().slice(0, 10);
-  const safeNombre = nombreCompleto
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, "_")
-    .replace(/[^a-zA-Z0-9_-]/g, "");
-
-  const fileName = `Factura_${fecha}_${safeNombre}_p${pedidoId}.pdf`;
-
-  const data: FacturaData = {
-    receptor: { cuitOdni, nombreCompleto },
-    items,
-    totales: { total },
-  };
-
-  return { data, fileName };
-}
-
-
 
   private async emitirFacturaYEnviar(
     pedidoId: string,
@@ -834,86 +833,85 @@ export class PedidosMozoPage implements OnInit {
   }
 
   async emitirFacturaParaAnonimoYUrl(pedidoId: string): Promise<string> {
-  const { data: ped } = await supabase
-    .from("pedidos")
-    .select("mesa_id, total")
-    .eq("id", pedidoId)
-    .maybeSingle();
-
-  if (!ped) throw new Error("Pedido no encontrado para generar factura");
-
-  const { data: items } = await supabase
-    .from("pedido_items")
-    .select("nombre, cantidad, precio_unit, producto_id")
-    .eq("pedido_id", pedidoId);
-
-  const fecha = new Date().toISOString().slice(0, 10);
-  const fileName = `Factura_${fecha}_Cliente_Anonimo_p${pedidoId}.pdf`;
-
-  const facturaData = {
-    receptor: { nombreCompleto: "Cliente Anónimo", cuitOdni: "N/A" },
-    items: (items ?? []).map((r: any, i: number) => ({
-      codigo: String(r.producto_id ?? i + 1),
-      descripcion: r.nombre ?? "Item",
-      cantidad: Number(r.cantidad ?? 1),
-      precioUnit: Number(r.precio_unit ?? 0),
-      subtotal: Number(r.cantidad ?? 1) * Number(r.precio_unit ?? 0),
-    })),
-    totales: {
-      total:
-        ped.total ??
-        (items ?? []).reduce(
-          (acc, r: any) =>
-            acc + Number(r.cantidad ?? 1) * Number(r.precio_unit ?? 0),
-          0
-        ),
-    },
-  };
-
-  this.facturaData = facturaData;
-  this.cdr.detectChanges();
-  await new Promise((r) => setTimeout(r, 0));
-  const el = this.facturaCmp.root.nativeElement;
-  await this.waitForRender(el);
-  const blob = await this.pdf.exportarA4(el, fileName);
-
-  const url = await this.pdf.subirFacturaYObtenerUrl(blob, fileName);
-  console.log("✅ Factura anónima generada:", url);
-
-  const { data: chatRow } = await supabase
-    .from("chats")
-    .select("id")
-    .eq("mesa_id", ped.mesa_id)
-    .maybeSingle();
-
-  if (chatRow?.id) {
-    const { data: part } = await supabase
-      .from("chat_participants")
-      .select("push_token")
-      .eq("chat_id", chatRow.id)
-      .eq("role", "cliente")
+    const { data: ped } = await supabase
+      .from("pedidos")
+      .select("mesa_id, total")
+      .eq("id", pedidoId)
       .maybeSingle();
 
-    const token = part?.push_token;
-    if (token) {
-      await this.push.send(
-        token,
-        "Factura disponible",
-        "Tocá para descargar tu factura.",
-        {
-          tipo: "factura",
-          pedidoId,
-          mesaId: ped.mesa_id,
-          url,
-        }
-      );
+    if (!ped) throw new Error("Pedido no encontrado para generar factura");
+
+    const { data: items } = await supabase
+      .from("pedido_items")
+      .select("nombre, cantidad, precio_unit, producto_id")
+      .eq("pedido_id", pedidoId);
+
+    const fecha = new Date().toISOString().slice(0, 10);
+    const fileName = `Factura_${fecha}_Cliente_Anonimo_p${pedidoId}.pdf`;
+
+    const facturaData = {
+      fecha: new Date(),
+      receptor: { nombreCompleto: "Cliente Anónimo", cuitOdni: "N/A" },
+      items: (items ?? []).map((r: any, i: number) => ({
+        codigo: String(r.producto_id ?? i + 1),
+        descripcion: r.nombre ?? "Item",
+        cantidad: Number(r.cantidad ?? 1),
+        precioUnit: Number(r.precio_unit ?? 0),
+        subtotal: Number(r.cantidad ?? 1) * Number(r.precio_unit ?? 0),
+      })),
+      totales: {
+        total:
+          ped.total ??
+          (items ?? []).reduce(
+            (acc, r: any) =>
+              acc + Number(r.cantidad ?? 1) * Number(r.precio_unit ?? 0),
+            0
+          ),
+      },
+    };
+
+    this.facturaData = facturaData;
+    this.cdr.detectChanges();
+    await new Promise((r) => setTimeout(r, 0));
+    const el = this.facturaCmp.root.nativeElement;
+    await this.waitForRender(el);
+    const blob = await this.pdf.exportarA4(el, fileName);
+
+    const url = await this.pdf.subirFacturaYObtenerUrl(blob, fileName);
+    console.log("✅ Factura anónima generada:", url);
+
+    const { data: chatRow } = await supabase
+      .from("chats")
+      .select("id")
+      .eq("mesa_id", ped.mesa_id)
+      .maybeSingle();
+
+    if (chatRow?.id) {
+      const { data: part } = await supabase
+        .from("chat_participants")
+        .select("push_token")
+        .eq("chat_id", chatRow.id)
+        .eq("role", "cliente")
+        .maybeSingle();
+
+      const token = part?.push_token;
+      if (token) {
+        await this.push.send(
+          token,
+          "Factura disponible",
+          "Tocá para descargar tu factura.",
+          {
+            tipo: "factura",
+            pedidoId,
+            mesaId: ped.mesa_id,
+            url,
+          }
+        );
+      }
     }
+
+    return url;
   }
-
-  return url;
-}
-
-
 
   private async waitForRender(el: HTMLElement) {
     await new Promise((r) => requestAnimationFrame(r));
@@ -924,8 +922,8 @@ export class PedidosMozoPage implements OnInit {
         i.complete
           ? Promise.resolve()
           : new Promise((res) => {
-              i.onload = i.onerror = () => res(null);
-            })
+            i.onload = i.onerror = () => res(null);
+          })
       )
     );
   }
@@ -1002,7 +1000,7 @@ export class PedidosMozoPage implements OnInit {
             mesa: String(mesaNumero),
           }
         );
-      } catch {}
+      } catch { }
 
       return {
         valido: true,
