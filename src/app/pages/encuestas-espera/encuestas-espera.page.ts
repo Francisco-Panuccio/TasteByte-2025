@@ -102,7 +102,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       this.yaRegistrado = true;
       this.qrValido = true;
       this.tieneMesa = true;
-
+      
       this.actualizarFlags();
       await this.ensureChatAndSubscribe();
       this.loading = false;
@@ -614,21 +614,6 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       return;
     }
 
-    try {
-      await this.push.sendToRoles(
-        ['maitre'],
-        'Nuevo cliente en lista de espera',
-        'Se ha agregado un nuevo cliente a la lista de espera.',
-        {
-          tipo: 'lista_espera',
-          screen: 'lista-espera',
-          lista_espera_id: data.id,
-        }
-      );
-    } catch (e) {
-      console.error('[push][lista_espera][sendToRoles]', e);
-    }
-
     this.yaRegistrado = true;
     this.mostrarToast('Te registraste correctamente en la lista de espera');
   }
@@ -749,7 +734,6 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   const mesaId = this.mesaAsignadaId;
   if (!mesaId) return;
 
-  // myUserId (anon / normal)
   if (!this.myUserId) {
     const { data: au } = await supabase.auth.getUser();
     this.myUserId = this.anonimoId
@@ -757,24 +741,18 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       : (au.user?.id ?? undefined);
   }
 
-  // Chat de mesa
   const chat = await this.chatSvc.getOrCreateForMesa(mesaId, "cliente", this.anonimoId);
   this.chatId = chat.id;
 
-  // Vincular push (no bloquea)
   this.chatSvc.bindMyPushToken(this.chatId, this.anonimoId).catch(() => {});
 
-  // ⏱️ CORTE DE TURNO
   const since = await this.chatSvc.getMesaSince(mesaId);
 
-  // 🧼 Reset local SIEMPRE antes de cargar (evita mezclas)
   this.seenIds.clear();
   this.messages = [];
 
-  // Cargar SOLO mensajes del turno actual
   const msgs = await this.chatSvc.loadMessagesSince(this.chatId, since, 200);
 
-  // Dedup defensivo
   const unique = new Map<string, ChatMessage>();
   for (const m of msgs) unique.set(m.id, m);
 
@@ -785,21 +763,17 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
 
   this.scrollToBottomAfterRender();
 
-  // Quitar listener viejo y volver a suscribir usando el corte
   try { this.chatSvc.unsubscribe?.(); } catch {}
 
   this.chatSvc.subscribeToMessages(
     this.chatId,
     (m) => {
-      // 🚫 NO renderizar mis propios inserts (evita duplicado local)
       if (m.user_id === this.myUserId) return;
 
-      // 🔒 Ignorar duplicados
       if (this.seenIds.has(m.id)) return;
       this.seenIds.add(m.id);
 
       const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
-      // Si por timing ya estuviera, no lo pushes
       const ya = this.messages.some(x => x.id === vm.id);
       if (ya) return;
 
@@ -808,13 +782,9 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
         this.scrollToBottomAfterRender();
       });
     },
-    since // ⏱️ filtro en tiempo real
+    since
   );
 }
-
-
-
-
 
   async openChat() {
     if (!this.chatId && this.mesaAsignadaId) {

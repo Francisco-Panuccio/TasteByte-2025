@@ -428,7 +428,6 @@ export class PedidosMozoPage implements OnInit {
   const chat = await this.chatSvc.getOrCreateForMesa(mesaId, "mozo");
   this.chatId = chat.id;
 
-  // 🕓 Obtener la fecha de asignación más reciente (corte)
   const { data: asignacion } = await supabase
     .from("asignaciones_mesa")
     .select("asignada_en")
@@ -440,7 +439,6 @@ export class PedidosMozoPage implements OnInit {
 
   const since = asignacion?.asignada_en ?? new Date().toISOString();
 
-  // ✅ Cargar mensajes solo desde el turno actual
   const { data: rows } = await supabase
     .from("chat_messages")
     .select("*")
@@ -461,12 +459,10 @@ export class PedidosMozoPage implements OnInit {
 
   this.chatOpen = true;
 
-  // 🔁 Cancelar suscripciones previas
   this.chatSvc.unsubscribe();
 
-  // 📡 Suscribirse solo a mensajes nuevos desde el corte
   this.chatSvc.subscribeToMessages(chat.id, async (m: ChatMessage) => {
-    if (new Date(m.created_at) < new Date(since)) return; // Ignorar antiguos
+    if (new Date(m.created_at) < new Date(since)) return;
     if (seen.has(m.id)) return;
     seen.add(m.id);
 
@@ -603,8 +599,6 @@ export class PedidosMozoPage implements OnInit {
     const mesaId = ped?.mesa_id as number;
     const mesaNumero = this.mesasNum.get(mesaId) ?? mesaId;
 
-    await this.setEstado(pedidoId, 'pagado');
-
     try {
       await this.emitirFacturaYEnviar(pedidoId, ped?.cliente_email);
     } catch (e) {
@@ -617,6 +611,8 @@ export class PedidosMozoPage implements OnInit {
       })).present();
     }
 
+    await this.setEstado(pedidoId, 'pagado');
+
     await this.push.sendToRoles(
       ['dueño', 'supervisor'],
       'Pago validado',
@@ -624,7 +620,7 @@ export class PedidosMozoPage implements OnInit {
       { tipo: 'pago_validado', pedidoId, mesaId, mesaNumero }
     );
   }
-
+  
   private async notificarAreasNuevoPedido(p: any) {
     const pid = String(p?.id ?? '');
     if (!pid || this.sentNuevoPedido.has(pid)) return;
