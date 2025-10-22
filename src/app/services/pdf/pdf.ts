@@ -1,29 +1,30 @@
-import { Injectable } from "@angular/core";
-import html2pdf from "html2pdf.js";
+import { Injectable } from '@angular/core';
+import html2pdf from 'html2pdf.js';
+import { supabase } from 'src/supabase.client';
 
-@Injectable({ providedIn: "root" })
+@Injectable({ providedIn: 'root' })
 export class Pdf {
   async exportarA4(element: HTMLElement, filename: string): Promise<Blob> {
     const opt = {
       margin: 10,
-      pagebreak: { mode: ["css"] },
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
-      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+      pagebreak: { mode: ['css'] },
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
     } as const;
 
     const worker = html2pdf().set(opt).from(element).toPdf();
-    const pdf: any = await worker.get("pdf");
+    const pdf: any = await worker.get('pdf');
     const total: number = pdf.internal.getNumberOfPages();
 
     const isBlankPage = (p: number): boolean => {
       const ops = pdf.internal?.pages?.[p];
       if (!Array.isArray(ops)) return false;
       const meaningful = ops.reduce((n: number, op: any) => {
-        if (typeof op !== "string") return n;
-        const s = op.replace(/\s+/g, "");
+        if (typeof op !== 'string') return n;
+        const s = op.replace(/\s+/g, '');
         if (!s) return n;
-        if (s === "q" || s === "Q" || s === "BT" || s === "ET") return n;
+        if (s === 'q' || s === 'Q' || s === 'BT' || s === 'ET') return n;
         return n + 1;
       }, 0);
       return meaningful <= 2;
@@ -33,7 +34,7 @@ export class Pdf {
       pdf.deletePage(total);
     }
 
-    const blob: Blob = await worker.output("blob");
+    const blob: Blob = await worker.output('blob');
     return blob;
   }
 
@@ -41,8 +42,47 @@ export class Pdf {
     return new Promise((res, rej) => {
       const fr = new FileReader();
       fr.onerror = () => rej(fr.error);
-      fr.onload = () => res((fr.result as string).split(",")[1] || "");
+      fr.onload = () => res((fr.result as string).split(',')[1] || '');
       fr.readAsDataURL(b);
     });
   }
+
+  async subirFacturaYObtenerUrl(blob: Blob, fileName: string): Promise<string> {
+  const bucket = "facturas";
+
+  const safeFileName = fileName
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") 
+    .replace(/\s+/g, "_")           
+    .replace(/[^a-zA-Z0-9._-]/g, ""); 
+
+  const cleanName = safeFileName
+    .replace(/^Factura_+/, "Factura_")  
+    .replace(/\.pdf+$/, "") + ".pdf";   
+
+  const { error: upErr } = await supabase.storage
+    .from(bucket)
+    .upload(cleanName, blob, {
+      upsert: true,
+      contentType: "application/pdf",
+    });
+
+  if (upErr) {
+    console.error("❌ Error subiendo PDF a Supabase:", upErr);
+    throw upErr;
+  }
+
+  const { data: pub } = supabase.storage.from(bucket).getPublicUrl(cleanName);
+  const url = pub?.publicUrl;
+
+  if (!url) {
+    throw new Error("No se pudo obtener la URL pública del PDF");
+  }
+
+  console.log("✅ Factura subida correctamente:", cleanName);
+  console.log("🌐 URL pública:", url);
+
+  return url;
+}
+
 }

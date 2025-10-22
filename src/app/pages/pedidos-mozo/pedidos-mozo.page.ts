@@ -1,4 +1,10 @@
-import { ChangeDetectorRef, Component, inject, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  inject,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { IonContent, IonModal, ToastController } from '@ionic/angular';
 import { Chat } from 'src/app/services/chat/chat';
 import { ChatMessage } from 'src/app/interfaces/chat-message';
@@ -22,7 +28,7 @@ const FACTURA_EMPTY: FacturaData = {
   fecha: new Date(),
   receptor: { cuitOdni: "", nombreCompleto: "" },
   items: [],
-  totales: { total: 0 }
+  totales: { total: 0 },
 };
 
 @Component({
@@ -77,7 +83,7 @@ export class PedidosMozoPage implements OnInit {
   private sentPedidoCompleto = new Set<string>();
 
   async ngOnInit() {
-    window.addEventListener("refrescarPedidosMozo", () => this.cargar());
+    window.addEventListener('refrescarPedidosMozo', () => this.cargar());
 
     await this.ensureMozo();
 
@@ -141,11 +147,10 @@ export class PedidosMozoPage implements OnInit {
             const vm = this.chatSvc.toViewMessage(msg, this.myUserId!);
             this.messages.push({
               ...vm,
-              role: vm.from === "yo" ? "mozo" : "cliente",
+              role: vm.from === 'yo' ? 'mozo' : 'cliente',
             });
             this.scrollToBottomAfterRender();
           }
-
 
           if (this.inboxOpen) {
             await this.cargarInbox();
@@ -193,7 +198,9 @@ export class PedidosMozoPage implements OnInit {
       const ids = Array.from(
         new Set(this.pedidos.map((p) => p.mesa_id))
       ).filter(Boolean) as number[];
-      const mesas = await Promise.all(ids.map((id) => this.mesasSrv.getById(id)));
+      const mesas = await Promise.all(
+        ids.map((id) => this.mesasSrv.getById(id))
+      );
       mesas.forEach((m) => {
         if (m) {
           this.mesasNum.set(m.id!, m.numero!);
@@ -323,8 +330,41 @@ export class PedidosMozoPage implements OnInit {
               let title = '';
               let body = '';
               if (estado === 'pagado') {
-                title = 'Pago confirmado';
-                body = `Mesa ${mesaNumero}: tu pago fue validado ✅`;
+                try {
+                  const { data: ped } = await supabase
+                    .from('pedidos')
+                    .select('id, cliente_email')
+                    .eq('id', pedidoId)
+                    .maybeSingle();
+
+                  if (!ped?.cliente_email) {
+                    const url = await this.emitirFacturaParaAnonimoYUrl(
+                      pedidoId
+                    );
+
+                    title = 'Factura disponible';
+                    body = `Mesa ${mesaNumero}: tocá para descargar tu factura.`;
+
+                    await this.push.send(safe, title, body, {
+                      tipo: 'factura',
+                      pedidoId,
+                      mesaId,
+                      mesaNumero,
+                      url,
+                    });
+                  } else {
+                    title = 'Pago confirmado';
+                    body = `Mesa ${mesaNumero}: tu pago fue validado ✅`;
+                    await this.push.send(safe, title, body, {
+                      tipo: 'pedido',
+                      pedidoId,
+                      mesaId,
+                      estado,
+                    });
+                  }
+                } catch (e) {
+                  console.warn('⚠️ Error al generar o enviar factura push:', e);
+                }
               } else if (estado === 'recibido') {
                 title = 'Pedido Recibido';
                 body = `Mesa ${mesaNumero}: tu pedido fue entregado`;
@@ -356,18 +396,18 @@ export class PedidosMozoPage implements OnInit {
             });
           }
         }
-      } catch (e) { }
+      } catch (e) {}
 
       const msg =
         estado === 'pagado'
           ? 'Pago validado'
           : estado === 'rechazado'
-            ? 'Pedido rechazado'
-            : estado === 'aceptado'
-              ? 'Pedido aceptado'
-              : estado === 'recibido'
-                ? 'Pedido entregado'
-                : 'Estado actualizado';
+          ? 'Pedido rechazado'
+          : estado === 'aceptado'
+          ? 'Pedido aceptado'
+          : estado === 'recibido'
+          ? 'Pedido entregado'
+          : 'Estado actualizado';
 
       (
         await this.toast.create({
@@ -426,28 +466,26 @@ export class PedidosMozoPage implements OnInit {
       if (m) this.mesasNum.set(m.id!, m.numero!);
     }
 
-    const chat = await this.chatSvc.getOrCreateForMesa(mesaId, "mozo");
+    const chat = await this.chatSvc.getOrCreateForMesa(mesaId, 'mozo');
     this.chatId = chat.id;
 
-    // 🕓 Obtener la fecha de asignación más reciente (corte)
     const { data: asignacion } = await supabase
-      .from("asignaciones_mesa")
-      .select("asignada_en")
-      .eq("mesa_id", mesaId)
-      .in("estado", ["pendiente", "asignada", "sentado"])
-      .order("asignada_en", { ascending: false })
+      .from('asignaciones_mesa')
+      .select('asignada_en')
+      .eq('mesa_id', mesaId)
+      .in('estado', ['pendiente', 'asignada', 'sentado'])
+      .order('asignada_en', { ascending: false })
       .limit(1)
       .maybeSingle();
 
     const since = asignacion?.asignada_en ?? new Date().toISOString();
 
-    // ✅ Cargar mensajes solo desde el turno actual
     const { data: rows } = await supabase
-      .from("chat_messages")
-      .select("*")
-      .eq("chat_id", chat.id)
-      .gte("created_at", since)
-      .order("created_at", { ascending: true })
+      .from('chat_messages')
+      .select('*')
+      .eq('chat_id', chat.id)
+      .gte('created_at', since)
+      .order('created_at', { ascending: true })
       .limit(200);
 
     const msgs = rows ?? [];
@@ -456,18 +494,16 @@ export class PedidosMozoPage implements OnInit {
     this.messages = msgs.map((m) => {
       seen.add(m.id);
       const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
-      return { ...vm, role: vm.from === "yo" ? "mozo" : "cliente" };
+      return { ...vm, role: vm.from === 'yo' ? 'mozo' : 'cliente' };
     });
     this.scrollToBottomAfterRender();
 
     this.chatOpen = true;
 
-    // 🔁 Cancelar suscripciones previas
     this.chatSvc.unsubscribe();
 
-    // 📡 Suscribirse solo a mensajes nuevos desde el corte
     this.chatSvc.subscribeToMessages(chat.id, async (m: ChatMessage) => {
-      if (new Date(m.created_at) < new Date(since)) return; // Ignorar antiguos
+      if (new Date(m.created_at) < new Date(since)) return;
       if (seen.has(m.id)) return;
       seen.add(m.id);
 
@@ -477,18 +513,17 @@ export class PedidosMozoPage implements OnInit {
       const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
       this.messages.push({
         ...vm,
-        role: vm.from === "yo" ? "mozo" : "cliente",
+        role: vm.from === 'yo' ? 'mozo' : 'cliente',
       });
 
       this.scrollToBottomAfterRender();
     });
   }
 
-
   private scrollToBottom(ms: number = 200) {
     try {
       this.chatContent?.scrollToBottom(ms);
-    } catch { }
+    } catch {}
   }
 
   private scrollToBottomAfterRender() {
@@ -508,7 +543,6 @@ export class PedidosMozoPage implements OnInit {
       await modal.present();
     }
   }
-
 
   async enviar() {
     const t = this.newMsg.trim();
@@ -606,7 +640,20 @@ export class PedidosMozoPage implements OnInit {
 
     this.loading = true;
     try {
-      await this.emitirFacturaYEnviar(pedidoId, ped?.cliente_email);
+      if (ped?.cliente_email) {
+        await this.emitirFacturaYEnviar(pedidoId, ped.cliente_email);
+      } else {
+        await this.emitirFacturaParaAnonimoYUrl(pedidoId);
+      }
+
+      await this.setEstado(pedidoId, 'pagado');
+
+      await this.push.sendToRoles(
+        ['dueño', 'supervisor'],
+        'Pago validado',
+        `Pago Mesa (${mesaNumero}) Validado`,
+        { tipo: 'pago_validado', pedidoId, mesaId, mesaNumero }
+      );
     } catch (e) {
       console.log(e);
       (await this.toast.create({
@@ -665,7 +712,8 @@ export class PedidosMozoPage implements OnInit {
       const id = String(p?.id ?? '');
       if (!id || this.sentPedidoCompleto.has(id)) continue;
       const hasBar = p?.estadoBar != null && String(p.estadoBar).length > 0;
-      const hasCocina = p?.estadoCocina != null && String(p.estadoCocina).length > 0;
+      const hasCocina =
+        p?.estadoCocina != null && String(p.estadoCocina).length > 0;
       const doneBar = p?.estadoBar === 'terminado';
       const doneCocina = p?.estadoCocina === 'terminado';
       const ready =
@@ -677,103 +725,209 @@ export class PedidosMozoPage implements OnInit {
     }
   }
 
-  private async buildFacturaData(pedidoId: string, emailCliente: string): Promise<{
-    data: FacturaData;
-    fileName: string;
-  }> {
-    const { data: user } = await supabase
+  private async buildFacturaData(
+  pedidoId: string,
+  emailCliente?: string | null
+): Promise<{ data: FacturaData; fileName: string }> {
+
+  let user: any = null;
+  if (emailCliente) {
+    const { data: u } = await supabase
       .from("usuarios")
       .select("id, apellidos, nombres, numero_documento, numero_cuil")
       .eq("correo_electronico", emailCliente)
       .maybeSingle();
-
-    const { data: ped } = await supabase
-      .from("pedidos")
-      .select("id, total")
-      .eq("id", pedidoId)
-      .maybeSingle();
-
-    const { data: rows } = await supabase
-      .from("pedido_items")
-      .select("id, cantidad, precio_unit, nombre, producto_id")
-      .eq("pedido_id", pedidoId)
-      .order("id", { ascending: true });
-
-    let nombreCompleto = (user?.nombres + " " + user?.apellidos) || "";
-    let cuitOdni = "";
-    if (user !== null && user.numero_documento !== null) {
-      cuitOdni = user.numero_documento;
-    } else if (user !== null && user.numero_cuil !== null) {
-      cuitOdni = user.numero_cuil;
-    } else {
-      cuitOdni = "";
-    }
-
-    const items: ItemFactura[] = (rows ?? []).map((r: any, i: number) => ({
-      codigo: String(r?.producto_id ?? r?.id ?? i + 1),
-      descripcion: String(r?.nombre ?? "Item"),
-      cantidad: Number(r?.cantidad ?? 1),
-      precioUnit: Number(r?.precio_unit ?? 0),
-      subtotal: Number(r?.subtotal ?? (Number(r?.cantidad ?? 1) * Number(r?.precio_unit ?? 0)))
-    }));
-
-    const total = Number(ped?.total ?? items.reduce((a, b) => a + (b.subtotal || 0), 0));
-
-    const fecha = new Date().toISOString().slice(0, 10);
-    const fileName = `Factura_${fecha}_${nombreCompleto}_p${pedidoId}.pdf`;
-
-    const data: FacturaData = {
-      fecha: new Date(),
-      receptor: { cuitOdni: cuitOdni, nombreCompleto: nombreCompleto },
-      items,
-      totales: { total }
-    };
-
-    return { data, fileName };
+    user = u;
   }
 
-  private async emitirFacturaYEnviar(pedidoId: string, emailCliente: string): Promise<void> {
-    const { data, fileName } = await this.buildFacturaData(pedidoId, emailCliente);
-    if (!emailCliente) throw new Error("Email del cliente no disponible.");
+  const { data: ped } = await supabase
+    .from("pedidos")
+    .select("id, total")
+    .eq("id", pedidoId)
+    .maybeSingle();
 
+  const { data: rows } = await supabase
+    .from("pedido_items")
+    .select("id, cantidad, precio_unit, nombre, producto_id")
+    .eq("pedido_id", pedidoId)
+    .order("id", { ascending: true });
+
+  const nombreCompleto = user
+    ? `${user.nombres} ${user.apellidos}`.trim()
+    : "Cliente Anonimo";
+
+  const cuitOdni =
+    user?.numero_documento ||
+    user?.numero_cuil ||
+    "No especificado";
+
+  const items: ItemFactura[] = (rows ?? []).map((r: any, i: number) => ({
+    codigo: String(r?.producto_id ?? r?.id ?? i + 1),
+    descripcion: String(r?.nombre ?? "Item"),
+    cantidad: Number(r?.cantidad ?? 1),
+    precioUnit: Number(r?.precio_unit ?? 0),
+    subtotal:
+      Number(r?.cantidad ?? 1) * Number(r?.precio_unit ?? 0),
+  }));
+
+  const total = Number(
+    ped?.total ?? items.reduce((a, b) => a + (b.subtotal || 0), 0)
+  );
+
+  const fecha = new Date().toISOString().slice(0, 10);
+  const safeNombre = nombreCompleto
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, "_")
+    .replace(/[^a-zA-Z0-9_-]/g, "");
+
+  const fileName = `Factura_${fecha}_${safeNombre}_p${pedidoId}.pdf`;
+
+  const data: FacturaData = {
+    receptor: { cuitOdni, nombreCompleto },
+    items,
+    totales: { total },
+  };
+
+  return { data, fileName };
+}
+
+
+
+  private async emitirFacturaYEnviar(
+    pedidoId: string,
+    emailCliente: string
+  ): Promise<void> {
+    const { data, fileName } = await this.buildFacturaData(
+      pedidoId,
+      emailCliente
+    );
+    if (!emailCliente) throw new Error('Email del cliente no disponible.');
     this.facturaData = data;
     this.cdr.detectChanges();
-    await new Promise(r => setTimeout(r, 0));
-
+    await new Promise((r) => setTimeout(r, 0));
     const el = this.facturaCmp.root.nativeElement;
     await this.waitForRender(el);
     const blob = await this.pdf.exportarA4(el, fileName);
     const base64 = await this.pdf.blobToBase64(blob);
-
     await this.email.enviarFacturaDescarga(emailCliente, {
       receptor: data.receptor,
-      items: data.items.map(it => ({
+      items: data.items.map((it) => ({
         descripcion: it.descripcion,
         cantidad: it.cantidad,
         precioUnit: it.precioUnit,
-        subtotal: it.subtotal
+        subtotal: it.subtotal,
       })),
       total: data.totales.total,
       filename: fileName,
-      pdfBase64: base64
+      pdfBase64: base64,
     });
-
-    (await this.toast.create({
-      message: "Factura enviada correctamente",
-      duration: 1500,
-      position: "top",
-      cssClass: "toast"
-    })).present();
-
+    (
+      await this.toast.create({
+        message: 'Factura enviada correctamente',
+        duration: 1500,
+        position: 'top',
+        cssClass: 'toast',
+      })
+    ).present();
     this.facturaData = FACTURA_EMPTY;
   }
 
+  async emitirFacturaParaAnonimoYUrl(pedidoId: string): Promise<string> {
+  const { data: ped } = await supabase
+    .from("pedidos")
+    .select("mesa_id, total")
+    .eq("id", pedidoId)
+    .maybeSingle();
+
+  if (!ped) throw new Error("Pedido no encontrado para generar factura");
+
+  const { data: items } = await supabase
+    .from("pedido_items")
+    .select("nombre, cantidad, precio_unit, producto_id")
+    .eq("pedido_id", pedidoId);
+
+  const fecha = new Date().toISOString().slice(0, 10);
+  const fileName = `Factura_${fecha}_Cliente_Anonimo_p${pedidoId}.pdf`;
+
+  const facturaData = {
+    receptor: { nombreCompleto: "Cliente Anónimo", cuitOdni: "N/A" },
+    items: (items ?? []).map((r: any, i: number) => ({
+      codigo: String(r.producto_id ?? i + 1),
+      descripcion: r.nombre ?? "Item",
+      cantidad: Number(r.cantidad ?? 1),
+      precioUnit: Number(r.precio_unit ?? 0),
+      subtotal: Number(r.cantidad ?? 1) * Number(r.precio_unit ?? 0),
+    })),
+    totales: {
+      total:
+        ped.total ??
+        (items ?? []).reduce(
+          (acc, r: any) =>
+            acc + Number(r.cantidad ?? 1) * Number(r.precio_unit ?? 0),
+          0
+        ),
+    },
+  };
+
+  this.facturaData = facturaData;
+  this.cdr.detectChanges();
+  await new Promise((r) => setTimeout(r, 0));
+  const el = this.facturaCmp.root.nativeElement;
+  await this.waitForRender(el);
+  const blob = await this.pdf.exportarA4(el, fileName);
+
+  const url = await this.pdf.subirFacturaYObtenerUrl(blob, fileName);
+  console.log("✅ Factura anónima generada:", url);
+
+  const { data: chatRow } = await supabase
+    .from("chats")
+    .select("id")
+    .eq("mesa_id", ped.mesa_id)
+    .maybeSingle();
+
+  if (chatRow?.id) {
+    const { data: part } = await supabase
+      .from("chat_participants")
+      .select("push_token")
+      .eq("chat_id", chatRow.id)
+      .eq("role", "cliente")
+      .maybeSingle();
+
+    const token = part?.push_token;
+    if (token) {
+      await this.push.send(
+        token,
+        "Factura disponible",
+        "Tocá para descargar tu factura.",
+        {
+          tipo: "factura",
+          pedidoId,
+          mesaId: ped.mesa_id,
+          url,
+        }
+      );
+    }
+  }
+
+  return url;
+}
+
+
+
   private async waitForRender(el: HTMLElement) {
-    await new Promise(r => requestAnimationFrame(r));
+    await new Promise((r) => requestAnimationFrame(r));
     if ((document as any).fonts?.ready) await (document as any).fonts.ready;
     const imgs = Array.from(el.querySelectorAll('img')) as HTMLImageElement[];
-    await Promise.all(imgs.map(i => i.complete ? Promise.resolve() :
-      new Promise(res => { i.onload = i.onerror = () => res(null); })));
+    await Promise.all(
+      imgs.map((i) =>
+        i.complete
+          ? Promise.resolve()
+          : new Promise((res) => {
+              i.onload = i.onerror = () => res(null);
+            })
+      )
+    );
   }
 
   private async validarEstadoAreas(
@@ -848,7 +1002,7 @@ export class PedidosMozoPage implements OnInit {
             mesa: String(mesaNumero),
           }
         );
-      } catch { }
+      } catch {}
 
       return {
         valido: true,
