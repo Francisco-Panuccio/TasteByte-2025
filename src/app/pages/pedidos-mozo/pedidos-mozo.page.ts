@@ -25,7 +25,8 @@ type Filtro =
   | 'impagado';
 
 const FACTURA_EMPTY: FacturaData = {
-  receptor: { cuitOdni: '', nombreCompleto: '' },
+  fecha: new Date(),
+  receptor: { cuitOdni: "", nombreCompleto: "" },
   items: [],
   totales: { total: 0 },
 };
@@ -637,6 +638,7 @@ export class PedidosMozoPage implements OnInit {
     const mesaId = ped?.mesa_id as number;
     const mesaNumero = this.mesasNum.get(mesaId) ?? mesaId;
 
+    this.loading = true;
     try {
       if (ped?.cliente_email) {
         await this.emitirFacturaYEnviar(pedidoId, ped.cliente_email);
@@ -654,15 +656,24 @@ export class PedidosMozoPage implements OnInit {
       );
     } catch (e) {
       console.log(e);
-      (
-        await this.toast.create({
-          message: 'No se pudo enviar la factura',
-          duration: 1500,
-          position: 'top',
-          cssClass: 'toast',
-        })
-      ).present();
+      (await this.toast.create({
+        message: "No se pudo enviar la factura",
+        duration: 1500,
+        position: "top",
+        cssClass: "toast"
+      })).present();
+    } finally {
+      this.loading = false;
     }
+
+    await this.setEstado(pedidoId, 'pagado');
+
+    await this.push.sendToRoles(
+      ['dueño', 'supervisor'],
+      'Pago validado',
+      `Pago Mesa (${mesaNumero}) Validado`,
+      { tipo: 'pago_validado', pedidoId, mesaId, mesaNumero }
+    );
   }
 
   private async notificarAreasNuevoPedido(p: any) {

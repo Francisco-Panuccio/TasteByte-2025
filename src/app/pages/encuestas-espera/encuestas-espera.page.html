@@ -28,6 +28,10 @@
           Escanee el código QR del restaurante para habilitar todas las funciones.
         </p>
       } @else { 
+          <ion-button class="last-btn" (click)="escanearQrMesa()">
+            <img src="assets/images/qr.png" />
+          </ion-button>
+
           @if(!tieneMesa) { 
             <ion-button
               routerLink="/lista-espera"
@@ -111,10 +115,6 @@
               Pedir Cuenta
             </ion-button>
           }
-
-          <ion-button class="last-btn" (click)="escanearQrMesa()">
-            <img src="assets/images/qr.png" />
-          </ion-button>
         }
     </div>
   </ion-content>
