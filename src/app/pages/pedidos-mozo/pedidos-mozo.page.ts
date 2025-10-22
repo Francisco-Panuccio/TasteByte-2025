@@ -19,6 +19,7 @@ type Filtro =
   | 'impagado';
 
 const FACTURA_EMPTY: FacturaData = {
+  fecha: new Date(),
   receptor: { cuitOdni: "", nombreCompleto: "" },
   items: [],
   totales: { total: 0 }
@@ -416,72 +417,72 @@ export class PedidosMozoPage implements OnInit {
   }
 
   async abrirChat(mesaId: number) {
-  if (this.busy) return;
+    if (this.busy) return;
 
-  this.mesaChatId = mesaId;
+    this.mesaChatId = mesaId;
 
-  if (!this.mesasNum.has(mesaId)) {
-    const m = await this.mesasSrv.getById(mesaId);
-    if (m) this.mesasNum.set(m.id!, m.numero!);
-  }
+    if (!this.mesasNum.has(mesaId)) {
+      const m = await this.mesasSrv.getById(mesaId);
+      if (m) this.mesasNum.set(m.id!, m.numero!);
+    }
 
-  const chat = await this.chatSvc.getOrCreateForMesa(mesaId, "mozo");
-  this.chatId = chat.id;
+    const chat = await this.chatSvc.getOrCreateForMesa(mesaId, "mozo");
+    this.chatId = chat.id;
 
-  // 🕓 Obtener la fecha de asignación más reciente (corte)
-  const { data: asignacion } = await supabase
-    .from("asignaciones_mesa")
-    .select("asignada_en")
-    .eq("mesa_id", mesaId)
-    .in("estado", ["pendiente", "asignada", "sentado"])
-    .order("asignada_en", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    // 🕓 Obtener la fecha de asignación más reciente (corte)
+    const { data: asignacion } = await supabase
+      .from("asignaciones_mesa")
+      .select("asignada_en")
+      .eq("mesa_id", mesaId)
+      .in("estado", ["pendiente", "asignada", "sentado"])
+      .order("asignada_en", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-  const since = asignacion?.asignada_en ?? new Date().toISOString();
+    const since = asignacion?.asignada_en ?? new Date().toISOString();
 
-  // ✅ Cargar mensajes solo desde el turno actual
-  const { data: rows } = await supabase
-    .from("chat_messages")
-    .select("*")
-    .eq("chat_id", chat.id)
-    .gte("created_at", since)
-    .order("created_at", { ascending: true })
-    .limit(200);
+    // ✅ Cargar mensajes solo desde el turno actual
+    const { data: rows } = await supabase
+      .from("chat_messages")
+      .select("*")
+      .eq("chat_id", chat.id)
+      .gte("created_at", since)
+      .order("created_at", { ascending: true })
+      .limit(200);
 
-  const msgs = rows ?? [];
-  const seen = new Set<string>();
+    const msgs = rows ?? [];
+    const seen = new Set<string>();
 
-  this.messages = msgs.map((m) => {
-    seen.add(m.id);
-    const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
-    return { ...vm, role: vm.from === "yo" ? "mozo" : "cliente" };
-  });
-  this.scrollToBottomAfterRender();
-
-  this.chatOpen = true;
-
-  // 🔁 Cancelar suscripciones previas
-  this.chatSvc.unsubscribe();
-
-  // 📡 Suscribirse solo a mensajes nuevos desde el corte
-  this.chatSvc.subscribeToMessages(chat.id, async (m: ChatMessage) => {
-    if (new Date(m.created_at) < new Date(since)) return; // Ignorar antiguos
-    if (seen.has(m.id)) return;
-    seen.add(m.id);
-
-    const yaExiste = this.messages.some((msg) => msg.id === m.id);
-    if (yaExiste) return;
-
-    const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
-    this.messages.push({
-      ...vm,
-      role: vm.from === "yo" ? "mozo" : "cliente",
+    this.messages = msgs.map((m) => {
+      seen.add(m.id);
+      const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
+      return { ...vm, role: vm.from === "yo" ? "mozo" : "cliente" };
     });
-
     this.scrollToBottomAfterRender();
-  });
-}
+
+    this.chatOpen = true;
+
+    // 🔁 Cancelar suscripciones previas
+    this.chatSvc.unsubscribe();
+
+    // 📡 Suscribirse solo a mensajes nuevos desde el corte
+    this.chatSvc.subscribeToMessages(chat.id, async (m: ChatMessage) => {
+      if (new Date(m.created_at) < new Date(since)) return; // Ignorar antiguos
+      if (seen.has(m.id)) return;
+      seen.add(m.id);
+
+      const yaExiste = this.messages.some((msg) => msg.id === m.id);
+      if (yaExiste) return;
+
+      const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
+      this.messages.push({
+        ...vm,
+        role: vm.from === "yo" ? "mozo" : "cliente",
+      });
+
+      this.scrollToBottomAfterRender();
+    });
+  }
 
 
   private scrollToBottom(ms: number = 200) {
@@ -603,8 +604,7 @@ export class PedidosMozoPage implements OnInit {
     const mesaId = ped?.mesa_id as number;
     const mesaNumero = this.mesasNum.get(mesaId) ?? mesaId;
 
-    await this.setEstado(pedidoId, 'pagado');
-
+    this.loading = true;
     try {
       await this.emitirFacturaYEnviar(pedidoId, ped?.cliente_email);
     } catch (e) {
@@ -615,7 +615,11 @@ export class PedidosMozoPage implements OnInit {
         position: "top",
         cssClass: "toast"
       })).present();
+    } finally {
+      this.loading = false;
     }
+
+    await this.setEstado(pedidoId, 'pagado');
 
     await this.push.sendToRoles(
       ['dueño', 'supervisor'],
@@ -719,6 +723,7 @@ export class PedidosMozoPage implements OnInit {
     const fileName = `Factura_${fecha}_${nombreCompleto}_p${pedidoId}.pdf`;
 
     const data: FacturaData = {
+      fecha: new Date(),
       receptor: { cuitOdni: cuitOdni, nombreCompleto: nombreCompleto },
       items,
       totales: { total }

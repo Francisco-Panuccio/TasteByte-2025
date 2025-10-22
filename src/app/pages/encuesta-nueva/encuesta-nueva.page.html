@@ -10,8 +10,9 @@
   <ion-content class="ion-padding">
     <ion-item class="item_calificacion">
       <div class="calificacion">
-        <p>Calificación General (1-10)</p>
-        <ion-range min="1" max="10" step="1" snaps="true" [(ngModel)]="calificacionGeneral">
+        <p class="p_calificacion">Calificación General</p>
+        <span class="span_calificacion">(1-10)</span>
+        <ion-range min="1" max="10" step="1" snaps="true" ticks="true" [pin]="true" [(ngModel)]="calificacionGeneral">
           <span slot="start">1</span>
           <span slot="end">10</span>
         </ion-range>
