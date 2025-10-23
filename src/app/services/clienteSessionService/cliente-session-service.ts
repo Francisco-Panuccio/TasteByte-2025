@@ -13,7 +13,6 @@ export class ClienteSessionService {
   mesaAsignadaId: number | null = null;
   pedidoId: string | null = null;
   estadoPedido: string | null = null;
-  mesaEscaneada: boolean = false;
 
   limpiar() {
     this.tienePermiso = false;
@@ -26,6 +25,5 @@ export class ClienteSessionService {
     this.mesaAsignadaId = null;
     this.pedidoId = null;
     this.estadoPedido = null;
-    this.mesaEscaneada = false;
   }
 }
