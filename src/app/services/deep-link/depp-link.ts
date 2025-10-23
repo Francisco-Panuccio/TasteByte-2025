@@ -77,21 +77,26 @@ export class DeepLinkService {
         
         if (error) {
           console.error('❌ Error setSession:', error);
-          // Intentar con signIn si setSession falla
-          await this.tryAlternativeAuth(accessToken, refreshToken);
           return;
         }
         
         if (data.session) {
-          console.log('✅ Sesión establecida, navegando al home...');
-          await this.navigateToHome();
+          console.log('✅ Sesión establecida, verificando usuario...');
+          const userExists = await this.checkIfUserExists(data.session.user);
+          
+          if (userExists) {
+            console.log('✅ Usuario existe, navegando al home...');
+            await this.navigateToHome();
+          } else {
+            console.log('❌ Usuario no existe en la base de datos, cerrando sesión...');
+            await supabase.auth.signOut();
+            // No navegar - quedará en el login
+          }
         } else {
           console.log('❌ setSession no devolvió sesión');
-          await this.tryGetSession();
         }
       } else {
-        console.log('❌ No hay tokens, intentando getSession...');
-        await this.tryGetSession();
+        console.log('❌ No hay tokens');
       }
       
     } catch (error) {
@@ -99,49 +104,26 @@ export class DeepLinkService {
     }
   }
 
-  private async tryAlternativeAuth(accessToken: string, refreshToken: string) {
+  private async checkIfUserExists(authUser: any): Promise<boolean> {
     try {
-      console.log('🔄 Intentando autenticación alternativa...');
-      
-      // Guardar tokens en localStorage como fallback
-      localStorage.setItem('supabase.auth.token', accessToken);
-      localStorage.setItem('supabase.auth.refreshToken', refreshToken);
-      
-      // Forzar refresh de sesión
-      const { data, error } = await supabase.auth.refreshSession();
-      
-      if (data.session && !error) {
-        console.log('✅ Sesión refrescada alternativamente');
-        await this.navigateToHome();
-      } else {
-        console.log('❌ Fallback también falló');
-      }
-    } catch (error) {
-      console.error('💥 Error en tryAlternativeAuth:', error);
-    }
-  }
+      const email = authUser.email;
+      if (!email) return false;
 
-  private async tryGetSession() {
-    try {
-      // Esperar y reintentar varias veces
-      for (let i = 0; i < 3; i++) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (session && !error) {
-          console.log('✅ Sesión obtenida en intento', i + 1);
-          await this.navigateToHome();
-          return;
-        }
-        
-        console.log('🔄 Intento', i + 1, 'sin sesión');
+      const { data: existingUser, error } = await supabase
+        .from('usuarios')
+        .select('id')
+        .eq('correo_electronico', email)
+        .maybeSingle();
+
+      if (error) {
+        console.error('❌ Error verificando usuario:', error);
+        return false;
       }
-      
-      console.log('❌ No se pudo obtener sesión después de 3 intentos');
-      
+
+      return !!existingUser;
     } catch (error) {
-      console.error('💥 Error en tryGetSession:', error);
+      console.error('💥 Error en checkIfUserExists:', error);
+      return false;
     }
   }
 
