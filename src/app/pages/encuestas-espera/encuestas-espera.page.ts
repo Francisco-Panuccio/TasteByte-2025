@@ -24,6 +24,7 @@ type EstadoAsignacion =
   | 'sentado'
   | 'liberada'
   | 'cancelada';
+  
 interface AsignacionMesaRow {
   mesa_id: number;
   estado: EstadoAsignacion;
