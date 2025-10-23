@@ -191,3 +191,15 @@ hr {
     border-radius: 50%;
   }
 }
+
+.google {
+  --border-radius: 50%;
+  border-radius: 50%;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+}

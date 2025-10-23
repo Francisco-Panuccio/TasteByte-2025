@@ -81,17 +81,10 @@ export class LoginPage implements OnInit {
 
   async ngOnInit() {
     const session = await this.auth.getSession();
-    
-    // agregado para google
+
     this.deepLinkService.initializeDeepLinkListener();
 
     await new Promise(resolve => setTimeout(resolve, 500));
-    
-    if (session) {
-      console.log('Sesión encontrada al cargar login (posible callback de Google)');
-    }
-    //termina agregado
-
 
     if (session) {
       const { data: authData } = await supabase.auth.getUser();
@@ -121,8 +114,6 @@ export class LoginPage implements OnInit {
             this.errorMsg = true;
             return;
           }
-
-
         }
 
         const role = this.perfilToRole(perfil);
@@ -217,7 +208,7 @@ export class LoginPage implements OnInit {
   async loginWithGoogle() {
     try {
       event?.preventDefault();
-      
+
       const isNative = Capacitor.isNativePlatform();
       const redirectTo = isNative
         ? 'tastebyte://login-callback'
@@ -234,16 +225,15 @@ export class LoginPage implements OnInit {
       });
 
       if (error) throw error;
-      
+
       console.log('🔄 Redirigiendo a Google...', data);
-      
+
     } catch (e: any) {
       console.error('❌ Error en login con Google:', e);
       this.errorText = e.message || 'Error al iniciar sesión con Google';
       this.errorMsg = true;
     }
   }
-
 
   closeError() { this.errorMsg = false; }
 }
