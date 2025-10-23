@@ -32,8 +32,8 @@
 
     <div class="wrapper flex space-around" style="margin-top: 5px;">
       <span style="font-weight: 600;"><b style="font-weight: 800;">Período Facturado Desde:</b> {{ data.fecha | date:"dd/MM/yyyy" }}</span>
-      <span style="font-weight: 600;"><b style="font-weight: 800;">Hasta:</b> 12/01/2010</span>
-      <span style="font-weight: 600;"><b style="font-weight: 800;">Fecha de Vto. para el pago:</b> 22/01/2000</span>
+      <span style="font-weight: 600;"><b style="font-weight: 800;">Hasta:</b> {{ data.fecha | date:"dd/MM/yyyy" }}</span>
+      <span style="font-weight: 600;"><b style="font-weight: 800;">Fecha de Vto. para el pago:</b> {{ data.fecha | date:"dd/MM/yyyy" }}</span>
     </div>
 
     <div class="wrapper" style="margin-top: 5px;font-size: 12px;">

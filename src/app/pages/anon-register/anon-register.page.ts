@@ -106,6 +106,7 @@ export class AnonRegisterPage implements OnInit {
       toast.message = 'Registro exitoso, bienvenido!';
       toast.duration = 1500;
       toast.cssClass = "toast";
+      toast.position = "top";
       document.body.appendChild(toast);
       await toast.present();
 

@@ -42,6 +42,14 @@
             </div>
   
             <ion-button expand="block" class="btn-primary" (click)="onLogin()" [disabled]="formLogin.invalid">Ingresar</ion-button>
+            <!-- <button ...>Google</button> -->
+            <div class="google-login">
+              <button class="google-btn" (click)="loginWithGoogle()">
+                <span>Sign in with Google</span>
+              </button>
+            </div>
+
+
           </form>
     
           <hr>
