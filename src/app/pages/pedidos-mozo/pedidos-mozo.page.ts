@@ -26,7 +26,7 @@ type Filtro =
 
 const FACTURA_EMPTY: FacturaData = {
   fecha: new Date(),
-  receptor: { cuitOdni: "", nombreCompleto: "" },
+  receptor: { cuitOdni: '', nombreCompleto: '' },
   items: [],
   totales: { total: 0 },
 };
@@ -325,10 +325,12 @@ export class PedidosMozoPage implements OnInit {
             const safe = Array.from(
               new Set((valids ?? []).map((t: any) => t.token as string))
             );
+
             if (safe.length) {
               const mesaNumero = this.mesasNum.get(mesaId) ?? mesaId;
               let title = '';
               let body = '';
+
               if (estado === 'pagado') {
                 try {
                   const { data: ped } = await supabase
@@ -352,6 +354,8 @@ export class PedidosMozoPage implements OnInit {
                       mesaNumero,
                       url,
                     });
+
+                    return;
                   } else {
                     title = 'Pago confirmado';
                     body = `Mesa ${mesaNumero}: tu pago fue validado ✅`;
@@ -361,6 +365,8 @@ export class PedidosMozoPage implements OnInit {
                       mesaId,
                       estado,
                     });
+
+                    return;
                   }
                 } catch (e) {
                   console.warn('⚠️ Error al generar o enviar factura push:', e);
@@ -368,6 +374,12 @@ export class PedidosMozoPage implements OnInit {
               } else if (estado === 'recibido') {
                 title = 'Pedido Recibido';
                 body = `Mesa ${mesaNumero}: tu pedido fue entregado`;
+                await this.push.send(safe, title, body, {
+                  tipo: 'pedido',
+                  pedidoId,
+                  mesaId,
+                  estado,
+                });
               } else {
                 title =
                   estado === 'aceptado'
@@ -377,13 +389,13 @@ export class PedidosMozoPage implements OnInit {
                   estado === 'aceptado'
                     ? `Mesa ${mesaNumero}: tu pedido fue aceptado`
                     : `Mesa ${mesaNumero}: tu pedido fue rechazado. Podés modificarlo y reenviarlo`;
+                await this.push.send(safe, title, body, {
+                  tipo: 'pedido',
+                  pedidoId,
+                  mesaId,
+                  estado,
+                });
               }
-              await this.push.send(safe, title, body, {
-                tipo: 'pedido',
-                pedidoId,
-                mesaId,
-                estado,
-              });
             }
           }
 
@@ -396,18 +408,20 @@ export class PedidosMozoPage implements OnInit {
             });
           }
         }
-      } catch (e) { }
+      } catch (e) {
+        console.warn('⚠️ Error interno en setEstado:', e);
+      }
 
       const msg =
         estado === 'pagado'
           ? 'Pago validado'
           : estado === 'rechazado'
-            ? 'Pedido rechazado'
-            : estado === 'aceptado'
-              ? 'Pedido aceptado'
-              : estado === 'recibido'
-                ? 'Pedido entregado'
-                : 'Estado actualizado';
+          ? 'Pedido rechazado'
+          : estado === 'aceptado'
+          ? 'Pedido aceptado'
+          : estado === 'recibido'
+          ? 'Pedido entregado'
+          : 'Estado actualizado';
 
       (
         await this.toast.create({
@@ -523,7 +537,7 @@ export class PedidosMozoPage implements OnInit {
   private scrollToBottom(ms: number = 200) {
     try {
       this.chatContent?.scrollToBottom(ms);
-    } catch { }
+    } catch {}
   }
 
   private scrollToBottomAfterRender() {
@@ -645,23 +659,16 @@ export class PedidosMozoPage implements OnInit {
       } else {
         await this.emitirFacturaParaAnonimoYUrl(pedidoId);
       }
-
-      await this.setEstado(pedidoId, 'pagado');
-
-      await this.push.sendToRoles(
-        ['dueño', 'supervisor'],
-        'Pago validado',
-        `Pago Mesa (${mesaNumero}) Validado`,
-        { tipo: 'pago_validado', pedidoId, mesaId, mesaNumero }
-      );
     } catch (e) {
       console.log(e);
-      (await this.toast.create({
-        message: "No se pudo enviar la factura",
-        duration: 1500,
-        position: "top",
-        cssClass: "toast"
-      })).present();
+      (
+        await this.toast.create({
+          message: 'No se pudo enviar la factura',
+          duration: 1500,
+          position: 'top',
+          cssClass: 'toast',
+        })
+      ).present();
     } finally {
       this.loading = false;
     }
@@ -729,45 +736,41 @@ export class PedidosMozoPage implements OnInit {
     pedidoId: string,
     emailCliente?: string | null
   ): Promise<{ data: FacturaData; fileName: string }> {
-
     let user: any = null;
     if (emailCliente) {
       const { data: u } = await supabase
-        .from("usuarios")
-        .select("id, apellidos, nombres, numero_documento, numero_cuil")
-        .eq("correo_electronico", emailCliente)
+        .from('usuarios')
+        .select('id, apellidos, nombres, numero_documento, numero_cuil')
+        .eq('correo_electronico', emailCliente)
         .maybeSingle();
       user = u;
     }
 
     const { data: ped } = await supabase
-      .from("pedidos")
-      .select("id, total")
-      .eq("id", pedidoId)
+      .from('pedidos')
+      .select('id, total')
+      .eq('id', pedidoId)
       .maybeSingle();
 
     const { data: rows } = await supabase
-      .from("pedido_items")
-      .select("id, cantidad, precio_unit, nombre, producto_id")
-      .eq("pedido_id", pedidoId)
-      .order("id", { ascending: true });
+      .from('pedido_items')
+      .select('id, cantidad, precio_unit, nombre, producto_id')
+      .eq('pedido_id', pedidoId)
+      .order('id', { ascending: true });
 
     const nombreCompleto = user
       ? `${user.nombres} ${user.apellidos}`.trim()
-      : "Cliente Anonimo";
+      : 'Cliente Anonimo';
 
     const cuitOdni =
-      user?.numero_documento ||
-      user?.numero_cuil ||
-      "No especificado";
+      user?.numero_documento || user?.numero_cuil || 'No especificado';
 
     const items: ItemFactura[] = (rows ?? []).map((r: any, i: number) => ({
       codigo: String(r?.producto_id ?? r?.id ?? i + 1),
-      descripcion: String(r?.nombre ?? "Item"),
+      descripcion: String(r?.nombre ?? 'Item'),
       cantidad: Number(r?.cantidad ?? 1),
       precioUnit: Number(r?.precio_unit ?? 0),
-      subtotal:
-        Number(r?.cantidad ?? 1) * Number(r?.precio_unit ?? 0),
+      subtotal: Number(r?.cantidad ?? 1) * Number(r?.precio_unit ?? 0),
     }));
 
     const total = Number(
@@ -776,10 +779,10 @@ export class PedidosMozoPage implements OnInit {
 
     const fecha = new Date().toISOString().slice(0, 10);
     const safeNombre = nombreCompleto
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/\s+/g, "_")
-      .replace(/[^a-zA-Z0-9_-]/g, "");
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, '_')
+      .replace(/[^a-zA-Z0-9_-]/g, '');
 
     const fileName = `Factura_${fecha}_${safeNombre}_p${pedidoId}.pdf`;
 
@@ -834,27 +837,27 @@ export class PedidosMozoPage implements OnInit {
 
   async emitirFacturaParaAnonimoYUrl(pedidoId: string): Promise<string> {
     const { data: ped } = await supabase
-      .from("pedidos")
-      .select("mesa_id, total")
-      .eq("id", pedidoId)
+      .from('pedidos')
+      .select('mesa_id, total')
+      .eq('id', pedidoId)
       .maybeSingle();
 
-    if (!ped) throw new Error("Pedido no encontrado para generar factura");
+    if (!ped) throw new Error('Pedido no encontrado para generar factura');
 
     const { data: items } = await supabase
-      .from("pedido_items")
-      .select("nombre, cantidad, precio_unit, producto_id")
-      .eq("pedido_id", pedidoId);
+      .from('pedido_items')
+      .select('nombre, cantidad, precio_unit, producto_id')
+      .eq('pedido_id', pedidoId);
 
     const fecha = new Date().toISOString().slice(0, 10);
     const fileName = `Factura_${fecha}_Cliente_Anonimo_p${pedidoId}.pdf`;
 
     const facturaData = {
       fecha: new Date(),
-      receptor: { nombreCompleto: "Cliente Anónimo", cuitOdni: "N/A" },
+      receptor: { nombreCompleto: 'Cliente Anónimo', cuitOdni: 'N/A' },
       items: (items ?? []).map((r: any, i: number) => ({
         codigo: String(r.producto_id ?? i + 1),
-        descripcion: r.nombre ?? "Item",
+        descripcion: r.nombre ?? 'Item',
         cantidad: Number(r.cantidad ?? 1),
         precioUnit: Number(r.precio_unit ?? 0),
         subtotal: Number(r.cantidad ?? 1) * Number(r.precio_unit ?? 0),
@@ -878,30 +881,30 @@ export class PedidosMozoPage implements OnInit {
     const blob = await this.pdf.exportarA4(el, fileName);
 
     const url = await this.pdf.subirFacturaYObtenerUrl(blob, fileName);
-    console.log("✅ Factura anónima generada:", url);
+    console.log('✅ Factura anónima generada:', url);
 
     const { data: chatRow } = await supabase
-      .from("chats")
-      .select("id")
-      .eq("mesa_id", ped.mesa_id)
+      .from('chats')
+      .select('id')
+      .eq('mesa_id', ped.mesa_id)
       .maybeSingle();
 
     if (chatRow?.id) {
       const { data: part } = await supabase
-        .from("chat_participants")
-        .select("push_token")
-        .eq("chat_id", chatRow.id)
-        .eq("role", "cliente")
+        .from('chat_participants')
+        .select('push_token')
+        .eq('chat_id', chatRow.id)
+        .eq('role', 'cliente')
         .maybeSingle();
 
       const token = part?.push_token;
       if (token) {
         await this.push.send(
           token,
-          "Factura disponible",
-          "Tocá para descargar tu factura.",
+          'Factura disponible',
+          'Tocá para descargar tu factura.',
           {
-            tipo: "factura",
+            tipo: 'factura',
             pedidoId,
             mesaId: ped.mesa_id,
             url,
@@ -922,8 +925,8 @@ export class PedidosMozoPage implements OnInit {
         i.complete
           ? Promise.resolve()
           : new Promise((res) => {
-            i.onload = i.onerror = () => res(null);
-          })
+              i.onload = i.onerror = () => res(null);
+            })
       )
     );
   }
@@ -1000,7 +1003,7 @@ export class PedidosMozoPage implements OnInit {
             mesa: String(mesaNumero),
           }
         );
-      } catch { }
+      } catch {}
 
       return {
         valido: true,
