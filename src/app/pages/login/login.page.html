@@ -42,14 +42,6 @@
             </div>
   
             <ion-button expand="block" class="btn-primary" (click)="onLogin()" [disabled]="formLogin.invalid">Ingresar</ion-button>
-            <!-- <button ...>Google</button> -->
-            <div class="google-login">
-              <button class="google-btn" (click)="loginWithGoogle()">
-                <span>Sign in with Google</span>
-              </button>
-            </div>
-
-
           </form>
     
           <hr>
@@ -64,7 +56,7 @@
               <button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'cocinero@hotmail.com', password: 'cocinero12345'})"><img src="assets/images/ic_cocinero.png" alt="cocinero"></button>
               <button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'bartender@hotmail.com', password: 'bartender12345'})"><img src="assets/images/ic_bartender.png" alt="bartender"></button>
               <button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'clienteregistrado@hotmail.com', password: 'clienteregistrado12345'})"><img src="assets/images/ic_cliente.png" alt="cliente"></button>
-              <!-- <button expand="block" size="small" class="btn-secondary">Google</button> -->
+              <button expand="block" size="small" class="btn-secondary google" (click)="loginWithGoogle()"><img src="assets/images/logo-google.png" alt="google"></button>
             </div>
           </div>
     

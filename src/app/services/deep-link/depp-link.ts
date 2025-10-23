@@ -3,6 +3,7 @@ import { App } from '@capacitor/app';
 import { Router } from '@angular/router';
 import { supabase } from 'src/supabase.client';
 import { Capacitor } from '@capacitor/core';
+import { ToastController } from '@ionic/angular';
 
 @Injectable({
   providedIn: 'root'
@@ -12,8 +13,9 @@ export class DeepLinkService {
 
   constructor(
     private router: Router,
-    private ngZone: NgZone
-  ) {}
+    private ngZone: NgZone,
+    private toast: ToastController
+  ) { }
 
   async initializeDeepLinkListener() {
     if (this.listenerInitialized || !Capacitor.isNativePlatform()) {
@@ -23,12 +25,12 @@ export class DeepLinkService {
     this.listenerInitialized = true;
 
     console.log('🔗 Inicializando listener de deep links...');
-    
+
     App.addListener('appUrlOpen', async (event: any) => {
       console.log('🎯 Deep link recibido:', event.url);
-      
+
       const url = event.url;
-      
+
       if (url.includes('login-callback')) {
         console.log('✅ Es un callback de Google OAuth');
         await this.handleAuthCallback(url);
@@ -39,10 +41,10 @@ export class DeepLinkService {
   private async handleAuthCallback(url: string) {
     try {
       console.log('🔐 Procesando callback de autenticación...');
-      
+
       let accessToken: string | null = null;
       let refreshToken: string | null = null;
-      
+
       // Intentar extraer del hash (formato actual)
       try {
         const hashParams = new URL(url).hash.substring(1);
@@ -52,7 +54,7 @@ export class DeepLinkService {
       } catch (e) {
         console.log('❌ Error parseando hash:', e);
       }
-      
+
       // Si no se encontraron en el hash, intentar en query params (por si acaso)
       if (!accessToken || !refreshToken) {
         try {
@@ -63,27 +65,27 @@ export class DeepLinkService {
           console.log('❌ Error parseando query params:', e);
         }
       }
-      
+
       console.log('📋 Access token:', !!accessToken);
       console.log('📋 Refresh token:', !!refreshToken);
-      
+
       if (accessToken && refreshToken) {
         console.log('✅ Estableciendo sesión con tokens...');
-        
+
         const { data, error } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken
         });
-        
+
         if (error) {
           console.error('❌ Error setSession:', error);
           return;
         }
-        
+
         if (data.session) {
           console.log('✅ Sesión establecida, verificando usuario...');
           const userExists = await this.checkIfUserExists(data.session.user);
-          
+
           if (userExists) {
             console.log('✅ Usuario existe, navegando al home...');
             await this.navigateToHome();
@@ -98,7 +100,7 @@ export class DeepLinkService {
       } else {
         console.log('❌ No hay tokens');
       }
-      
+
     } catch (error) {
       console.error('💥 Error en handleAuthCallback:', error);
     }
@@ -115,8 +117,9 @@ export class DeepLinkService {
         .eq('correo_electronico', email)
         .maybeSingle();
 
-      if (error) {
+      if (!existingUser || error) {
         console.error('❌ Error verificando usuario:', error);
+        await this.mostrarToast("Usuario no existente");
         return false;
       }
 
@@ -130,7 +133,7 @@ export class DeepLinkService {
   private async navigateToHome() {
     try {
       console.log('🏠 Navegando al home...');
-      
+
       // Usar NgZone para asegurar la navegación en el contexto de Angular
       this.ngZone.run(() => {
         this.router.navigateByUrl('/home', { replaceUrl: true })
@@ -141,9 +144,20 @@ export class DeepLinkService {
             console.error('❌ Navigate error:', error);
           });
       });
-      
+
     } catch (error) {
       console.error('💥 Error navegando al home:', error);
     }
+  }
+
+  private async mostrarToast(message: string, header = "Aviso", duration = 1500): Promise<void> {
+    const t = await this.toast.create({
+      header,
+      message,
+      duration,
+      cssClass: "toast",
+      position: "top"
+    });
+    await t.present();
   }
 }
