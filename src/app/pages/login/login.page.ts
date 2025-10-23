@@ -6,6 +6,7 @@ import { Push } from "src/app/services/push/push";
 import { supabase } from "src/supabase.client";
 import { Capacitor } from "@capacitor/core";
 import { Haptics, NotificationType, ImpactStyle } from "@capacitor/haptics";
+import { DeepLinkService } from '../../services/deep-link/depp-link';
 
 @Component({
   selector: "app-login",
@@ -25,7 +26,8 @@ export class LoginPage implements OnInit {
     private fb: FormBuilder,
     private auth: AuthService,
     private router: Router,
-    private push: Push
+    private push: Push,
+    private deepLinkService: DeepLinkService
   ) {
     this.formLogin = this.fb.group({
       email: ["", [Validators.required, Validators.email]],
@@ -79,6 +81,18 @@ export class LoginPage implements OnInit {
 
   async ngOnInit() {
     const session = await this.auth.getSession();
+    
+    // agregado para google
+    this.deepLinkService.initializeDeepLinkListener();
+
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    if (session) {
+      console.log('Sesión encontrada al cargar login (posible callback de Google)');
+    }
+    //termina agregado
+
+
     if (session) {
       const { data: authData } = await supabase.auth.getUser();
       const email = authData.user?.email as string | undefined;
@@ -201,23 +215,34 @@ export class LoginPage implements OnInit {
   }
 
   async loginWithGoogle() {
-  try {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin + '/home',
-      },
-    });
+    try {
+      event?.preventDefault();
+      
+      const isNative = Capacitor.isNativePlatform();
+      const redirectTo = isNative
+        ? 'tastebyte://login-callback'
+        : `${window.location.origin}/home`;
 
-    if (error) throw error;
+      console.log('🔐 Iniciando OAuth con redirect:', redirectTo);
 
-    console.log('Redirigiendo a Google...', data);
-  } catch (e: any) {
-    console.error('Error en login con Google:', e);
-    this.errorText = e.message || 'Error al iniciar sesión con Google';
-    this.errorMsg = true;
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo,
+          skipBrowserRedirect: false,
+        },
+      });
+
+      if (error) throw error;
+      
+      console.log('🔄 Redirigiendo a Google...', data);
+      
+    } catch (e: any) {
+      console.error('❌ Error en login con Google:', e);
+      this.errorText = e.message || 'Error al iniciar sesión con Google';
+      this.errorMsg = true;
+    }
   }
-}
 
 
   closeError() { this.errorMsg = false; }
