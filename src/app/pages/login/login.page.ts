@@ -200,5 +200,25 @@ export class LoginPage implements OnInit {
     this.formLogin.patchValue(user);
   }
 
+  async loginWithGoogle() {
+  try {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin + '/home',
+      },
+    });
+
+    if (error) throw error;
+
+    console.log('Redirigiendo a Google...', data);
+  } catch (e: any) {
+    console.error('Error en login con Google:', e);
+    this.errorText = e.message || 'Error al iniciar sesión con Google';
+    this.errorMsg = true;
+  }
+}
+
+
   closeError() { this.errorMsg = false; }
 }
