@@ -154,6 +154,7 @@
   <img src="src/assets/imagesGithub/cocina-vacio.jpeg" alt="Cocina Vacia" width="400" height="800">
 </p>
 
+
 ## Responsabilidades (Cuarta Semana) 🛠️
 * Panuccio
 - Objetivos: Estilado de Encuestas y Corrección de Push Notifications, 18 (Pedido Completado)
@@ -183,4 +184,32 @@
   <img src="src/assets/imagesGithub/bar-vacio.jpeg" alt="Bar Vacio" width="400" height="800">
 </p>
 
+
+## Responsabilidades (Quinta Semana) 🛠️
+* Panuccio
+- Objetivos: Punto 31 (Acelerómetro y Giroscopio), Punto Recuperatorio - Email con Factura (Cliente Registrado)
+- Fecha Inicial: 20/10/2025
+- Fecha Final: 24/10/2025
+- Branch: panuccio/altas
+
+<p align="center">
+  <img src="src/assets/imagesGithub/email-factura.jpeg" alt="Email Factura" width="400" height="800">
+  <img src="src/assets/imagesGithub/factura.jpeg" alt="Factura" width="400" height="800">
+</p>
+
+* Roman
+- Objetivos: Punto Recuperatorio - Push Notification con Factura (Cliente Anónimo)
+- Fecha Inicial: 20/10/2025
+- Fecha Final: 24/10/2025
+- Branch: roman
+
+* Avallone
+- Objetivos: Punto 23 (Login con Google)
+- Fecha Inicial: 20/10/2025
+- Fecha Final: 24/10/2025
+- Branch: avallone
+
+<p align="center">
+  <img src="src/assets/imagesGithub/login-google.jpeg" alt="Login Google" width="400" height="800">
+</p>
 
