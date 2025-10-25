@@ -19,7 +19,6 @@
             <div class="item-data">
               <p class="name">{{ c.nombre | titlecase}}</p>
               <p class="ingreso"><span>⚪Ingresó:</span> {{ c.creado_en | date:'short' }}</p>
-              <p><span>🟡Estado:</span> {{ c.estado | titlecase}}</p>
               @if(esCliente && (c.cliente_anonimo_id === anonimoId || c.cliente_id === usuarioId)) {
                 <p><span>🟢Posición en la Fila: {{ i + 1 }}</span></p>
               }

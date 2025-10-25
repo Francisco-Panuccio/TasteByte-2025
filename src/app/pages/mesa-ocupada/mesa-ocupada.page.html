@@ -3,7 +3,7 @@
 } @else {
   <header>
     <img src="assets/icon/cubiertos.png">
-    <title>Mesa {{ mesa?.numero ?? "NN"}}</title>
+    <title>{{ deliveryFlag ? 'Delivery' : ('Mesa ' + (mesa?.numero ?? 'NN')) }}</title>
     <img src="assets/icon/cubiertos.png">
   </header>
 
@@ -164,7 +164,7 @@
                   <div class="item-detalle">
                     <span>Cantidad: {{ item.cantidad }}</span>
                     <span>Precio: {{ item.precioUnit | currency:"ARS":"symbol-narrow":"1.0-0" }}</span>
-                    <span>Subtotal: {{ item.cantidad * item.precioUnit | currency:"ARS":"symbol-narrow":"1.0-0" }}</span>
+                    <span class="subtotal">Subtotal: {{ item.cantidad * item.precioUnit | currency:"ARS":"symbol-narrow":"1.0-0" }}</span>
                   </div>
                 </div>
                 

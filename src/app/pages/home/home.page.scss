@@ -5,7 +5,7 @@
   align-items: center;
   background-color: var(--color-background);
   height: 100%;
-  gap: 20px;
+  gap: 10px;
 }
 
 #container {
@@ -81,10 +81,10 @@
     justify-content: center;
     align-items: center;
     background:
-      radial-gradient(circle 120px at 350px 220px,
+      radial-gradient(circle 120px at 350px 200px,
         rgba(255, 255, 255, .10) 0 60%,
         rgba(255, 255, 255, 0) 61%),
-      radial-gradient(circle 100px at 0 220px,
+      radial-gradient(circle 100px at 0 200px,
         rgba(255, 255, 255, .10) 0 60%,
         rgba(255, 255, 255, 0) 61%),
       var(--color-container);
@@ -144,16 +144,17 @@
   background-color: transparent;
   border: none;
   width: 100%;
+  height: 200px;
 
   hr {
-    width: 30%;
+    width: 10%;
     height: 2px;
     background-color: var(--color-text);
   }
 
   .div_photo {
-    width: 100px;
-    height: 100px;
+    width: 180px;
+    height: 180px;
     border-radius: 50%;
     padding: 0;
     border: 2px solid var(--color-text);

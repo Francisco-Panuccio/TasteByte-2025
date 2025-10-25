@@ -1,0 +1,44 @@
+@if(loading) {
+  <app-loading/>
+} @else {
+  <header>
+    <img src="assets/icon/cubiertos.png">
+    <title>Deliveries Pendientes</title>
+    <img src="assets/icon/cubiertos.png">
+  </header>
+
+  <ion-content class="ion-padding">
+    @if(rows.length > 0) {
+      <div class="div_list">
+        <div class="item" *ngFor="let r of rows">
+          <div class="item-first-part">
+            <div class="item-data">
+              <p class="email">✉️Email: {{ r.cliente_email }}</p>
+              <p>📍Dirección: {{ r.delivery_direccion }}</p>
+              <p>🕒Espera: {{ r.created_at | date:'dd/MM/yyyy HH:mm' }}</p>
+              <p>💸Total: {{ r.total | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
+            </div>
+          </div>
+
+          <div class="item-btns">
+            <button class="aprove" (click)="aceptar(r)">Aceptar</button>
+            <button class="quit" (click)="rechazar(r)">Rechazar</button>
+          </div>
+        </div>
+      </div>
+    } @else {
+      <div #vacio class="empty">
+        <p class="p_clientes">No hay Deliveries en Espera</p>
+        <img src="assets/images/espera.png">
+      </div>
+    }
+  </ion-content>
+
+  <footer>
+    <hr>
+    <button class="btn_footer" routerLink="/home">
+      Volver
+    </button>
+    <hr>
+  </footer>
+}

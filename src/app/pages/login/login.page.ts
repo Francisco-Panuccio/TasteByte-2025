@@ -18,6 +18,7 @@ export class LoginPage implements OnInit {
   loading = true;
   errorMsg = false;
   errorText = "Ocurrió un error";
+  perfilOnInit = "";
 
   formLogin: ReturnType<FormBuilder["group"]>;
   private errorAudio = new Audio("assets/sounds/error.mp3");
@@ -98,6 +99,7 @@ export class LoginPage implements OnInit {
           .maybeSingle();
 
         const perfil = u?.perfil;
+        this.perfilOnInit = perfil;
         const usuarioRowId = u?.id;
 
         let estado: string | undefined;
@@ -121,7 +123,7 @@ export class LoginPage implements OnInit {
         else if (authData.user?.id) await this.initPush(authData.user.id, role);
       }
 
-      await this.router.navigateByUrl("/home", { replaceUrl: true });
+      await this.redirectByPerfil(this.perfilOnInit);
       return;
     }
 
@@ -198,7 +200,15 @@ export class LoginPage implements OnInit {
     const role = this.perfilToRole(perfil);
     await this.initPush(usuarioRowId ?? authData.user.id, role);
 
-    await this.router.navigateByUrl("/home", { replaceUrl: true });
+    await this.redirectByPerfil(perfil);
+  }
+
+  private async redirectByPerfil(perfil?: string): Promise<void> {
+    if (perfil?.toLowerCase() === "mozo") {
+      await this.router.navigateByUrl("/pedidos-mozo", { replaceUrl: true });
+    } else {
+      await this.router.navigateByUrl("/home", { replaceUrl: true });
+    }
   }
 
   async quickLogin(user: { email: string; password: string }) {

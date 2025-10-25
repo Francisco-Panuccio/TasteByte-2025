@@ -8,32 +8,77 @@
   </header>
 
   <ion-content [class.blocked]="busy">
-    <div class="div_btns2" role="tablist" aria-label="Filtros">
-      <button [class.active]="filtro==='pendiente'" (click)="setFiltro('pendiente')" [disabled]="busy">Pendientes</button>
-      <button [class.active]="filtro==='aceptado'"  (click)="setFiltro('aceptado')"  [disabled]="busy">Aceptados</button>
-      <button [class.active]="filtro==='recibido'"  (click)="setFiltro('recibido')"  [disabled]="busy">Entregados</button>
-      <button [class.active]="filtro==='terminado'" (click)="setFiltro('terminado')" [disabled]="busy">Terminados</button>
-      <button [class.active]="filtro==='impagado'"  (click)="setFiltro('impagado')"  [disabled]="busy">Impagados</button>
-      <button class="diag" [disabled]="busy"></button>
+    <div class="div_btns2" role="toolbar" aria-label="Filtros">
+      @if(filtro === "impagado") {
+        <div class="current">Sin Pagar</div>
+      } @else if(filtro === "recibido") {
+        <div class="current">Entregados</div>
+      } @else {
+        <div class="current">{{ filtro + "s" | titlecase }}</div>
+      }
+      <div class="btn_select">
+        <button id="filters-btn"
+                class="hamburger"
+                [disabled]="busy"
+                aria-haspopup="menu"
+                aria-controls="filtros-popover">
+          ☰
+        </button>
+      </div>
     </div>
+
+    <ion-popover trigger="filters-btn"
+                triggerAction="click"
+                dismissOnSelect="true"
+                id="filtros-popover">
+      <ng-template>
+        <ion-content class="popover-filtros">
+          <ion-list>
+            <ion-item button [detail]="false" [class.active]="filtro==='pendiente'" (click)="setFiltro('pendiente')">
+              <ion-label>Pendientes</ion-label>
+            </ion-item>
+
+            <ion-item button [detail]="false" [class.active]="filtro==='aceptado'"  (click)="setFiltro('aceptado')">
+              <ion-label>Aceptados</ion-label>
+            </ion-item>
+
+            <ion-item button [detail]="false" [class.active]="filtro==='recibido'"  (click)="setFiltro('recibido')">
+              <ion-label>Entregados</ion-label>
+            </ion-item>
+
+            <ion-item button [detail]="false" [class.active]="filtro==='terminado'" (click)="setFiltro('terminado')">
+              <ion-label>Terminados</ion-label> 
+            </ion-item>
+
+            <ion-item button [detail]="false" [class.active]="filtro==='impagado'"  (click)="setFiltro('impagado')">
+              <ion-label>Sin Pagar</ion-label> 
+            </ion-item>
+          </ion-list>
+        </ion-content>
+      </ng-template>
+    </ion-popover>
 
     <div class="div_container" *ngIf="pedidos.length">
       <div class="div_pedidos" *ngFor="let p of pedidos">
         <div class="div_data_pedido">
-          <p>⚪Mesa: {{ p.mesa?.numero ?? p.mesa_id }}</p>
-          <p>🟡Espera: {{ p.eta_minutos }} min</p>
-          <p>🟢Estado: {{ p.estado | titlecase }}</p>
-          <p>💸Total: ${{ p.total }}</p>
-          <p>🗓️{{ p.created_at | date:'short' }}</p>
-          
-          @if(filtro === 'aceptado') {
-            <p>🍸Bar: {{ p.estadoBar ?? ' —' | titlecase }}</p>
-            <p>🍳Cocina: {{ p.estadoCocina ?? ' —' | titlecase }}</p>
-          }
+            @if(p.tipo === 'delivery') {
+              <p>📍{{ p.delivery_direccion | titlecase }}</p>
+            } @else {
+              <p class="numero">Mesa: {{ mesasNum.get(p.mesa_id) ?? p.mesa_id }}</p>
+            }
+            @if(p.estado === "impagado") {
+              <p>💸Total: ${{ p.total }}</p>
+            }
+            <p>🗓️{{ p.created_at | date:'short' }}</p>
+            
+            @if(filtro === 'aceptado') {
+              <p>🍸Bar: {{ p.estadoBar ?? ' —' | titlecase }}</p>
+              <p>🍳Cocina: {{ p.estadoCocina ?? ' —' | titlecase }}</p>
+            }
         </div>
-
+        
         <div class="div_btns">
-          <button (click)="abrirChat(p.mesa_id)" class="btn_chat" [disabled]="busy">Chat</button>
+          <button (click)="abrirChat(p.mesa_id)" class="btn_chat" [disabled]="busy" *ngIf="p.mesa_id != null">Chat</button>
 
           <button class="btn_entregar" *ngIf="p.estado==='aceptado'" (click)="setEstado(p.id,'recibido')" [disabled]="busy">Entregar</button>
           
@@ -44,6 +89,50 @@
 
           <button class="btn_rechazar" *ngIf="canEliminar(p)" (click)="eliminar(p)" [disabled]="busy">Eliminar</button>
         </div>
+
+        @if(p.estadoBar && p.estadoCocina) {
+          @if(p.estadoBar && p.estadoCocina === "pendiente") {
+            <div class="div_cocinaBar both">
+              <img src="assets/images/cocina-pendiente.png">
+              <img src="assets/images/bar-pendiente.png">
+            </div>
+          } @else if(p.estadoBar === "pendiente" && p.estadoCocina === "terminado") {
+            <div class="div_cocinaBar both">
+              <img src="assets/images/cocina-terminado.png">
+              <img src="assets/images/bar-pendiente.png">
+            </div>
+          } @else if(p.estadoCocina === "pendiente" && p.estadoBar === "terminado") {
+            <div class="div_cocinaBar both">
+              <img src="assets/images/cocina-pendiente.png">
+              <img src="assets/images/bar-terminado.png">
+            </div>
+          } @else {
+            <div class="div_cocinaBar both">
+              <img src="assets/images/cocina-terminado.png">
+              <img src="assets/images/bar-terminado.png">
+            </div>
+          }
+        } @else if(p.estadoCocina) {
+            @if(p.estadoBar === "pendiente") {
+              <div class="div_cocinaBar">
+                <img src="assets/images/cocina-pendiente.png">
+              </div>
+            } @else {
+              <div class="div_cocinaBar">
+                <img src="assets/images/cocina-terminado.png">
+              </div>
+            }
+        } @else if(p.estadoBar) {
+            @if(p.estadoBar === "pendiente") {
+              <div class="div_cocinaBar">
+                <img src="assets/images/bar-pendiente.png">
+              </div>
+            } @else {
+              <div class="div_cocinaBar">
+                <img src="assets/images/bar-terminado.png">
+              </div>
+            }
+        }
       </div>
     </div>
 
@@ -61,7 +150,7 @@
       Mensajes
     </button>
     <hr>
-    <button class="btn_footer" [disabled]="busy" routerLink="/home">
+    <button class="btn_footer" [disabled]="busy" (click)="salir()">
       Volver
     </button>
     <hr>
@@ -134,16 +223,18 @@
       <ion-content class="ion-padding">
         <div *ngIf="!inbox.length" class="vacio">Sin Mensajes</div>
         <div class="inbox-list" *ngIf="inbox.length">
-          <div class="inbox-item" *ngFor="let it of inbox">
-            <div class="inbox-meta">
-              <div class="inbox-title">◽Mesa • {{ it.mesaNumero ?? it.mesaId }}◽</div>
-              <div class="inbox-title">⏲ {{ it.time }} ⏲</div>
-            </div>
-
-            <div class="inbox-text">{{ it.lastText | titlecase}}</div>
-
-            <div class="inbox-actions">
-              <button class="btn-primary" (click)="abrirDesdeInbox(it)">Abrir Chat</button>
+          <div class="inbox-items" *ngFor="let it of inbox">
+            <div class="inbox-item">
+              <div class="inbox-meta">
+                <div class="inbox-title">◽Mesa • {{ it.mesaNumero ?? it.mesaId }}◽</div>
+                <div class="inbox-title">⏲ {{ it.time }} ⏲</div>
+              </div>
+  
+              <div class="inbox-text">{{ it.lastText }}</div>
+  
+              <div class="inbox-actions">
+                <button class="btn-primary" (click)="abrirDesdeInbox(it)">Abrir Chat</button>
+              </div>
             </div>
           </div>
         </div>

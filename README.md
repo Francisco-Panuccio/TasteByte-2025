@@ -1,6 +1,7 @@
 # TasteByte-2025
 
 ## Link a videos de Entrega Final: https://drive.google.com/drive/folders/1TLMYm36QIbzLLQiP3_gKo0uLmYCgJUAc?usp=drive_link
+## Link a Imágenes: https://drive.google.com/drive/folders/1QiK3PKqOfU14Znb2zRlVsp1zSXOQFefV?usp=sharing
 
 ## Integrantes ✒️ 
 * Panuccio Francisco
@@ -20,7 +21,6 @@
   <img src="src/assets/imagesGithub/home-dueno.jpeg" alt="Home Dueño" width="400" height="800">
   <img src="src/assets/imagesGithub/home-supervisor.jpeg" alt="Home Supervisor" width="400" height="800">
   <img src="src/assets/imagesGithub/home-maitre.jpeg" alt="Home Maitre" width="400" height="800">
-  <img src="src/assets/imagesGithub/home-mozo.jpeg" alt="Home Mozo" width="400" height="800">
   <img src="src/assets/imagesGithub/home-cocinero.jpeg" alt="Home Cocinero" width="400" height="800">
   <img src="src/assets/imagesGithub/home-bartender.jpeg" alt="Home Bartender" width="400" height="800">
   <img src="src/assets/imagesGithub/home-cliente-entrada.jpeg" alt="Home Cliente Entrada" width="400" height="800">
@@ -28,7 +28,8 @@
   <img src="src/assets/imagesGithub/home-cliente-1.jpeg" alt="Home Cliente 1" width="400" height="800">
   <img src="src/assets/imagesGithub/home-cliente-3.jpeg" alt="Home Cliente 3" width="400" height="800">
   <img src="src/assets/imagesGithub/home-cliente-4.jpeg" alt="Home Cliente 4" width="400" height="800">
-  <img src="src/assets/imagesGithub/alta-plato.jpeg" alt="Alta Plato" width="400" height="800">
+  <img src="src/assets/imagesGithub/alta-plato-1.jpeg" alt="Alta Plato 1" width="400" height="800">
+  <img src="src/assets/imagesGithub/alta-plato-2.jpeg" alt="Alta Plato 2" width="400" height="800">
   <img src="src/assets/imagesGithub/alta-mesa.jpeg" alt="Alta Mesa" width="400" height="800">
 </p>
 
@@ -46,7 +47,8 @@
   <img src="src/assets/imagesGithub/validacion-cuenta.jpeg" alt="Validacion Cuenta" width="400" height="800">
   <img src="src/assets/imagesGithub/error-login.jpeg" alt="Error Login" width="400" height="800">
   <img src="src/assets/imagesGithub/register.jpeg" alt="Register" width="400" height="800">
-  <img src="src/assets/imagesGithub/alta-empleado.jpeg" alt="Alta Empleado" width="400" height="800">
+  <img src="src/assets/imagesGithub/alta-empleado-1.jpeg" alt="Alta Empleado 1" width="400" height="800">
+  <img src="src/assets/imagesGithub/alta-empleado-2.jpeg" alt="Alta Empleado 2" width="400" height="800">
 </p>
 
 
@@ -57,8 +59,10 @@
 - Branch: avallone
 
 <p align="center">
-  <img src="src/assets/imagesGithub/alta-bebida.jpeg" alt="Alta Bebida" width="400" height="800">
-  <img src="src/assets/imagesGithub/alta-cliente-registrado.jpeg" alt="Alta Cliente Registrado" width="400" height="800">
+  <img src="src/assets/imagesGithub/alta-bebida-1.jpeg" alt="Alta Bebida 1" width="400" height="800">
+  <img src="src/assets/imagesGithub/alta-bebida-2.jpeg" alt="Alta Bebida 2" width="400" height="800">
+  <img src="src/assets/imagesGithub/alta-cliente-registrado-1.jpeg" alt="Alta Cliente Registrado 1" width="400" height="800">
+  <img src="src/assets/imagesGithub/alta-cliente-registrado-2.jpeg" alt="Alta Cliente Registrado 2" width="400" height="800">
   <img src="src/assets/imagesGithub/alta-cliente-anonimo.jpeg" alt="Alta Cliente Anonimo" width="400" height="800">
 </p>
 
@@ -121,7 +125,9 @@
 <p align="center">
   <img src="src/assets/imagesGithub/mozo-pedido.jpeg" alt="Mozo Pedido" width="400" height="800">
   <img src="src/assets/imagesGithub/mozo-validar.jpeg" alt="Mozo Validar" width="400" height="800">
-  <img src="src/assets/imagesGithub/mozo-entregar.jpeg" alt="Mozo Entregar" width="400" height="800">
+  <img src="src/assets/imagesGithub/mozo-entregar-1.jpeg" alt="Mozo Entregar 1" width="400" height="800">
+  <img src="src/assets/imagesGithub/mozo-entregar-2.jpeg" alt="Mozo Entregar 2" width="400" height="800">
+  <img src="src/assets/imagesGithub/mozo-menu.jpeg" alt="Mozo Menu" width="400" height="800">
   <img src="src/assets/imagesGithub/mozo-vacio.jpeg" alt="Mozo Vacio" width="400" height="800">
   <img src="src/assets/imagesGithub/encuestas.jpeg" alt="Encuestas" width="400" height="800">
   <img src="src/assets/imagesGithub/grafico-1.jpeg" alt="Graficos 1" width="400" height="800">
@@ -209,7 +215,15 @@
 - Fecha Final: 24/10/2025
 - Branch: avallone
 
-<p align="center">
-  <img src="src/assets/imagesGithub/login-google.jpeg" alt="Login Google" width="400" height="800">
-</p>
 
+## Responsabilidades (Sexta Semana) 🛠️
+* Panuccio
+- Objetivos: Puntos 27 - 28 - 29 - 30
+- Fecha Inicial: 24/10/2025
+- Fecha Final: 
+- Branch: panuccio/altas
+
+<p align="center">
+  <img src="src/assets/imagesGithub/delivery-1.jpeg" alt="Delivery 1" width="400" height="800">
+  <img src="src/assets/imagesGithub/delivery-mapa.jpeg" alt="Delivery Mapa" width="400" height="800">
+</p>

@@ -62,10 +62,16 @@
           }
       </div>
 
-      @if(faltanFotos > 0) { 
-        <div class="error">
-          <span class="fotos-hint">Faltan {{ faltanFotos }} foto(s) <br> Se necesitan 3 fotos</span>
-        </div>
+      @if(faltanFotos > 0) {
+        @if(faltanFotos === 1) {
+          <div class="error warning">
+            <span class="fotos-hint">Falta 1 foto<br>Se necesitan 3 fotos</span>
+          </div>
+        } @else {
+          <div class="error">
+            <span class="fotos-hint">Faltan {{ faltanFotos }} fotos<br>Se necesitan 3 fotos</span>
+          </div>
+        }
       }
 
       <ion-button class="btn-secondary" type="button" (click)="elegirFotos()">Tomar Fotos</ion-button>

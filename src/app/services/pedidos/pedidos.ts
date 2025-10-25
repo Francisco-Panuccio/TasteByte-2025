@@ -4,27 +4,32 @@ import { Pedido } from "src/app/interfaces/pedido";
 import { PedidoItem } from "src/app/interfaces/pedido-item";
 import { supabase } from "src/supabase.client";
 
+type ExtraDelivery = { delivery?: boolean; address?: string; lat?: number; lng?: number };
+
 @Injectable({ providedIn: "root" })
 export class Pedidos {
   async crearPedido(
-    mesaId: number,
+    mesaId: number | null,
     clienteUid: string,
     clienteEmail: string | null,
     items: PedidoItem[],
     total: number,
-    etaMin: number
+    etaMin: number,
+    extra?: { delivery?: boolean; address?: string; lat?: number; lng?: number }
   ): Promise<string> {
-    const uidOrNull = clienteUid && clienteUid.trim() !== "" ? clienteUid : null;
-
     const { data: ped, error } = await supabase
       .from("pedidos")
       .insert({
         mesa_id: mesaId,
-        cliente_uid: uidOrNull,
+        cliente_uid: clienteUid || null,
         cliente_email: clienteEmail,
         total,
         eta_minutos: etaMin,
-        estado: "pendiente"
+        estado: extra?.delivery ? "en_espera" : "pendiente",
+        tipo: extra?.delivery ? "delivery" : "mesa",
+        delivery_direccion: extra?.address ?? null,
+        delivery_lat: extra?.lat ?? null,
+        delivery_lng: extra?.lng ?? null
       })
       .select("id")
       .single();
@@ -52,7 +57,8 @@ export class Pedidos {
     items: PedidoItem[],
     total: number,
     etaMin: number,
-    nuevoEstado: Pedido["estado"] = "pendiente"
+    nuevoEstado: Pedido["estado"] = "pendiente",
+    extra?: ExtraDelivery
   ): Promise<void> {
     const { error: ei } = await supabase.from("pedido_items").delete().eq("pedido_id", pedidoId);
     if (ei) throw ei;
@@ -69,10 +75,22 @@ export class Pedidos {
     const { error: e2 } = await supabase.from("pedido_items").insert(rows);
     if (e2) throw e2;
 
-    const { error: e3 } = await supabase
-      .from("pedidos")
-      .update({ total, eta_minutos: etaMin, estado: nuevoEstado })
-      .eq("id", pedidoId);
+    const patch: any = { total, eta_minutos: etaMin, estado: nuevoEstado };
+    if (extra?.delivery !== undefined) {
+      patch.tipo = extra.delivery ? "delivery" : "mesa";
+      if (extra.delivery) {
+        patch.mesa_id = null;
+        patch.delivery_direccion = extra.address ?? null;
+        patch.delivery_lat = extra.lat ?? null;
+        patch.delivery_lng = extra.lng ?? null;
+      } else {
+        patch.delivery_direccion = null;
+        patch.delivery_lat = null;
+        patch.delivery_lng = null;
+      }
+    }
+
+    const { error: e3 } = await supabase.from("pedidos").update(patch).eq("id", pedidoId);
     if (e3) throw e3;
   }
 
@@ -103,7 +121,12 @@ export class Pedidos {
   async getPedido(id: string): Promise<{ ped: any; items: any[] }> {
     const { data: ped, error } = await supabase
       .from("pedidos")
-      .select("*, mesa:mesas!pedidos_mesa_id_fkey (numero)")
+      .select(`
+        id, estado, total, eta_minutos, created_at, tipo,
+        mesa_id,
+        delivery_direccion, delivery_lat, delivery_lng,
+        mesa:mesas(numero)
+      `)
       .eq("id", id)
       .maybeSingle();
     if (error) throw error;
@@ -119,28 +142,29 @@ export class Pedidos {
   }
 
   async getPedidoActivo(
-    opts: { mesaId?: number; clienteUid?: string; clienteEmail?: string },
+    opts: { mesaId?: number | null; delivery?: boolean; clienteUid?: string; clienteEmail?: string },
     includeRejected: boolean = false
   ): Promise<any | null> {
     const estados: Pedido["estado"][] = includeRejected
-      ? ["pendiente", "aceptado", "terminado", "rechazado"]
-      : ["pendiente", "aceptado", "terminado"];
+      ? ["pendiente", "aceptado", "terminado", "rechazado", "en_espera", "recibido"]
+      : ["pendiente", "aceptado", "terminado", "en_espera", "recibido"];
 
-    let q = supabase
+    let q: any = supabase
       .from("pedidos")
-      .select("id, mesa_id, estado, created_at")
+      .select("id, mesa_id, estado, created_at, tipo")
       .in("estado", estados)
       .order("created_at", { ascending: false })
       .limit(1);
 
-    if (opts.mesaId != null) q = q.eq("mesa_id", opts.mesaId);
+    if (opts.delivery) {
+      q = q.eq("tipo", "delivery").is("mesa_id", null);
+    } else if (opts.mesaId != null) {
+      q = q.eq("mesa_id", opts.mesaId).eq("tipo", "mesa");
+    }
 
     const uidOk = typeof opts.clienteUid === "string" && opts.clienteUid.trim() !== "";
-    if (opts.clienteEmail) {
-      q = q.eq("cliente_email", opts.clienteEmail);
-    } else if (uidOk) {
-      q = q.eq("cliente_uid", opts.clienteUid as string);
-    }
+    if (opts.clienteEmail) q = q.eq("cliente_email", opts.clienteEmail);
+    else if (uidOk) q = q.eq("cliente_uid", opts.clienteUid as string);
 
     const { data, error } = await q;
     if (error) throw error;
@@ -148,34 +172,36 @@ export class Pedidos {
   }
 
   async getUltimoRechazado(
-    opts: { mesaId?: number; clienteUid?: string; clienteEmail?: string }
+    opts: { mesaId?: number | null; delivery?: boolean; clienteUid?: string; clienteEmail?: string }
   ): Promise<string | null> {
-    let q = supabase
+    let q: any = supabase
       .from("pedidos")
-      .select("id, created_at")
+      .select("id, created_at, tipo")
       .eq("estado", "rechazado")
       .order("created_at", { ascending: false })
       .limit(1);
 
-    if (opts.mesaId != null) q = q.eq("mesa_id", opts.mesaId);
+    if (opts.delivery) {
+      q = q.eq("tipo", "delivery").is("mesa_id", null);
+    } else if (opts.mesaId != null) {
+      q = q.eq("mesa_id", opts.mesaId).eq("tipo", "mesa");
+    }
 
     const uidOk = typeof opts.clienteUid === "string" && opts.clienteUid.trim() !== "";
-    if (opts.clienteEmail) {
-      q = q.eq("cliente_email", opts.clienteEmail);
-    } else if (uidOk) {
-      q = q.eq("cliente_uid", opts.clienteUid as string);
-    }
+    if (opts.clienteEmail) q = q.eq("cliente_email", opts.clienteEmail);
+    else if (uidOk) q = q.eq("cliente_uid", opts.clienteUid as string);
 
     const { data, error } = await q;
     if (error) throw error;
     return (data && data[0]?.id) || null;
   }
 
-  async getPedidoAceptadoActual(mesaId: number, clienteUid: string | null, clienteEmail: string | null): Promise<string | null> {
+  async getPedidoAceptadoActual(mesaId: number, _clienteUid: string | null, _clienteEmail: string | null): Promise<string | null> {
     const { data, error } = await supabase
       .from("pedidos")
       .select("id")
       .eq("mesa_id", mesaId)
+      .eq("tipo", "mesa")
       .eq("estado", "aceptado")
       .order("created_at", { ascending: false })
       .limit(1);
@@ -212,12 +238,11 @@ export class Pedidos {
   async getPedidoActualPorEmail(email: string): Promise<{ ped: any; items: any[] }> {
     const { data, error } = await supabase
       .from("pedidos")
-      .select("id, total, estado, mesa_id, cliente_uid, cliente_email")
+      .select("id, total, estado, mesa_id, cliente_uid, cliente_email, tipo")
       .eq("cliente_email", email)
-      .in("estado", ["pendiente", "aceptado", "terminado", "recibido"])
+      .in("estado", ["pendiente", "aceptado", "terminado", "recibido", "en_espera"])
       .order("created_at", { ascending: false })
       .limit(1);
-
     if (error) throw error;
 
     const id = data?.[0]?.id as string | undefined;
@@ -226,22 +251,38 @@ export class Pedidos {
     return this.getPedido(id);
   }
 
-  async listar(estado?: Pedido["estado"]) {
-    const base = supabase
+  async listar(estado?: Pedido["estado"] | "impagado") {
+    let q: any = supabase
       .from("pedidos")
-      .select("id, mesa_id, total, eta_minutos, estado, created_at, mesa:mesas!pedidos_mesa_id_fkey (numero)")
+      .select(`
+      id, tipo, mesa_id,
+      delivery_direccion, delivery_lat, delivery_lng,
+      total, eta_minutos, estado, created_at
+    `)
       .order("created_at", { ascending: false });
 
-    const { data, error } = estado ? await base.eq("estado", estado) : await base;
+    if (estado === "impagado") {
+      q = q.eq("estado", "impagado");
+    } else if (estado) {
+      q = q.eq("estado", estado);
+    }
+
+    const { data, error } = await q;
     if (error) throw error;
-    return data;
+    return data ?? [];
   }
 
-  subscribeCambios(cb: (p: any) => void): RealtimeChannel {
-    return supabase
-      .channel("pedidos_all")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "pedidos" }, payload => cb(payload.new))
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "pedidos" }, payload => cb(payload.new))
+  subscribeCambios(cb: () => void): { unsubscribe: () => void } {
+    const ch = supabase
+      .channel("pedidos_mozo_live")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "pedidos", filter: "tipo=eq.mesa" }, () => cb())
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "pedidos", filter: "tipo=eq.mesa" }, () => cb())
+      .on("postgres_changes", { event: "DELETE", schema: "public", table: "pedidos", filter: "tipo=eq.mesa" }, () => cb())
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "pedidos", filter: "tipo=eq.delivery" }, () => cb())
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "pedidos", filter: "tipo=eq.delivery" }, () => cb())
+      .on("postgres_changes", { event: "DELETE", schema: "public", table: "pedidos", filter: "tipo=eq.delivery" }, () => cb())
       .subscribe();
+
+    return { unsubscribe: () => supabase.removeChannel(ch) };
   }
 }

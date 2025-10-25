@@ -79,6 +79,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   mostrarPedido = false;
   mostrarCuenta = false;
   qrMesaEscaneado = false;
+  anonClient = false;
 
   mesaAsignadaId: number | null = null;
   estadoPedido: string | null = null;
@@ -146,6 +147,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
 
       if (this.anonimoId) {
         this.myUserId = `anon-${this.anonimoId}`;
+        this.anonClient = true;
 
         const { data: anon } = await supabase
           .from('clientes_anonimos')
@@ -623,7 +625,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     }
 
     this.yaRegistrado = true;
-    this.mostrarToast('Te registraste correctamente en la lista de espera');
+    this.mostrarToast('Se registró correctamente en la lista de espera');
   }
 
   async registrarEncuesta(encuestaId: string) {

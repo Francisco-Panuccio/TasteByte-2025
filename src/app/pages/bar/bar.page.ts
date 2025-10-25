@@ -17,8 +17,8 @@ export class BarPage implements OnInit, OnDestroy {
   pedidos: Array<{
     id: string;
     pedido_id: string;
-    mesa_id: number;
-    mesa_numero: number;
+    mesa_id: number | null;
+    mesa_numero: number | null;
     creado_en: string;
     estado: "pendiente" | "terminado";
     items: any[];
@@ -27,20 +27,18 @@ export class BarPage implements OnInit, OnDestroy {
   }> = [];
 
   private channel?: ReturnType<typeof supabase.channel>;
-  loading: boolean = true;
+  loading = true;
 
   async ngOnInit() {
     await this.cargar();
 
     this.channel = supabase
       .channel("bar_pedidos_changes")
-      .on("postgres_changes", {
-        event: "*",
-        schema: "public",
-        table: "bar_pedidos"
-      }, () => {
-        this.cargar();
-      })
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "bar_pedidos" },
+        () => this.cargar()
+      )
       .subscribe();
 
     setTimeout(() => (this.loading = false), 500);
@@ -50,6 +48,10 @@ export class BarPage implements OnInit, OnDestroy {
     try {
       this.channel && supabase.removeChannel(this.channel);
     } catch { }
+  }
+
+  private etiquetaPedido(p?: { mesa_numero: number | null }) {
+    return p?.mesa_numero != null ? `la Mesa ${p.mesa_numero}` : "Delivery";
   }
 
   async cargar() {
@@ -63,27 +65,25 @@ export class BarPage implements OnInit, OnDestroy {
       if (error) throw error;
 
       this.pedidos = (data ?? []) as any[];
-
-    } catch (error) {
-      this.mostrarToast('Error al cargar los pedidos');
+    } catch {
+      this.mostrarToast("Error al cargar los pedidos");
     }
   }
 
   async terminar(id: string) {
     try {
-      const pedido = this.pedidos.find(p => p.id === id);
+      const pedido = this.pedidos.find((p) => p.id === id);
 
       const alert = await this.alertCtrl.create({
         cssClass: "alert-cocina",
-        header: 'Confirmar',
-        message: `¿Marcar como terminado el pedido de la Mesa ${pedido?.mesa_numero}?`,
+        header: "Confirmar",
+        message: `¿Marcar como terminado el pedido de ${this.etiquetaPedido(
+          pedido
+        )}?`,
         buttons: [
+          { text: "Cancelar", role: "cancel" },
           {
-            text: 'Cancelar',
-            role: 'cancel'
-          },
-          {
-            text: 'Terminar',
+            text: "Terminar",
             handler: async () => {
               await this.finalizarPedido(id);
             }
@@ -92,17 +92,16 @@ export class BarPage implements OnInit, OnDestroy {
       });
 
       await alert.present();
-
-    } catch (error) {
-      this.mostrarToast('Error al terminar el pedido');
+    } catch {
+      this.mostrarToast("Error al terminar el pedido");
     }
   }
 
   private async finalizarPedido(id: string) {
     try {
-      const pedido = this.pedidos.find(p => p.id === id);
+      const pedido = this.pedidos.find((p) => p.id === id);
       if (!pedido) {
-        this.mostrarToast('No se encontró el pedido.');
+        this.mostrarToast("No se encontró el pedido.");
         return;
       }
 
@@ -116,17 +115,15 @@ export class BarPage implements OnInit, OnDestroy {
 
       if (updateError) throw updateError;
 
-      console.log("🍹 Pedido del BAR marcado como terminado.");
-
       const { data: completo, error: checkError } = await supabase.rpc(
         "check_pedido_completo",
         { p_pedido_id: pedido.pedido_id }
       );
 
       if (checkError) {
-        console.error("Error al verificar si el pedido está completo:", checkError);
+        console.error("Error check_pedido_completo:", checkError);
       } else if (completo === true) {
-        console.log("Pedido completamente listo (todos los sectores terminaron).");
+        const etiqueta = this.etiquetaPedido(pedido);
 
         const { error: insertError } = await supabase
           .from("push_eventos")
@@ -134,48 +131,41 @@ export class BarPage implements OnInit, OnDestroy {
             tipo: "pedido_listo",
             pedido_id: pedido.pedido_id,
             mesa_id: pedido.mesa_id,
-            mensaje: `El pedido de la mesa ${pedido.mesa_numero} está listo ✅`
+            mensaje: `El pedido de ${etiqueta} está listo ✅`
           });
 
         if (insertError) {
           console.error("Error insertando push_eventos:", insertError);
-        } else {
-          console.log("Evento push_eventos insertado correctamente.");
         }
 
         try {
           await this.push.sendToRoles(
-            ['mozo'],
-            'Pedido completo ✅',
-            `El pedido de la mesa ${pedido.mesa_numero} está listo para entregar.`,
+            ["mozo"],
+            "Pedido completo ✅",
+            `El pedido de ${etiqueta} está listo para entregar.`,
             {
-              tipo: 'pedido_listo',
+              tipo: "pedido_listo",
               pedidoId: pedido.pedido_id,
               mesaId: pedido.mesa_id
             }
           );
-          console.log("Push enviada al mozo (pedido completo).");
         } catch (pushError) {
           console.error("Error enviando push al mozo:", pushError);
         }
-      } else {
-        console.log("Pedido aún no completo: falta otro sector (Cocina o Bar).");
       }
 
-      this.cargar();
+      await this.cargar();
       this.mostrarToast("Pedido marcado como terminado");
-
     } catch (error) {
       console.error(error);
       this.mostrarToast("Error al marcar el pedido como terminado");
     }
   }
 
-
   formatearHora(fecha: string): string {
-    return new Date(fecha).toLocaleTimeString('es-AR', {
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(fecha).toLocaleTimeString("es-AR", {
+      hour: "2-digit",
+      minute: "2-digit"
     });
   }
 
@@ -183,8 +173,8 @@ export class BarPage implements OnInit, OnDestroy {
     const toast = await this.toast.create({
       message: mensaje,
       duration: 2000,
-      cssClass: 'toast',
-      position: 'top'
+      cssClass: "toast",
+      position: "top"
     });
     toast.present();
   }
