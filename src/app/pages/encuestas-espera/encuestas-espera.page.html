@@ -21,9 +21,14 @@
 
     <div class="container">
       @if(!tienePermiso) {
-        <ion-button expand="block" class="btn_ingreso" (click)="escanearQr()">
+        <ion-button class="btn_ingreso" (click)="escanearQr()">
           Escanear QR de Ingreso
         </ion-button>
+        @if(!anonClient) {
+          <ion-button class="btn_juegos" routerLink="/delivery">
+            Delivery
+          </ion-button>
+        }
         <p class="texto_ingreso">
           Escanee el código QR del restaurante para habilitar todas las funciones.
         </p>

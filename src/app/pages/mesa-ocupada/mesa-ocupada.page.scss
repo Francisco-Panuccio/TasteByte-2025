@@ -474,16 +474,20 @@ ion-content.blocked {
 
 .carrito-item {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  justify-content: flex-start;
   align-items: center;
   border: 2px solid var(--color-text);
   border-radius: 10px 10px 0 0;
   background-color: var(--color-btn-secondary);
-  padding: 10px 14px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  width: 100%;
 
   .item-info {
     flex: 1;
+    width: 100%;
+    border-bottom: 2px solid var(--color-text);
+    padding: 10px;
 
     strong {
       display: block;
@@ -493,20 +497,31 @@ ion-content.blocked {
     }
 
     p {
-      margin: 4px 0 0 0;
+      margin: 8px 0 0 0;
       font-size: 18px;
       font-weight: 600;
     }
   }
 
   .item-detalle {
-    text-align: right;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 10px;
+    gap: 10px;
 
     span {
       display: block;
       font-size: 18px;
       font-weight: 600;
       color: var(--color-text);
+    }
+
+    .subtotal {
+      text-align: center;
+      width: 100%;
     }
   }
 }

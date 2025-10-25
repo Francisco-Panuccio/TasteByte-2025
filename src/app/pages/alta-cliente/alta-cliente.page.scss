@@ -30,6 +30,7 @@ ion-button {
   border-radius: 12px;
   font-weight: 600;
   height: 44px;
+  width: 260px;
 }
 
 .input-field {
@@ -99,16 +100,20 @@ form {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 55px;
-  height: 45px;
-  border-radius: 10px;
+  width: 280px;
+  height: 40px;
+  border-radius: 0 0 10px 10px;
   font-size: 20px;
-  background: var(--color-btn-primary);
-  margin-left: 12px;
+  background:
+    radial-gradient(circle 100px at 140px 20px,
+      rgba(255, 255, 255, .10) 0 60%,
+      rgba(255, 255, 255, 0) 61%),
+    var(--color-btn-primary);
   border: 1px solid var(--color-text);
+  margin: -10px 0 0 0;
 
   span {
-    transform: translateY(-3px);
+    transform: translateY(-2.5px);
   }
 }
 
@@ -126,4 +131,9 @@ form {
 
 .form-anon {
   margin: 28px 0 0 0;
+}
+
+.input-field-dni,
+.dni {
+  border-radius: 12px 12px 0 0 !important;
 }

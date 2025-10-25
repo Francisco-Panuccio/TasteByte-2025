@@ -73,27 +73,28 @@
             </div>
 
             <div class="div_dni_items">
-              <ion-item class="input-field-dni" lines="none">
+              <ion-item [class]="(formRegister.get('documentType')?.value ?? '').toString().toLowerCase() === 'dni' ? 'input-field-dni' : 'input-field-dni input-field-cuil'" lines="none">
                 <ion-input
-                  class="input"
+                  [class]="(formRegister.get('documentType')?.value ?? '').toString().toLowerCase() === 'dni' ? 'input input-dni' : 'input input-dni input-cuil'"
                   [placeholder]="formRegister.get('documentType')?.value === 'dni' ? 'Número de DNI' : 'Número de CUIL'"
                   inputmode="numeric"
                   formControlName="documentNumber">
                 </ion-input>
-                @if(formRegister.get('documentType')?.value === 'dni') {
-                  <button (click)="escanearDNI()" class="btn_scan" type="button">
-                    <span>📷</span>
-                  </button>
-                }
               </ion-item>
 
-              <ion-item class="input-select-dni" lines="none">
+              <ion-item [class]="(formRegister.get('documentType')?.value ?? '').toString().toLowerCase() === 'dni' ? 'input-select-dni' : 'input-select-dni input-select-cuil'" lines="none">
                 <ion-select formControlName="documentType" interface="popover" placeholder="Tipo de Documento" [interfaceOptions]="{ cssClass: 'dni-popover' }">
                   <ion-select-option value="dni">DNI</ion-select-option>
                   <ion-select-option value="cuil">CUIL</ion-select-option>
                 </ion-select>
               </ion-item>
             </div>
+            @if(formRegister.get('documentType')?.value === 'dni') {
+              <button (click)="escanearDNI()" class="btn_scan" type="button">
+                <span>📷</span>
+              </button>
+            }
+
             <div class="error">
               @if(formRegister.get("documentNumber")?.touched &&
                   (formRegister.get("documentNumber")?.hasError("required")
@@ -140,7 +141,7 @@
               Registrarse
             </ion-button>
             <ion-button expand="block" class="btn-tertiary" routerLink="/login">
-              Iniciar Sesión
+              Volver
             </ion-button>
           </form>
         </div>

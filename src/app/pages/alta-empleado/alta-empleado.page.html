@@ -31,10 +31,10 @@
         }
       </div>
 
-      <ion-item lines="none" class="input-field">
-        <ion-input class="input" type="text" placeholder="DNI" formControlName="dni"></ion-input>
-        <button (click)="escanearDNI()" class="btn_scan" type="button"><span>📷</span></button>
+      <ion-item lines="none" class="input-field input-field-dni">
+        <ion-input class="input dni" type="text" placeholder="DNI" formControlName="dni"></ion-input>
       </ion-item>
+      <button (click)="escanearDNI()" class="btn_scan" type="button"><span>📷</span></button>
       <div class="error">
         @if((formAltaEmpleado.get("dni")?.hasError("dni") ||
         formAltaEmpleado.get("dni")?.hasError("required")) &&

@@ -19,9 +19,10 @@
         </div>
 
         <div id="container">
-          <p routerLink="/alta-empleado">Alta Empleado</p>
-          <p routerLink="/alta-mesa">Alta <br> Mesas</p>
-          <p routerLink="/listado-clientes">Clientes Pendientes</p>
+          <p routerLink="/alta-empleado"><img src="assets/home/alta-empleado.png" alt="Alta Empleado"></p>
+          <p routerLink="/alta-mesa"><img src="assets/home/alta-mesa.png" alt="Alta Mesa"></p>
+          <p routerLink="/listado-clientes"><img src="assets/home/espera.png" alt="Clientes Pendientes"></p>
+          <p routerLink="/pedidos-delivery"><img src="assets/home/deliveries.png" alt="Deliveries Pendientes"></p>
         </div>
       </div>
     } @else if(isCocinero) {
@@ -43,8 +44,8 @@
         </div>
 
         <div id="container">
-          <p routerLink="/alta-plato">Alta <br> Platos</p>
-          <p routerLink="/cocina">Cocina</p>
+          <p routerLink="/alta-plato"><img src="assets/home/alta-plato.png" alt="Alta Plato"></p>
+          <p routerLink="/cocina"><img src="assets/home/cocina.png" alt="Cocina"></p>
         </div>
       </div>
     } @else if(isBartender) {
@@ -66,60 +67,38 @@
         </div>
 
       <div id="container">
-        <p routerLink="/alta-bebida">Alta <br> Bebidas</p>
-        <p routerLink="/bar">Bar</p>
+        <p routerLink="/alta-bebida"><img src="assets/home/alta-bebida.png" alt="Alta Bebida"></p>
+        <p routerLink="/bar"><img src="assets/home/bar.png" alt="Bar"></p>
       </div>
     </div>
   } @else if(isMaitre) {
-  <div class="div_main">
-    <div class="div_data">
-      <div class="two-items">
-        <p>Bienvenido</p>
-        <span>✉️ {{email}}</span>
-        <div><span class="span_profile">{{profile | titlecase}}</span></div>
-      </div>
-    </div>
-
-    <div class="div_container_photo">
-      <hr>
-      <div class="div_photo">
-        <img [src]="this.empleadoFoto">
-      </div>
-      <hr>
-    </div>
-
-    <div id="container">
-      <p routerLink="/alta-cliente">Alta <br> Clientes</p>
-      <p routerLink="/lista-espera"
-        [queryParams]="{ from: 'maitre' }"
-        routerDirection="forward">
-        Lista <br> De <br> Espera
-      </p>
-    </div>
-  </div>
-} @else {
-      <div class="div_main">
-        <div class="div_data">
-          <div>
-            <p>Bienvenido</p>
-            <span>✉️ {{email}}</span>
-            <div><span class="span_profile">{{profile | titlecase}}</span></div>
-          </div>
-        </div>
-
-        <div class="div_container_photo">
-          <hr>
-          <div class="div_photo">
-            <img [src]="this.empleadoFoto">
-          </div>
-          <hr>
-        </div>
-
-        <div id="container">
-          <p routerLink="/pedidos-mozo">Pedidos</p>
+    <div class="div_main">
+      <div class="div_data">
+        <div class="two-items">
+          <p>Bienvenido</p>
+          <span>✉️ {{email}}</span>
+          <div><span class="span_profile">{{profile | titlecase}}</span></div>
         </div>
       </div>
-    }
+
+      <div class="div_container_photo">
+        <hr>
+        <div class="div_photo">
+          <img [src]="this.empleadoFoto">
+        </div>
+        <hr>
+      </div>
+
+      <div id="container">
+        <p routerLink="/alta-cliente"><img src="assets/home/alta-cliente.png" alt="Alta Cliente"></p>
+        <p routerLink="/lista-espera"
+          [queryParams]="{ from: 'maitre' }"
+          routerDirection="forward">
+          <img src="assets/home/espera.png" alt="Lista de Espera">
+        </p>
+      </div>
+    </div>
+  }
   </ion-content>
 
   <footer>

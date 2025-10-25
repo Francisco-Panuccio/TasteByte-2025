@@ -52,11 +52,12 @@ ion-button {
   border-radius: 12px;
   font-weight: 600;
   height: 44px;
+  width: 210px;
 }
 
 .error {
   text-align: center;
-  color: var(--color-error);
+  color: var(--color-text);
   font-weight: 800;
   font-size: 17px;
   background-color: var(--color-btn-primary);
@@ -67,9 +68,10 @@ ion-button {
 
 .fotos {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   margin: 10px 0;
 
   .each {
@@ -78,7 +80,7 @@ ion-button {
     justify-content: center;
     align-items: center;
     background-color: rgba(0, 0, 0, 0.5);
-    border-radius: 0 0 12px 12px;
+    border-radius: 12px;
     border: 2px solid var(--color-text);
   }
 
@@ -86,14 +88,12 @@ ion-button {
     display: grid;
     align-items: start;
     justify-content: start;
-    gap: 8px;
-    width: 100px;
-    height: 100px;
+    width: 165px;
+    height: 150px;
 
     img {
-      width: 100px;
-      height: 100px;
-      aspect-ratio: 1;
+      width: 170px;
+      height: 150px;
       object-fit: cover;
     }
   }

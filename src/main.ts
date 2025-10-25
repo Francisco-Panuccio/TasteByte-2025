@@ -5,7 +5,7 @@ import { environment } from './environments/environment';
 import { enableProdMode } from '@angular/core';
 
 platformBrowserDynamic().bootstrapModule(AppModule)
-.catch(err => console.log(err));
+  .catch(err => console.log(err));
 
 defineCustomElements(window);
 if (environment.production) {

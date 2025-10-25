@@ -1,10 +1,4 @@
-import {
-  ChangeDetectorRef,
-  Component,
-  inject,
-  OnInit,
-  ViewChild,
-} from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit, ViewChild } from '@angular/core';
 import { IonContent, IonModal, ToastController } from '@ionic/angular';
 import { Chat } from 'src/app/services/chat/chat';
 import { ChatMessage } from 'src/app/interfaces/chat-message';
@@ -15,6 +9,7 @@ import { Push } from 'src/app/services/push/push';
 import { FacturaData, FacturaPage, ItemFactura } from '../factura/factura.page';
 import { Email } from 'src/app/services/email/email';
 import { Pdf } from 'src/app/services/pdf/pdf';
+import { Router } from '@angular/router';
 
 type Filtro =
   | 'pendiente'
@@ -46,6 +41,7 @@ export class PedidosMozoPage implements OnInit {
   private pdf = inject(Pdf);
   private email = inject(Email);
   private cdr = inject(ChangeDetectorRef);
+  private router = inject(Router);
 
   filtro: Filtro = 'pendiente';
   loading = true;
@@ -94,26 +90,14 @@ export class PedidosMozoPage implements OnInit {
 
     supabase
       .channel('bar_pedidos_realtime')
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'bar_pedidos' },
-        (payload) => {
-          console.log('📡 Cambio detectado en BAR:', payload);
-          this.cargar();
-        }
-      )
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bar_pedidos' }, () => this.cargar())
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'bar_pedidos' }, () => this.cargar())
       .subscribe();
 
     supabase
       .channel('cocina_pedidos_realtime')
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'cocina_pedidos' },
-        (payload) => {
-          console.log('📡 Cambio detectado en COCINA:', payload);
-          this.cargar();
-        }
-      )
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'cocina_pedidos' }, () => this.cargar())
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'cocina_pedidos' }, () => this.cargar())
       .subscribe();
 
     supabase
@@ -282,6 +266,19 @@ export class PedidosMozoPage implements OnInit {
           .single();
         const mesaId = ped?.mesa_id as number | undefined;
 
+        if (estado === 'aceptado') {
+          await this.crearTicketsAreas(pedidoId);
+
+          if (mesaId != null) {
+            const mesaNumero = this.mesasNum.get(mesaId);
+            await this.notificarAreasNuevoPedido({
+              id: pedidoId,
+              mesa_id: mesaId,
+              mesa_numero: mesaNumero,
+            });
+          }
+        }
+
         if (mesaId != null) {
           let tokens: string[] = [];
           const { data: chatRow } = await supabase
@@ -398,15 +395,6 @@ export class PedidosMozoPage implements OnInit {
               }
             }
           }
-
-          if (estado === 'aceptado') {
-            const mesaNumero = this.mesasNum.get(mesaId);
-            await this.notificarAreasNuevoPedido({
-              id: pedidoId,
-              mesa_id: mesaId,
-              mesa_numero: mesaNumero,
-            });
-          }
         }
       } catch (e) {
         console.warn('⚠️ Error interno en setEstado:', e);
@@ -416,12 +404,12 @@ export class PedidosMozoPage implements OnInit {
         estado === 'pagado'
           ? 'Pago validado'
           : estado === 'rechazado'
-          ? 'Pedido rechazado'
-          : estado === 'aceptado'
-          ? 'Pedido aceptado'
-          : estado === 'recibido'
-          ? 'Pedido entregado'
-          : 'Estado actualizado';
+            ? 'Pedido rechazado'
+            : estado === 'aceptado'
+              ? 'Pedido aceptado'
+              : estado === 'recibido'
+                ? 'Pedido entregado'
+                : 'Estado actualizado';
 
       (
         await this.toast.create({
@@ -435,6 +423,78 @@ export class PedidosMozoPage implements OnInit {
     } finally {
       this.busy = false;
     }
+  }
+
+  private async crearTicketsAreas(pedidoId: string) {
+    const { data: rows, error: eItems } = await supabase
+      .from('pedido_items')
+      .select('producto_id, nombre, cantidad, precio_unit, tipo')
+      .eq('pedido_id', pedidoId);
+    if (eItems) throw eItems;
+
+    const norm = (s: any) => String(s ?? '').toLowerCase().trim();
+    const cocinaRows = (rows ?? []).filter(r => ['plato', 'postre'].includes(norm((r as any).tipo)));
+    const barRows = (rows ?? []).filter(r => ['bebida'].includes(norm((r as any).tipo)));
+
+    const { data: pedRow, error: ePed } = await supabase
+      .from('pedidos')
+      .select('mesa_id')
+      .eq('id', pedidoId)
+      .maybeSingle();
+    if (ePed) throw ePed;
+
+    const mesa_id: number | null = (pedRow as any)?.mesa_id ?? null;
+
+    let mesa_numero: number | null = null;
+    if (mesa_id != null) {
+      const { data: mesaRow, error: eMesa } = await supabase
+        .from('mesas')
+        .select('numero')
+        .eq('id', mesa_id)
+        .maybeSingle();
+      if (eMesa) throw eMesa;
+      mesa_numero = (mesaRow as any)?.numero ?? null;
+    }
+
+    const build = (arr: any[]) => {
+      const items = arr.map(r => ({
+        producto_id: (r as any).producto_id,
+        nombre: (r as any).nombre,
+        cantidad: Number((r as any).cantidad ?? 0),
+        precio_unit: Number((r as any).precio_unit ?? 0),
+      }));
+      const cantidad = items.reduce((a, r) => a + r.cantidad, 0);
+      const total = items.reduce((a, r) => a + r.cantidad * r.precio_unit, 0);
+
+      return {
+        pedido_id: pedidoId,
+        mesa_id,
+        mesa_numero,
+        estado: 'pendiente',
+        items,
+        cantidad,
+        total,
+        creado_en: new Date().toISOString(),
+      };
+    };
+
+    const barUpsert = barRows.length
+      ? supabase
+        .from('bar_pedidos')
+        .upsert(build(barRows), { onConflict: 'pedido_id' })
+        .select()
+        .then(({ error }) => { if (error) throw error; })
+      : Promise.resolve();
+
+    const cocinaUpsert = cocinaRows.length
+      ? supabase
+        .from('cocina_pedidos')
+        .upsert(build(cocinaRows), { onConflict: 'pedido_id' })
+        .select()
+        .then(({ error }) => { if (error) throw error; })
+      : Promise.resolve();
+
+    await Promise.all([barUpsert, cocinaUpsert]);
   }
 
   canEliminar(p: any): boolean {
@@ -537,7 +597,7 @@ export class PedidosMozoPage implements OnInit {
   private scrollToBottom(ms: number = 200) {
     try {
       this.chatContent?.scrollToBottom(ms);
-    } catch {}
+    } catch { }
   }
 
   private scrollToBottomAfterRender() {
@@ -925,8 +985,8 @@ export class PedidosMozoPage implements OnInit {
         i.complete
           ? Promise.resolve()
           : new Promise((res) => {
-              i.onload = i.onerror = () => res(null);
-            })
+            i.onload = i.onerror = () => res(null);
+          })
       )
     );
   }
@@ -1003,7 +1063,7 @@ export class PedidosMozoPage implements OnInit {
             mesa: String(mesaNumero),
           }
         );
-      } catch {}
+      } catch { }
 
       return {
         valido: true,
@@ -1016,5 +1076,12 @@ export class PedidosMozoPage implements OnInit {
         mensaje: 'Error al verificar el estado del pedido',
       };
     }
+  }
+
+  async salir() {
+    try {
+      await supabase.auth.signOut();
+    } catch { }
+    this.router.navigate(['/login'], { replaceUrl: true });
   }
 }

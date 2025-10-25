@@ -123,7 +123,7 @@ export class ListadoClientesPage implements OnInit, OnDestroy {
       if (!cliente) throw new Error("Cliente no encontrado");
       await this.clientesSvc.aprobar(usuarioId);
       await this.emailSvc.enviarEmailPersonalizado(
-        "🎉¡Registro Aprobado!🎉",
+        "¡Registro Aprobado!",
         cliente.usuario.correo_electronico,
         "Bienvenido a TasteByte",
         `<p>Hola ${cliente.usuario.nombres + " " + cliente.usuario.apellidos}, su cuenta ya está activa.</p>
@@ -145,7 +145,7 @@ export class ListadoClientesPage implements OnInit, OnDestroy {
       if (!cliente) throw new Error("Cliente no encontrado");
       await this.clientesSvc.rechazar(usuarioId);
       await this.emailSvc.enviarEmailPersonalizado(
-        "❌¡Registro Rechazado!❌",
+        "¡Registro Rechazado!",
         cliente.usuario.correo_electronico,
         "Bienvenido a TasteByte",
         `<p>Hola ${cliente.usuario.nombres + " " + cliente.usuario.apellidos}, su cuenta fue rechazada.</p>

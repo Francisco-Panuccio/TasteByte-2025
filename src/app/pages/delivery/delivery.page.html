@@ -1,0 +1,61 @@
+@if(loading) {
+  <app-loading/>
+} @else {
+  <header>
+    <img src="assets/icon/cubiertos.png">
+    <title>Delivery</title>
+    <img src="assets/icon/cubiertos.png">
+  </header>
+
+  <ion-content class="ion-padding">
+    <ion-item class="input-field" lines="none">
+      <ion-input
+        class="input"
+        placeholder="Escriba su dirección..."
+        [(ngModel)]="address"
+        (ionBlur)="geocodeAddress()">
+      </ion-input>
+    </ion-item>
+
+    <div class="div_btns">
+      <ion-button class="btn-secondary" (click)="vaciar()">🗑️ Limpiar 🗑️</ion-button>
+      <ion-button class="btn-primary" (click)="geocodeAddress()">🔎 Buscar 🔍</ion-button>
+      <ion-button class="btn-primary" (click)="openMap()">🗺️ Elegir en el mapa 🗺️</ion-button>
+      <ion-button class="btn-tertiary" [disabled]="!address || lat==null || lng==null" (click)="confirmar()">
+        Confirmar dirección
+      </ion-button>
+    </div>
+
+    <div class="div_img">
+      <img src="assets/images/delivery-espera.jpg">
+    </div>
+
+    <ion-modal
+      [isOpen]="mapOpen"
+      (willPresent)="onModalWillPresent()"
+      (didDismiss)="mapOpen = false">
+      <ng-template>
+        <header>
+          <div>
+            <title>📍Ubicación📍</title>
+          </div>
+        </header>
+        <ion-content class="ion-padding">
+          <div #map class="map"></div>
+          <div class="modal-actions">
+            <ion-button class="btn-primary" (click)="confirmFromMap()">Usar esta ubicación</ion-button>
+            <ion-button class="btn-secondary" (click)="closeMap()">Cerrar</ion-button>
+          </div>
+        </ion-content>
+      </ng-template>
+    </ion-modal>
+  </ion-content>
+
+  <footer>
+    <hr>
+    <button class="btn_footer" routerLink="/encuestas-espera">
+      Volver
+    </button>
+    <hr>
+  </footer>
+}
