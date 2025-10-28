@@ -16,33 +16,77 @@ export class ListadoMesasPage implements OnInit {
   constructor(private modalCtrl: ModalController) { }
 
   async ngOnInit() {
-    this.loading = true;
+  this.loading = true;
 
-    const { data: mesas, error } = await supabase
+  try {
+
+    const { data: mesas, error: errMesas } = await supabase
       .from("mesas")
-      .select("id, numero, capacidad, tipo, qr_contenido");
+      .select("id, numero, capacidad, tipo, qr_contenido")
+      .order("numero", { ascending: true });
 
-    if (error) {
-      console.error("Error cargando mesas", error);
+    if (errMesas || !mesas) {
+      console.error("Error cargando mesas:", errMesas);
       this.mesas = [];
+      this.loading = false;
       return;
     }
 
-    const { data: ocupadas, error: errOcupadas } = await supabase
+    const { data: asignadas, error: errAsignadas } = await supabase
+      .from("asignaciones_mesa")
+      .select("mesa_id, estado")
+      .in("estado", ["pendiente", "asignada", "sentado"]);
+
+    const mesasAsignadasIds = (asignadas || [])
+      .map((a) => a.mesa_id)
+      .filter((id: number) => !!id);
+
+    const { data: lista, error: errLista } = await supabase
       .from("lista_espera")
       .select("mesa_id")
-      .not("estado", "eq", "finalizado");
+      .not("estado", "in", ["finalizado", "cancelado"]);
 
-    if (errOcupadas) {
-      console.error("Error cargando mesas ocupadas", errOcupadas);
-      this.mesas = mesas || [];
-      return;
-    }
+    const mesasListaIds = (lista || [])
+      .map((l) => l.mesa_id)
+      .filter((id: number) => !!id);
 
-    const mesasOcupadasIds = (ocupadas || []).map(o => o.mesa_id).filter((id: number) => !!id);
-    this.mesas = (mesas || []).filter(m => !mesasOcupadasIds.includes(m.id));
+    const { data: reservas, error: errReservas } = await supabase
+      .from("reservas")
+      .select("mesa_id, fecha_hora")
+      .eq("estado", "confirmada")
+      .not("mesa_id", "is", null);
+
+    if (errReservas) console.error("Error cargando reservas confirmadas:", errReservas);
+
+    const ahora = new Date();
+    const limite = new Date(ahora.getTime() + 45 * 60 * 1000);
+
+    const mesasReservadasIds = (reservas ?? [])
+      .filter((r) => {
+        const fecha = new Date(r.fecha_hora);
+        return fecha >= ahora && fecha <= limite;
+      })
+      .map((r) => r.mesa_id);
+
+    const mesasBloqueadas = [
+      ...new Set([
+        ...mesasAsignadasIds,
+        ...mesasListaIds,
+        ...mesasReservadasIds,
+      ]),
+    ];
+
+    this.mesas = (mesas || []).filter((m) => !mesasBloqueadas.includes(m.id));
+
+  } catch (err) {
+    console.error("Error general al cargar mesas:", err);
+    this.mesas = [];
+  } finally {
     setTimeout(() => (this.loading = false), 2000);
   }
+}
+
+
 
   private async mostrarToast(message: string): Promise<void> {
     const t = await this.toast.create({

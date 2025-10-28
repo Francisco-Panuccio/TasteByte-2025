@@ -1,0 +1,270 @@
+import { Component, OnInit, inject } from '@angular/core';
+import { supabase } from 'src/supabase.client';
+import { Push } from 'src/app/services/push/push';
+import { Email } from 'src/app/services/email/email';
+import {
+  ModalController,
+  ToastController,
+  AlertController,
+} from '@ionic/angular';
+import { ListadoMesasPage } from '../listado-mesas/listado-mesas.page'; 
+import { Router } from '@angular/router';
+
+@Component({
+  selector: 'app-reservas-admin',
+  templateUrl: './reservas-admin.page.html',
+  styleUrls: ['./reservas-admin.page.scss'],
+  standalone: false,
+})
+export class ReservasAdminPage implements OnInit {
+  reservas: any[] = [];
+  loading = true;
+
+  private push = inject(Push);
+  private email = inject(Email);
+  private toast = inject(ToastController);
+  private alert = inject(AlertController);
+  private modalCtrl = inject(ModalController);
+  private router = inject(Router);
+
+  async ngOnInit() {
+    await this.cargarReservas();
+  }
+
+  async cargarReservas() {
+    this.loading = true;
+    const { data, error } = await supabase
+      .from('reservas')
+      .select(
+        `
+        id,
+        fecha_hora,
+        invitados,
+        estado,
+        motivo_rechazo,
+        mesa_id,
+        usuarios (id, correo_electronico, nombres, apellidos)
+      `
+      )
+      .order('fecha_hora', { ascending: true });
+
+    if (error) console.error('Error cargando reservas:', error);
+    this.reservas = data ?? [];
+    this.loading = false;
+  }
+
+  getFechaLocal(f: string) {
+    return new Date(f).toLocaleString('es-AR', {
+      dateStyle: 'short',
+      timeStyle: 'short',
+    });
+  }
+
+  async confirmar(r: any) {
+    try {
+      const { id, usuarios } = r;
+      const emailUsuario = usuarios?.correo_electronico;
+
+      const modal = await this.modalCtrl.create({
+        component: ListadoMesasPage,
+        cssClass: 'modal-mesas',
+      });
+      await modal.present();
+
+      const { data: mesaSeleccionada } = await modal.onDidDismiss();
+      if (!mesaSeleccionada) return;
+
+      const { data: user, error: errUser } = await supabase
+        .from('usuarios')
+        .select('id')
+        .eq('correo_electronico', emailUsuario)
+        .maybeSingle();
+
+      if (errUser || !user?.id) {
+        console.error(
+          '❌ No se encontró el usuario en tabla usuarios',
+          errUser
+        );
+        (
+          await this.toast.create({
+            message: 'No se encontró el usuario registrado.',
+            duration: 2000,
+            position: 'top',
+            cssClass: 'toast-error',
+          })
+        ).present();
+        return;
+      }
+
+      const { data: cliente, error: errCliente } = await supabase
+        .from('clientes')
+        .select('id')
+        .eq('usuario_id', user.id)
+        .maybeSingle();
+
+      if (errCliente || !cliente?.id) {
+        console.error(
+          '❌ No se encontró el cliente asociado al usuario',
+          errCliente
+        );
+        (
+          await this.toast.create({
+            message: 'No se encontró el cliente asociado a este usuario.',
+            duration: 2000,
+            position: 'top',
+            cssClass: 'toast-error',
+          })
+        ).present();
+        return;
+      }
+
+      const clienteId = cliente.id; 
+
+      const { error: errRes } = await supabase
+        .from('reservas')
+        .update({
+          estado: 'confirmada',
+          motivo_rechazo: null,
+          mesa_id: mesaSeleccionada.id,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id);
+
+      if (errRes) {
+        console.error('❌ Error al actualizar reserva:', errRes);
+        return;
+      }
+
+      await this.push.sendToRoles(
+        ['cliente'],
+        'Reserva confirmada',
+        `Tu reserva para el ${this.getFechaLocal(
+          r.fecha_hora
+        )} fue confirmada.`,
+        {
+          tipo: 'reserva_confirmada',
+          reservaId: id,
+          mesaId: mesaSeleccionada.id,
+        }
+      );
+
+      if (emailUsuario) {
+        const nombre = `${usuarios.nombres ?? ''} ${
+          usuarios.apellidos ?? ''
+        }`.trim();
+        await this.email.enviarEmailPersonalizado(
+          'ReservaConfirmada',
+          emailUsuario,
+          'Reserva Confirmada - TasteByte',
+          `
+        <p>Hola <b>${nombre || 'Cliente'}</b>,</p>
+        <p>Tu reserva para el <b>${this.getFechaLocal(
+          r.fecha_hora
+        )}</b> fue <b>confirmada</b>.</p>
+        <p>Se te asignó la mesa N° <b>${mesaSeleccionada.numero}</b>.</p>
+        <p>¡Te esperamos! 🍽️</p>
+        `,
+          'Reserva Confirmada'
+        );
+      }
+
+      (
+        await this.toast.create({
+          message: `Reserva confirmada y asignada a mesa ${mesaSeleccionada.numero}.`,
+          duration: 2000,
+          position: 'bottom',
+          cssClass: 'toast-confirmado',
+        })
+      ).present();
+
+      await this.cargarReservas();
+    } catch (err) {
+      console.error('❌ Error en confirmar():', err);
+      (
+        await this.toast.create({
+          message: 'Ocurrió un error al confirmar la reserva.',
+          duration: 2000,
+          position: 'top',
+          cssClass: 'toast-error',
+        })
+      ).present();
+    }
+  }
+
+  async rechazar(r: any) {
+    const prompt = await this.alert.create({
+      header: 'Motivo del rechazo',
+      inputs: [
+        {
+          type: 'textarea',
+          name: 'motivo',
+          placeholder: 'Escriba el motivo...',
+        },
+      ],
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Rechazar',
+          role: 'confirm',
+          handler: async (data) => {
+            const motivo = (data.motivo || '').trim();
+            if (!motivo) return;
+
+            await supabase
+              .from('reservas')
+              .update({ estado: 'rechazada', motivo_rechazo: motivo })
+              .eq('id', r.id);
+
+            const email = r.usuarios?.correo_electronico;
+            if (email) {
+              const nombre =
+                `${r.usuarios.nombres} ${r.usuarios.apellidos}`.trim();
+              await this.email.enviarEmailPersonalizado(
+                'ReservaRechazada',
+                email,
+                'Reserva Rechazada - TasteByte',
+                `
+                <p>Hola <b>${nombre}</b>,</p>
+                <p>Lamentamos informarte que tu reserva para el <b>${this.getFechaLocal(
+                  r.fecha_hora
+                )}</b> fue <b>rechazada</b>.</p>
+                <p><b>Motivo:</b> ${motivo}</p>
+                <p>Podés intentar en otro horario o comunicarte con nosotros.</p>
+                `,
+                'Reserva Rechazada'
+              );
+            }
+
+            await this.push.sendToRoles(
+              ['cliente'],
+              'Reserva rechazada',
+              `Tu reserva fue rechazada: ${motivo}`,
+              { tipo: 'reserva_rechazada', reservaId: r.id }
+            );
+
+            (
+              await this.toast.create({
+                message: 'Reserva rechazada y correo enviado.',
+                duration: 2000,
+                position: 'bottom',
+                cssClass: 'toast-rechazada',
+              })
+            ).present();
+
+            await this.cargarReservas();
+          },
+        },
+      ],
+    });
+
+    await prompt.present();
+  }
+
+  volver() {
+  this.router.navigate(['/home'], {
+    replaceUrl: true,
+  });
+}
+
+
+}
