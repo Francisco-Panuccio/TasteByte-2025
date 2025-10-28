@@ -1,0 +1,81 @@
+
+<header>
+  <img src="assets/icon/cubiertos.png" />
+  <title>Reservas</title>
+  <img src="assets/icon/cubiertos.png" />
+</header>
+
+<ion-content>
+  <div class="div_main">
+    <div class="div_data">
+      <div class="div_photo">
+        <img [src]="this.clienteFoto" />
+      </div>
+      <div>
+        <span>{{ nombreCliente }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <h2 class="titulo">🗓️ Crear nueva reserva</h2>
+
+    <form class="form_reserva" (ngSubmit)="crearReserva()">
+      <div class="campo">
+        <label>Fecha y hora</label>
+        <ion-datetime
+          display-format="dd/MM/yyyy HH:mm"
+          presentation="date-time"
+          [(ngModel)]="fechaSeleccionada"
+          name="fecha"
+          required
+        ></ion-datetime>
+      </div>
+
+      <div class="campo">
+        <label>Cantidad de invitados</label>
+        <ion-input
+          type="number"
+          min="1"
+          max="10"
+          [(ngModel)]="invitados"
+          name="invitados"
+        ></ion-input>
+      </div>
+
+      <ion-button expand="block" type="submit" class="btn_confirmar">
+        Confirmar Reserva
+      </ion-button>
+    </form>
+
+    <hr />
+
+    <h2 class="titulo">📋 Mis reservas</h2>
+
+    <div *ngIf="reservas.length === 0" class="sin-reservas">
+      <p>No tienes reservas registradas aún.</p>
+    </div>
+
+    <div class="lista-reservas" *ngIf="reservas.length > 0">
+      <div class="reserva-card" *ngFor="let r of reservas">
+        <p><strong>Fecha:</strong> {{ r.fecha_hora | date:'dd/MM/yyyy HH:mm' }}</p>
+        <p><strong>Invitados:</strong> {{ r.invitados }}</p>
+        <p>
+          <strong>Estado:</strong>
+          <span [ngClass]="r.estado">{{ r.estado | titlecase }}</span>
+        </p>
+        <p *ngIf="r.motivo_rechazo">
+          <strong>Motivo rechazo:</strong> {{ r.motivo_rechazo }}
+        </p>
+      </div>
+    </div>
+  </div>
+</ion-content>
+
+<footer>
+  <hr />
+  <button class="btn_footer" (click)="volver()">Volver</button>
+  <hr />
+</footer>
+
