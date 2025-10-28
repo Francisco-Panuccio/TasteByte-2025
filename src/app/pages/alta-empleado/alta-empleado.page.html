@@ -88,11 +88,16 @@
       </div>
 
       <ion-item lines="none" class="input-field">
-        <ion-select class="input" interface="action-sheet" placeholder="Seleccioná perfil" formControlName="perfil" [interfaceOptions]="{ cssClass: 'action-sheet-form' }">
+        <ion-select class="input" 
+        interface="action-sheet" 
+        placeholder="Seleccioná perfil" 
+        formControlName="perfil" 
+        [interfaceOptions]="{ cssClass: 'action-sheet-form' }">
           <ion-select-option value="maitre">Maître</ion-select-option>
           <ion-select-option value="mozo">Mozo</ion-select-option>
           <ion-select-option value="cocinero">Cocinero</ion-select-option>
           <ion-select-option value="bartender">Bartender</ion-select-option>
+          <ion-select-option value="delivery">Delivery</ion-select-option>
         </ion-select>
       </ion-item>
       <div class="error">

@@ -46,7 +46,7 @@ export class LoginPage implements OnInit {
   private perfilToRole(perfil?: string): string | undefined {
     const p = (perfil ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
     if (p === "dueno") return "dueño";
-    if (["supervisor", "maitre", "mozo", "bartender", "cocinero"].includes(p)) return p;
+    if (["supervisor", "maitre", "mozo", "bartender", "cocinero", "delivery"].includes(p)) return p;
     if (p === "cliente_registrado" || p === "cliente_anonimo") return "cliente";
     return undefined;
   }
@@ -204,8 +204,11 @@ export class LoginPage implements OnInit {
   }
 
   private async redirectByPerfil(perfil?: string): Promise<void> {
-    if (perfil?.toLowerCase() === "mozo") {
+    const p = (perfil ?? "").toLowerCase();
+    if (p === "mozo") {
       await this.router.navigateByUrl("/pedidos-mozo", { replaceUrl: true });
+    } else if (p === "delivery") {
+      await this.router.navigateByUrl("/listado-delivery", { replaceUrl: true });
     } else {
       await this.router.navigateByUrl("/home", { replaceUrl: true });
     }

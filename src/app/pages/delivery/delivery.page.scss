@@ -27,6 +27,10 @@ ion-input {
   font-size: 20px;
 }
 
+.div_encuestas {
+  margin: 0 0 16px 0;
+}
+
 .input-field {
   --border-width: 0;
   --padding-start: 0;
@@ -51,8 +55,8 @@ ion-input {
   justify-content: center;
   align-items: center;
   margin: 20px auto 4px auto;
-  width: 250px;
-  height: 210px;
+  width: 200px;
+  height: 150px;
   border-radius: 50%;
   border: 2px solid var(--color-text);
 
@@ -60,6 +64,6 @@ ion-input {
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    object-fit: cover;
+    object-fit: fill;
   }
 }

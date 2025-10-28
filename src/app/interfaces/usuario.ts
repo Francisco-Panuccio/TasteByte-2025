@@ -1,5 +1,5 @@
 export interface Usuario {
-  id: number;   // antes: string
+  id: number;
   apellidos: string;
   nombres: string;
   numero_documento: number | null;

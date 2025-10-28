@@ -1,0 +1,213 @@
+title {
+  width: 180px;
+}
+
+.vacio {
+  text-align: center;
+  color: var(--color-text);
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+
+  p {
+    font-size: 30px;
+    margin: 0 0 20px 0;
+  }
+
+  .div_img {
+    margin: auto;
+    width: 80%;
+    height: 400px;
+    border-radius: 12px;
+    border: 2px solid var(--color-text);
+    box-shadow: 4px -4px 15px 0px #082cf9, 12px -11px 7px 0px #1e3ffd, 20px -5px 7px 0px #3855f7, 20px 6px 7px 0px #6279fc, 13px 12px 17px 0px #aebaff, 2px 17px 17px 0px #082cf9, -9px 21px 18px 0px #1e3ffd, -9px 6px 11px 0px #3855f7, -11px -9px 11px 0px #aebaff, -11px -9px 11px 0px #c2caf7, 5px 5px 15px 5px rgba(0, 0, 0, 0);
+
+    img {
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+    }
+  }
+}
+
+.div_pedidos {
+  border: 2px solid var(--color-text);
+  border-radius: 12px;
+  padding: 10px;
+  background-color: var(--color-btn-primary);
+}
+
+.div_mapa {
+  width: 100%;
+  height: 40vh;
+  border: 2px solid var(--color-text);
+  border-radius: 12px;
+}
+
+.div_data_pedido {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-self: center;
+  gap: 10px;
+  margin: 10px 0;
+
+  p {
+    font-size: 20px;
+    color: var(--color-text);
+    font-weight: 600;
+    margin: 0;
+    text-align: center;
+  }
+}
+
+.div_btn {
+  width: 100%;
+
+  .btn-secondary {
+    width: 100% !important;
+    padding: 0 10px !important;
+    height: 48px;
+    font-size: 22px;
+    border: 1px solid var(--color-text);
+  }
+}
+
+// Estilos del Chat
+
+.header-chat {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+
+  div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+  }
+
+  button {
+    width: 100%;
+    height: 40px;
+    background-color: var(--color-btn-primary);
+    color: var(--color-text);
+    border-top: 2px solid var(--color-text);
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+}
+
+.chat {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+}
+
+.msg {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.msg.mine {
+  justify-content: flex-end;
+}
+
+.cliente-msg .bubble {
+  max-width: 80%;
+  color: var(--color-text);
+  border: 2px solid var(--color-black);
+  border-radius: 16px;
+  padding: 8px 10px;
+  background: var(--color-btn-secondary);
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.mozo-msg .bubble {
+  max-width: 80%;
+  border: 2px solid var(--color-black);
+  border-radius: 16px;
+  padding: 8px 10px;
+  color: var(--color-text);
+  background: var(--color-input);
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.body {
+  white-space: pre-wrap;
+  word-break: break-word;
+  text-align: start;
+}
+
+.cliente-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--color-black);
+  font-size: 14px;
+  margin-top: 5px;
+  font-weight: 600;
+}
+
+.mozo-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--color-black);
+  font-size: 14px;
+  margin-top: 5px;
+  font-weight: 600;
+}
+
+.chat .meta {
+  font-size: 0.75rem;
+  color: var(--color-text);
+  margin-top: 4px;
+  text-align: right;
+}
+
+ion-content.ion-content-chat {
+  --background: var(--color-background);
+  --padding-bottom: calc(60px + var(--ion-safe-area-bottom) + var(--kb, 0px));
+  overflow: scroll;
+}
+
+.composer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  background: var(--color-btn-primary);
+  border-top: 2px solid var(--color-text);
+  padding: 6px 8px;
+  padding-bottom: max(6px, calc(6px + var(--ion-safe-area-bottom)));
+
+  ion-input {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  ion-button {
+    --background: var(--color-text);
+    color: var(--color-btn-primary);
+    border: 2px solid var(--color-btn-primary);
+    --border-radius: 16px;
+    border-radius: 16px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+}
+
+ion-item::part(native) {
+  --background: transparent;
+  background-color: transparent;
+  width: 100%;
+}

@@ -20,6 +20,7 @@ type Role =
   | 'dueño'
   | 'supervisor'
   | 'maitre'
+  | 'delivery'
   | 'cocinero'
   | 'bartender';
 

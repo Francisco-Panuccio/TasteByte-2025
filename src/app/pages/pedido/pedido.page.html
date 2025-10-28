@@ -45,7 +45,7 @@
               </ion-item>
             }
 
-            @if(ped?.estado === 'recibido') {
+            @if(ped?.estado === 'recibido' && ped?.tipo !== 'delivery') {
               <div class="div_btn_recibido">
                   <ion-button class="btn-tertiary" (click)="confirmarRecibido();" [disabled]="verificando">
                   Terminar Pedido

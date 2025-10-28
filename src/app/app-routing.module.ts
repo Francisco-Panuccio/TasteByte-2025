@@ -118,6 +118,10 @@ const routes: Routes = [
     path: 'reservas-admin',
     loadChildren: () => import('./pages/reservas-admin/reservas-admin.module').then( m => m.ReservasAdminPageModule)
   },
+  {
+    path: 'listado-delivery',
+    loadChildren: () => import('./pages/listado-delivery/listado-delivery.module').then( m => m.ListadoDeliveryPageModule)
+  },
 
 
 

@@ -8,6 +8,10 @@
   </header>
 
   <ion-content class="ion-padding">
+    <div class="div_encuestas">
+      <ion-button class="btn-tertiary" routerLink="/encuestas" [queryParams]="{ from: 'delivery' }">Encuestas Generales</ion-button>
+    </div>
+
     <ion-item class="input-field" lines="none">
       <ion-input
         class="input"
