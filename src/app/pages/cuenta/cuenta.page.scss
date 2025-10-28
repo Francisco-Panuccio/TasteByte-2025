@@ -45,22 +45,24 @@ ion-card-content {
   align-items: center;
   gap: 10px;
   margin: 10px 0;
+  width: 100%;
 
   .item {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
     gap: 20px;
     background-color: var(--color-input);
     border-radius: 10px;
     padding: 5px;
     border: 2px solid var(--color-text);
+    width: 100%;
 
     .data {
       display: flex;
       flex-direction: column;
       justify-content: center;
-      align-items: center;
+      align-items: self-start;
       padding-left: 5px;
 
       p {
@@ -76,6 +78,7 @@ ion-card-content {
       align-items: center;
       border-left: 2px solid var(--color-text);
       padding: 0 5px 0 15px;
+      width: 80px;
 
       p {
         font-size: 16px;

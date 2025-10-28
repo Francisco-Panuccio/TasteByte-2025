@@ -15,7 +15,7 @@ import { Motion, OrientationListenerEvent } from '@capacitor/motion';
 
 type Tab = 'platos' | 'bebidas' | 'postres';
 type AddItem = { id: number; nombre: string; precio: number; duracionMin: number; tipo: 'plato' | 'bebida' | 'postre' };
-type Estado = 'pendiente' | 'aceptado' | 'rechazado' | 'terminado';
+type Estado = 'pendiente' | 'aceptado' | 'rechazado' | 'recibido' | 'terminado';
 type PedidoRow = { id: string; estado: Estado; mesa_id: number | null };
 
 @Component({
@@ -388,7 +388,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
 
   private applyEstado(raw: any) {
     const norm = (raw ?? '').toString().trim().toLowerCase();
-    const ok = ['pendiente', 'aceptado', 'rechazado', 'terminado'] as const;
+    const ok = ['pendiente', 'aceptado', 'rechazado', "recibido", 'terminado'] as const;
     this.estadoPedido = (ok as readonly string[]).includes(norm) ? (norm as Estado) : null;
     this.updateBanner();
   }
@@ -462,6 +462,13 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
       this.pedidoActualId = activoDb.id;
       this.applyEstado(activoDb.estado);
       await this.cargarItemsDePedido(this.pedidoActualId);
+      this.unsubEstado?.();
+      this.unsubEstado = this.pedidos.onEstadoPedido(this.pedidoActualId, (e: any) => {
+        this.zone.run(() => {
+          this.applyEstado(e);
+          if (this.estadoPedido === "recibido" && this.deliveryFlag) this.gotoEncuestasEspera();
+        });
+      });
       return;
     }
 
@@ -708,6 +715,8 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
               cssClass: 'toast',
               duration: 1200,
             })).present();
+          } else if (this.estadoPedido === "recibido" && this.deliveryFlag) {
+            this.gotoEncuestasEspera();
           }
         });
       });
@@ -756,7 +765,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private buildEncuestaQuery(): any {
-    if(!this.deliveryFlag) {
+    if (!this.deliveryFlag) {
       const q: any = {};
       if (this.anonimoId) q.anonimoId = this.anonimoId;
       if (this.usuarioId !== null) q.usuarioId = this.usuarioId;

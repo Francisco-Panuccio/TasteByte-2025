@@ -54,18 +54,20 @@ export class DeliveryPage implements OnInit {
     }
   }
 
-  private async redirigirSiTieneDeliveryActivo(user: { id?: string; email?: string } | null): Promise<void> {
+  private async redirigirSiTieneDeliveryActivo(
+    user: { id?: string; email?: string } | null
+  ): Promise<void> {
     try {
-      let q: any = supabase
+      let q = supabase
         .from("pedidos")
-        .select("id, estado, tipo, delivery_direccion, delivery_lat, delivery_lng")
+        .select("id, estado, tipo, delivery_direccion, delivery_lat, delivery_lng, created_at")
         .eq("tipo", "delivery")
-        .in("estado", ["en_espera", "pendiente", "aceptado"])
         .order("created_at", { ascending: false })
         .limit(1);
 
       if (user?.email) q = q.eq("cliente_email", user.email);
       else if (user?.id) q = q.eq("cliente_uid", user.id);
+      else return;
 
       const { data, error } = await q;
       if (error) return;
@@ -73,15 +75,22 @@ export class DeliveryPage implements OnInit {
       const p = data?.[0];
       if (!p) return;
 
-      this.router.navigate(["/mesa-ocupada"], {
-        queryParams: {
-          delivery: true,
-          address: p.delivery_direccion ?? "",
-          lat: p.delivery_lat ?? "",
-          lng: p.delivery_lng ?? ""
-        },
-        replaceUrl: true
-      });
+      if (["recibido", "terminado", "impagado"].includes(p.estado)) {
+        this.router.navigate(["/encuestas-espera"], { replaceUrl: true });
+        return;
+      }
+
+      if (["en_espera", "pendiente", "aceptado"].includes(p.estado)) {
+        this.router.navigate(["/mesa-ocupada"], {
+          queryParams: {
+            delivery: true,
+            address: p.delivery_direccion ?? "",
+            lat: p.delivery_lat ?? "",
+            lng: p.delivery_lng ?? ""
+          },
+          replaceUrl: true
+        });
+      }
     } catch { }
   }
 

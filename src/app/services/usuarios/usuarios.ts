@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
-import { supabase } from '../../../supabase.client';
-import { Usuario } from '../../interfaces/usuario';
-import { User } from 'src/app/classes/user';
+import { Injectable } from "@angular/core";
+import { supabase } from "../../../supabase.client";
+import { Usuario } from "../../interfaces/usuario";
+import { User } from "src/app/classes/user";
 
 type Perfil =
   | "cliente_registrado"
@@ -11,7 +11,8 @@ type Perfil =
   | "maitre"
   | "mozo"
   | "bartender"
-  | "cocinero";
+  | "cocinero"
+  | "delivery";
 
 function canonPerfil(p: string): Perfil | undefined {
   const s = (p || "")
@@ -21,22 +22,23 @@ function canonPerfil(p: string): Perfil | undefined {
   if (s === "cliente_anonimo") return "cliente_anonimo";
   if (s === "dueno") return "dueño";
   if (s === "supervisor") return "supervisor";
-  if (s === "maitre" || s === "maitre") return "maitre";
+  if (s === "maitre") return "maitre";
   if (s === "mozo") return "mozo";
   if (s === "bartender" || s === "bar") return "bartender";
   if (s === "cocinero" || s === "cocina") return "cocinero";
+  if (s === "delivery" || s === "repartidor" || s === "cadete" || s === "mensajero") return "delivery";
   return undefined;
 }
 
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
 export class Usuarios {
   private table = "usuarios";
 
   async list(): Promise<Usuario[]> {
     const { data, error } = await supabase
       .from(this.table)
-      .select('*')
-      .order('apellidos', { ascending: true });
+      .select("*")
+      .order("apellidos", { ascending: true });
     if (error) throw error;
     return data ?? [];
   }

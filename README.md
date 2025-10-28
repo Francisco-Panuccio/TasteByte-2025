@@ -220,10 +220,16 @@
 * Panuccio
 - Objetivos: Puntos 27 - 28 - 29 - 30
 - Fecha Inicial: 24/10/2025
-- Fecha Final: 
+- Fecha Final: 28/10/2025
 - Branch: panuccio/altas
 
 <p align="center">
   <img src="src/assets/imagesGithub/delivery-1.jpeg" alt="Delivery 1" width="400" height="800">
   <img src="src/assets/imagesGithub/delivery-mapa.jpeg" alt="Delivery Mapa" width="400" height="800">
 </p>
+
+* Roman
+- Objetivos: Puntos 24 - 25 - 26
+- Fecha Inicial: 25/10/2025
+- Fecha Final: 28/10/2025
+- Branch: roman

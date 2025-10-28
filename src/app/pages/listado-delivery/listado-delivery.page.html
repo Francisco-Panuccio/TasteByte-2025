@@ -1,0 +1,89 @@
+@if(loading) {
+  <app-loading/>
+} @else {
+  <header>
+    <img src="assets/icon/cubiertos.png">
+    <title>Listado Delivery</title>
+    <img src="assets/icon/cubiertos.png">
+  </header>
+
+  <ion-content class="ion-padding">
+    <div class="div_container" *ngIf="pedidos.length">
+      <div class="div_pedidos" *ngFor="let p of pedidos">
+        <div #map class="div_mapa"></div>
+
+        <div class="div_data_pedido">
+          <p>📦 Para: {{ nombreCompleto }}</p>
+          <p>🗓️ {{ p.created_at | date:'short' }}</p>
+        </div>
+
+        <div class="div_btn">
+          <button class="btn-secondary" (click)="terminarPedido(p.id)">Terminar Pedido</button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="!loading && !pedidos.length" class="vacio">
+      <p>Sin pedidos para entregar</p>
+      <div class="div_img"><img src="assets/images/delivery-vacio.jpg" /></div>
+    </div>
+  </ion-content>
+
+  <footer>
+    <hr>
+    <button class="btn_footer" (click)="abrirChatFooter()">
+      Mensajes
+    </button>
+    <hr>
+    <button class="btn_footer" (click)="logOut()">
+      Salir
+    </button>
+    <hr>
+  </footer>
+
+  <ion-modal #chatModal
+             [isOpen]="chatOpen"
+             [breakpoints]="[1]"
+             [initialBreakpoint]="1"
+             backdropDismiss="false"
+             handle="false"
+             (didDismiss)="chatOpen=false">
+    <ng-template>
+      <header class="header-chat">
+        <div>
+          <img src="assets/icon/cubiertos.png">
+          <title class="title2">Chat Delivery</title>
+          <img src="assets/icon/cubiertos.png">
+        </div>
+        <button (click)="cerrarChat()">❌ Cerrar ❌</button>
+      </header>
+
+      <ion-content #chatContent class="ion-content-chat">
+        <div class="chat">
+          <div class="msg"
+               [class.mine]="m.from==='yo'"
+               [class.mozo-msg]="m.role==='delivery'"
+               [class.cliente-msg]="m.role==='cliente'"
+               *ngFor="let m of messages">
+            <div class="bubble">
+              <div class="body">{{ m.text | titlecase }}</div>
+              <div [class.mozo-meta]="m.role==='delivery'"
+                   [class.cliente-meta]="m.role==='cliente'">
+                {{ m.role==='delivery' ? 'Delivery' : 'Cliente' }} • {{ m.time }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <ion-item class="composer" lines="none" slot="fixed">
+          <ion-input type="text"
+                     placeholder="Escribe tu mensaje…"
+                     [(ngModel)]="newMsg"
+                     (keyup.enter)="enviar()">
+          </ion-input>
+          <ion-button slot="end" [disabled]="!newMsg.trim()" (click)="enviar()">Enviar</ion-button>
+        </ion-item>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+}

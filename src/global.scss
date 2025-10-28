@@ -239,6 +239,16 @@ ion-action-sheet.action-sheet-form .action-sheet-cancel {
   border-bottom: none;
 }
 
+ion-item.input-field.item-has-value {
+  color: var(--color-text);
+}
+
+ion-item.input-field.item-has-value ion-select {
+  background-color: var(--color-btn-primary) !important;
+  color: var(--color-text);
+  --color: var(--color-text);
+}
+
 .toast,
 .toast2 {
   --background: var(--color-btn-secondary);

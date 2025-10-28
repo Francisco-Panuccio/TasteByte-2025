@@ -1045,19 +1045,21 @@ export class PedidosMozoPage implements OnInit {
 
       try {
         const { data: pedRow } = await supabase
-          .from('pedidos')
-          .select('id, mesa_id, mesas(numero)')
-          .eq('id', pedidoId)
+          .from("pedidos")
+          .select("id, mesa_id, mesas(numero)")
+          .eq("id", pedidoId)
           .maybeSingle();
         const mesaId = pedRow?.mesa_id as number | undefined;
-        const mesaNumero =
-          mesaId != null ? this.mesasNum.get(mesaId) ?? mesaId : 'NN';
+        const mesaNumero = mesaId != null ? this.mesasNum.get(mesaId) ?? mesaId : "NN";
+        const isDelivery = mesaId == null;
+        const body = isDelivery ? "Pedido entregado a Delivery" : `Pedido Mesa (${mesaNumero}) entregado`;
+
         await this.push.sendToRoles(
-          ['mozo'],
-          'Pedido listo',
-          `Pedido Mesa (${mesaNumero}) entregado`,
+          ["mozo"],
+          "Pedido listo",
+          body,
           {
-            tipo: 'pedido_listo',
+            tipo: "pedido_listo",
             pedidoId,
             mesaId: mesaId ?? null,
             mesa: String(mesaNumero),

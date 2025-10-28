@@ -110,6 +110,10 @@ const routes: Routes = [
     path: 'pedidos-delivery',
     loadChildren: () => import('./pages/pedidos-delivery/pedidos-delivery.module').then( m => m.PedidosDeliveryPageModule)
   },
+  {
+    path: 'listado-delivery',
+    loadChildren: () => import('./pages/listado-delivery/listado-delivery.module').then( m => m.ListadoDeliveryPageModule)
+  },
 
 
 ];

@@ -5,5 +5,6 @@ export type Perfil =
   | 'mozo'
   | 'cocinero'
   | 'bartender'
+  | 'delivery'
   | 'cliente_registrado'
   | 'cliente_anónimo' | 'cliente_anonimo';
