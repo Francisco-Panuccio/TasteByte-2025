@@ -102,7 +102,8 @@ const routes: Routes = [
   {
     path: 'factura',
     loadChildren: () => import('./pages/factura/factura.module').then( m => m.FacturaPageModule)
-  },  {
+  },
+  {
     path: 'delivery',
     loadChildren: () => import('./pages/delivery/delivery.module').then( m => m.DeliveryPageModule)
   },
@@ -111,9 +112,18 @@ const routes: Routes = [
     loadChildren: () => import('./pages/pedidos-delivery/pedidos-delivery.module').then( m => m.PedidosDeliveryPageModule)
   },
   {
+    path: 'reservas-cliente',
+    loadChildren: () => import('./pages/reservas-cliente/reservas-cliente.module').then( m => m.ReservasClientePageModule)
+  },  {
+    path: 'reservas-admin',
+    loadChildren: () => import('./pages/reservas-admin/reservas-admin.module').then( m => m.ReservasAdminPageModule)
+  },
+  {
     path: 'listado-delivery',
     loadChildren: () => import('./pages/listado-delivery/listado-delivery.module').then( m => m.ListadoDeliveryPageModule)
   },
+
+
 
 
 ];

@@ -596,6 +596,49 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     const qr = await this.qr.scanQr();
     if (!qr) return;
 
+    const { data: au } = await supabase.auth.getUser();
+    const email = au?.user?.email;
+
+    let puedeEntrar = false;
+
+    if (email) {
+      const ahora = new Date();
+      const hace45 = new Date(ahora.getTime() - 45 * 60 * 1000);
+      const dentro45 = new Date(ahora.getTime() + 45 * 60 * 1000);
+
+      const { data: reservasActivas } = await supabase
+        .from('reservas')
+        .select('id, estado, fecha_hora')
+        .eq('usuario_correo', email)
+        .in('estado', ['confirmada', 'en curso'])
+        .gte('fecha_hora', hace45.toISOString())
+        .lte('fecha_hora', dentro45.toISOString());
+
+      if (reservasActivas && reservasActivas.length > 0) {
+        puedeEntrar = true;
+      }
+    }
+
+    if (!puedeEntrar && this.clienteId) {
+      const { data: asignacionActiva } = await supabase
+        .from('asignaciones_mesa')
+        .select('mesa_id, estado')
+        .eq('cliente_id', this.clienteId)
+        .in('estado', ['asignada', 'sentado'])
+        .maybeSingle();
+
+      if (asignacionActiva) {
+        puedeEntrar = true;
+      }
+    }
+
+    if (!puedeEntrar) {
+      await this.mostrarToast(
+        'No tienes ninguna reserva ni mesa asignada activa.'
+      );
+      return;
+    }
+
     const res = await this.qr.procesarQrCliente(
       qr,
       this.clienteId ?? undefined,
