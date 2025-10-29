@@ -1,72 +1,75 @@
-<header>
-  <img src="assets/icon/cubiertos.png" />
-  <title>Reservas</title>
-  <img src="assets/icon/cubiertos.png" />
-</header>
+@if(loading) {
+  <app-loading/>
+} @else {
+  <header>
+    <img src="assets/icon/cubiertos.png" />
+    <title>Reservas</title>
+    <img src="assets/icon/cubiertos.png" />
+  </header>
 
-<ion-content>
-  <div class="div_main">
-    <div class="div_data">
-      <div>
-        <span>Panel de Administración</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="container">
-    <h2 class="titulo">📅 Gestión de Reservas</h2>
-    <p class="subtitulo">Confirmá o rechazá las solicitudes de los clientes</p>
-
-    <div *ngIf="loading" class="centrado">
-      <ion-spinner name="crescent"></ion-spinner>
-    </div>
-
-    <div *ngIf="!loading && reservas.length === 0" class="vacio">
-      <ion-icon name="calendar-outline"></ion-icon>
-      <p>No hay reservas pendientes</p>
-    </div>
-
-    <div class="lista-reservas" *ngIf="!loading && reservas.length > 0">
-      <div class="card-reserva" *ngFor="let r of reservas">
-        <div class="info">
-          <h3>{{ r.usuarios?.nombres }} {{ r.usuarios?.apellidos }}</h3>
-          <p>
-            <ion-icon name="time-outline"></ion-icon>
-            {{ getFechaLocal(r.fecha_hora) }}
-          </p>
-          <p>
-            <ion-icon name="people-outline"></ion-icon>
-            {{ r.invitados }} invitados
-          </p>
-          <p
-            class="estado"
-            [class.confirmada]="r.estado === 'confirmada'"
-            [class.rechazada]="r.estado === 'rechazada'"
-          >
-            Estado: {{ r.estado | titlecase }}
-          </p>
-          <p *ngIf="r.motivo_rechazo" class="motivo">
-            Motivo: {{ r.motivo_rechazo }}
-          </p>
-        </div>
-
-        <div class="acciones" *ngIf="r.estado === 'pendiente'">
-          <ion-button color="success" expand="block" (click)="confirmar(r)">
-            <ion-icon name="checkmark-circle"></ion-icon>
-            Confirmar
-          </ion-button>
-          <ion-button color="danger" expand="block" (click)="rechazar(r)">
-            <ion-icon name="close-circle"></ion-icon>
-            Rechazar
-          </ion-button>
+  <ion-content class="ion-padding">
+    <div class="div_main">
+      <div class="div_data">
+        <div>
+          <span>Panel de Administración</span>
         </div>
       </div>
     </div>
-  </div>
-</ion-content>
 
-<footer>
-  <hr />
-  <button class="btn_footer" (click)="volver()">Volver</button>
-  <hr />
-</footer>
+    <div class="container">
+      <h2 class="titulo">Gestión de Reservas</h2>
+      <p class="subtitulo">Confirme o rechace las solicitudes de los clientes</p>
+
+      <div *ngIf="!loading && reservas.length === 0" class="vacio">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <p>No hay reservas pendientes</p>
+      </div>
+
+      <div class="lista-reservas" *ngIf="!loading && reservas.length > 0">
+        <div class="card-reserva" *ngFor="let r of reservas">
+          <div class="info">
+            <h3>{{ r.usuarios?.nombres }} {{ r.usuarios?.apellidos }}</h3>
+            <p>
+              <ion-icon name="time-outline"></ion-icon>
+              {{ getFechaLocal(r.fecha_hora) }}
+            </p>
+
+            <p>
+              <ion-icon name="people-outline"></ion-icon>
+              {{ r.invitados }} invitados
+            </p>
+
+            <p class="estado">
+              Estado: 
+              <span class="estado-mostrado">
+                {{ r.estado }}
+              </span>
+            </p>
+            
+            <p *ngIf="r.motivo_rechazo" class="motivo">
+              Motivo: {{ r.motivo_rechazo }}
+            </p>
+          </div>
+
+          <div class="acciones" *ngIf="r.estado === 'pendiente'">
+            <button class="btn-tertiary" (click)="confirmar(r)">
+              <ion-icon name="checkmark-circle"></ion-icon>
+              Confirmar
+            </button>
+            
+            <button class="btn-secondary" (click)="rechazar(r)">
+              <ion-icon name="close-circle"></ion-icon>
+              Rechazar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ion-content>
+
+  <footer>
+    <hr />
+    <button class="btn_footer" (click)="volver()">Volver</button>
+    <hr />
+  </footer>
+}

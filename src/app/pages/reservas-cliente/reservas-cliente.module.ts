@@ -7,14 +7,16 @@ import { IonicModule } from '@ionic/angular';
 import { ReservasClientePageRoutingModule } from './reservas-cliente-routing.module';
 
 import { ReservasClientePage } from './reservas-cliente.page';
+import { LoadingPage } from "../loading/loading.page";
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
-    ReservasClientePageRoutingModule
-  ],
+    ReservasClientePageRoutingModule,
+    LoadingPage
+],
   declarations: [ReservasClientePage]
 })
 export class ReservasClientePageModule {}

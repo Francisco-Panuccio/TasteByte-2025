@@ -7,14 +7,16 @@ import { IonicModule } from '@ionic/angular';
 import { ReservasAdminPageRoutingModule } from './reservas-admin-routing.module';
 
 import { ReservasAdminPage } from './reservas-admin.page';
+import { LoadingPage } from "../loading/loading.page";
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
-    ReservasAdminPageRoutingModule
-  ],
+    ReservasAdminPageRoutingModule,
+    LoadingPage
+],
   declarations: [ReservasAdminPage]
 })
 export class ReservasAdminPageModule {}

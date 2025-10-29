@@ -50,7 +50,7 @@ export class ReservasAdminPage implements OnInit {
 
     if (error) console.error('Error cargando reservas:', error);
     this.reservas = data ?? [];
-    this.loading = false;
+    setTimeout(() => (this.loading = false), 2000);
   }
 
   getFechaLocal(f: string) {
