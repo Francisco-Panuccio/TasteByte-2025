@@ -619,7 +619,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       }
     }
 
-    if (!puedeEntrar && this.clienteId) {
+    if (!puedeEntrar && (this.clienteId || this.anonimoId)) {
       const { data: asignacionActiva } = await supabase
         .from('asignaciones_mesa')
         .select('mesa_id, estado')
@@ -851,8 +851,8 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     this.mostrarCuenta = false;
     this.mostrarPedido = false;
     this.mostrarJuegos = false;
-    this.qrValido = true;
-    this.tienePermiso = true;
+    this.qrValido = false;
+    this.tienePermiso = false;
     this.qrMesaEscaneado = false;
   }
 

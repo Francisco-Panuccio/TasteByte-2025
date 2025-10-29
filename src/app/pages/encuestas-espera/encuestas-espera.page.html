@@ -41,11 +41,11 @@
           >
             Reservas
           </ion-button>
+        } @else {
+          <p class="texto_ingreso">
+            Escanee el código QR del restaurante para habilitar todas las funciones.
+          </p>
         }
-
-        <p class="texto_ingreso">
-          Escanee el código QR del restaurante para habilitar todas las funciones.
-        </p>
       } @else {
           @if(!deliveryUnlock) {
             <ion-button class="last-btn" (click)="escanearQrMesa()">

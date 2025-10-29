@@ -157,7 +157,7 @@ export class ReservasAdminPage implements OnInit {
           emailUsuario,
           'Reserva Confirmada - TasteByte',
           `
-        <p>Hola <b>${nombre || 'Cliente'}</b>,</p>
+        <p>Hola <b>${nombre || 'Cliente'}</b>.</p>
         <p>Tu reserva para el <b>${this.getFechaLocal(
           r.fecha_hora
         )}</b> fue <b>confirmada</b>.</p>
@@ -224,7 +224,7 @@ export class ReservasAdminPage implements OnInit {
                 email,
                 'Reserva Rechazada - TasteByte',
                 `
-                <p>Hola <b>${nombre}</b>,</p>
+                <p>Hola <b>${nombre}</b>.</p>
                 <p>Lamentamos informarte que tu reserva para el <b>${this.getFechaLocal(
                   r.fecha_hora
                 )}</b> fue <b>rechazada</b>.</p>

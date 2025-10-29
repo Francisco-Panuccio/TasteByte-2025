@@ -747,7 +747,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
 
       (await this.toast.create({
         message: this.deliveryFlag
-          ? 'Pedido enviado. Aguardá confirmación del dueño/supervisor.'
+          ? 'Pedido enviado. Aguarde confirmación del dueño/supervisor.'
           : 'Pedido enviado. Esperando confirmación del mozo.',
         duration: 2000,
         position: 'top',
