@@ -3,6 +3,20 @@
   color: var(--color-text);
 }
 
+ion-button {
+  --background: transparent;
+  --background-activated: rgba(215, 184, 153, 0.2);
+  --color: var(--color-text);
+  --border-color: var(--color-text);
+  --border-style: solid;
+  --border-width: 1px;
+  --border-radius: 12px;
+  border-radius: 12px;
+  font-weight: 600;
+  width: 47%;
+  height: 44px;
+}
+
 .titulo-seccion {
   text-align: center;
   padding: 16px;
@@ -72,10 +86,10 @@
     flex-direction: column;
     justify-content: center;
     align-items: start;
-    gap: 10px;
+    gap: 15px;
 
     h3 {
-      margin: 0 0 0 0;
+      margin: 10px 0 5px 0;
       font-size: 22px;
       font-weight: 800;
       color: var(--color-text);
@@ -83,8 +97,8 @@
     }
 
     p {
-      margin: 0 0 0 0;
-      font-size: 18px;
+      margin: 0 0 0 5px;
+      font-size: 20px;
       font-weight: 600;
     }
 
@@ -107,27 +121,29 @@
 
   .acciones {
     display: flex;
-    gap: 8px;
-
-    ion-button {
-      flex: 1;
-      font-weight: 600;
-
-      ion-icon {
-        margin-right: 4px;
-      }
-    }
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin: 20px 0 10px 0;
   }
 }
 
 .vacio {
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   padding: 32px;
   color: var(--color-text);
 
   ion-icon {
-    font-size: 48px;
-    margin-bottom: 12px;
+    width: 70px;
+    height: 70px;
+  }
+
+  p {
+    font-size: 25px !important;
+    text-align: center;
   }
 }
 
@@ -148,7 +164,7 @@
   color: var(--color-text);
   animation: fadeIn 0.6s ease-in-out;
   background-color: var(--color-container);
-  margin: 20px 0;
+  margin: 20px 0 0 0;
   border: 2px solid var(--color-text);
   border-radius: 20px;
 

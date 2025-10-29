@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ReservasService } from 'src/app/services/reservas/reservas';
 import { AlertController, ToastController } from '@ionic/angular';
 import { ActivatedRoute, Router } from '@angular/router';
+import { supabase } from 'src/supabase.client';
 
 @Component({
   selector: 'app-reservas-cliente',
@@ -23,6 +24,8 @@ export class ReservasClientePage implements OnInit {
   clienteId: number | null = null;
   userId!: string | null;
 
+  private rtChannel?: ReturnType<typeof supabase.channel>;
+
   constructor(
     private reservasSvc: ReservasService,
     private toast: ToastController,
@@ -33,15 +36,54 @@ export class ReservasClientePage implements OnInit {
 
   async ngOnInit() {
     await this.cargarReservas();
+    this.configurarRealtime();
 
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.subscribe((params) => {
       this.userId = params['userId'] ?? null;
       this.usuarioId = params['usuarioId'] ? Number(params['usuarioId']) : null;
       this.clienteId = params['clienteId'] ? Number(params['clienteId']) : null;
-      this.clienteFoto = params['clienteFoto'],
-        this.nombreCliente = params['nombreCliente']
-
+      (this.clienteFoto = params['clienteFoto']),
+        (this.nombreCliente = params['nombreCliente']);
     });
+  }
+
+  ngOnDestroy(): void {
+    try {
+      if (this.rtChannel) supabase.removeChannel(this.rtChannel);
+    } catch { }
+  }
+
+  private async configurarRealtime() {
+    const { data: au } = await supabase.auth.getUser();
+    const email = au?.user?.email;
+    if (!email) return;
+
+    this.rtChannel = supabase
+      .channel('reservas-cliente')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'reservas',
+          filter: `usuario_correo=eq.${email}`,
+        },
+        async (payload) => {
+          console.log('[Realtime Cliente] cambio detectado:', payload);
+
+          if (payload.eventType === 'DELETE') {
+            const idEliminado = payload.old?.['id'];
+            if (idEliminado) {
+              this.reservas = this.reservas.filter((r) => r.id !== idEliminado);
+            } else {
+              await this.cargarReservas();
+            }
+          } else {
+            await this.cargarReservas();
+          }
+        }
+      )
+      .subscribe();
   }
 
   async cargarReservas() {
@@ -145,8 +187,8 @@ export class ReservasClientePage implements OnInit {
       queryParams: {
         clienteId: this.clienteId ?? undefined,
         usuarioId: this.usuarioId ?? undefined,
-        userId: this.userId ?? undefined
-      }
+        userId: this.userId ?? undefined,
+      },
     });
   }
 }

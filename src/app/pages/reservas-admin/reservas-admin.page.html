@@ -52,15 +52,13 @@
           </div>
 
           <div class="acciones" *ngIf="r.estado === 'pendiente'">
-            <button class="btn-tertiary" (click)="confirmar(r)">
-              <ion-icon name="checkmark-circle"></ion-icon>
+            <ion-button class="btn-tertiary" (click)="confirmar(r)">
               Confirmar
-            </button>
+            </ion-button>
             
-            <button class="btn-secondary" (click)="rechazar(r)">
-              <ion-icon name="close-circle"></ion-icon>
+            <ion-button class="btn-secondary" (click)="rechazar(r)">
               Rechazar
-            </button>
+            </ion-button>
           </div>
         </div>
       </div>
