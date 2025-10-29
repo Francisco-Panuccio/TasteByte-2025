@@ -7,7 +7,7 @@ import {
   ToastController,
   AlertController,
 } from '@ionic/angular';
-import { ListadoMesasPage } from '../listado-mesas/listado-mesas.page'; 
+import { ListadoMesasPage } from '../listado-mesas/listado-mesas.page';
 import { Router } from '@angular/router';
 
 @Component({
@@ -19,6 +19,7 @@ import { Router } from '@angular/router';
 export class ReservasAdminPage implements OnInit {
   reservas: any[] = [];
   loading = true;
+  private rtChannel?: ReturnType<typeof supabase.channel>;
 
   private push = inject(Push);
   private email = inject(Email);
@@ -29,6 +30,31 @@ export class ReservasAdminPage implements OnInit {
 
   async ngOnInit() {
     await this.cargarReservas();
+    this.configurarRealtime();
+  }
+
+  ngOnDestroy(): void {
+    try {
+      if (this.rtChannel) supabase.removeChannel(this.rtChannel);
+    } catch {}
+  }
+
+  private configurarRealtime() {
+    this.rtChannel = supabase
+      .channel('reservas-admin')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'reservas',
+        },
+        async (payload) => {
+          console.log('[Realtime Admin] cambio detectado:', payload);
+          await this.cargarReservas();
+        }
+      )
+      .subscribe();
   }
 
   async cargarReservas() {
@@ -118,7 +144,7 @@ export class ReservasAdminPage implements OnInit {
         return;
       }
 
-      const clienteId = cliente.id; 
+      const clienteId = cliente.id;
 
       const { error: errRes } = await supabase
         .from('reservas')
@@ -210,27 +236,23 @@ export class ReservasAdminPage implements OnInit {
             const motivo = (data.motivo || '').trim();
             if (!motivo) return;
 
-            await supabase
-              .from('reservas')
-              .update({ estado: 'rechazada', motivo_rechazo: motivo })
-              .eq('id', r.id);
-
             const email = r.usuarios?.correo_electronico;
+            const nombre = `${r.usuarios?.nombres ?? ''} ${
+              r.usuarios?.apellidos ?? ''
+            }`.trim();
+            const fechaLocal = this.getFechaLocal(r.fecha_hora);
+
             if (email) {
-              const nombre =
-                `${r.usuarios.nombres} ${r.usuarios.apellidos}`.trim();
               await this.email.enviarEmailPersonalizado(
                 'ReservaRechazada',
                 email,
                 'Reserva Rechazada - TasteByte',
                 `
-                <p>Hola <b>${nombre}</b>.</p>
-                <p>Lamentamos informarte que tu reserva para el <b>${this.getFechaLocal(
-                  r.fecha_hora
-                )}</b> fue <b>rechazada</b>.</p>
-                <p><b>Motivo:</b> ${motivo}</p>
-                <p>Podés intentar en otro horario o comunicarte con nosotros.</p>
-                `,
+          <p>Hola <b>${nombre || 'Cliente'}</b>.</p>
+          <p>Lamentamos informarte que tu reserva para el <b>${fechaLocal}</b> fue <b>rechazada</b>.</p>
+          <p><b>Motivo:</b> ${motivo}</p>
+          <p>Podés intentar en otro horario o comunicarte con nosotros.</p>
+        `,
                 'Reserva Rechazada'
               );
             }
@@ -242,9 +264,26 @@ export class ReservasAdminPage implements OnInit {
               { tipo: 'reserva_rechazada', reservaId: r.id }
             );
 
+            const { error } = await supabase
+              .from('reservas')
+              .delete()
+              .eq('id', r.id);
+            if (error) {
+              console.error('❌ Error al eliminar reserva:', error);
+              (
+                await this.toast.create({
+                  message: 'Error al eliminar la reserva.',
+                  duration: 2000,
+                  position: 'top',
+                  cssClass: 'toast-error',
+                })
+              ).present();
+              return;
+            }
+
             (
               await this.toast.create({
-                message: 'Reserva rechazada y correo enviado.',
+                message: 'Reserva rechazada y eliminada correctamente.',
                 duration: 2000,
                 position: 'bottom',
                 cssClass: 'toast-rechazada',
@@ -261,10 +300,8 @@ export class ReservasAdminPage implements OnInit {
   }
 
   volver() {
-  this.router.navigate(['/home'], {
-    replaceUrl: true,
-  });
-}
-
-
+    this.router.navigate(['/home'], {
+      replaceUrl: true,
+    });
+  }
 }

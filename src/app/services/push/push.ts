@@ -59,7 +59,7 @@ export class Push {
       .toLowerCase();
   }
 
-  async init(usuarioRowId?: number | null, role?: Role): Promise<void> {
+  async init(usuarioRowId?: number | string | null, role?: Role): Promise<void> {
     if (Capacitor.getPlatform() === 'web') {
       this.resolveReadyOnce();
       return;
@@ -213,12 +213,12 @@ export class Push {
 
   private async upsertToken(
     token: string,
-    usuarioRowId: number | null,
+    usuarioRowId: number | string | null,
     role?: Role
   ): Promise<void> {
     const payload: any = {
       token,
-      usuario_id: typeof usuarioRowId === 'number' ? usuarioRowId : null,
+      usuario_id: usuarioRowId ?? null, 
       plataforma: Capacitor.getPlatform(),
       role: this.normRole(role),
       active: true,
