@@ -229,7 +229,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
         this.nombreCliente = anonimo?.nombre || 'Cliente Anónimo';
       }
 
-      await this.push.init(this.usuarioId ?? null, 'cliente');
+      await this.push.init(au?.user?.id ?? null, "cliente");
       await this.push.ready();
 
       await this.cargarMesaAsignada();
