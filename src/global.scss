@@ -172,6 +172,19 @@ ion-select::part(icon) {
   color: var(--color-text);
 }
 
+ion-popover::part(content) {
+  --background: var(--color-btn-primary);
+  --fade-background-rgb: none;
+  border: 2px solid var(--color-text);
+  border-radius: 20px;
+  color: var(--color-text);
+}
+
+ion-popover ion-picker-column-option:active {
+  color: var(--color-btn-secondary) !important;
+  font-weight: 600;
+}
+
 ion-popover.dni-popover ion-list {
   --padding-start: 0;
   --padding-end: 0;

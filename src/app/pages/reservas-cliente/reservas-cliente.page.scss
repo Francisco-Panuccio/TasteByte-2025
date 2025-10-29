@@ -1,16 +1,3 @@
-:host {
-  ion-content {
-    --background: var(--color-background);
-  }
-}
-
-.div_main {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
 .div_data {
   display: flex;
   justify-content: center;
@@ -49,107 +36,165 @@
   border: 2px solid var(--color-text);
   width: 350px;
   margin: 10px auto;
-  padding: 15px;
+  padding: 16px;
   text-align: center;
 }
 
-.titulo {
+.titulo,
+.titulo2 {
   color: var(--color-text);
   font-weight: 700;
+  font-size: 25px;
+  margin: 0 0 16px 0;
+}
+
+.titulo2 {
   font-size: 22px;
-  margin-bottom: 10px;
+  margin: 20px 0 15px 0;
+  text-decoration: underline;
 }
 
 .form_reserva {
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  margin-bottom: 20px;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
 }
 
 .campo {
   display: flex;
   flex-direction: column;
-  text-align: left;
+  justify-content: center;
+  align-items: center;
 
-  label {
-    color: var(--color-text);
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 5px;
-  }
-
-  ion-datetime, ion-input {
-    background: var(--color-input);
+  ion-datetime {
+    --background: var(--color-btn-primary);
+    --wheel-highlight-background: var(--color-btn-secondary);
+    --wheel-fade-background-rgb: none;
+    --ion-color-step-500: var(--color-text);
+    --ion-color-step-650: var(--color-text);
     border: 2px solid var(--color-text);
     border-radius: 12px;
-    padding: 5px;
+    padding: 8px 0 0 0;
+    font-weight: 600;
+  }
+
+  ion-datetime::part(calendar-day) {
     color: var(--color-text);
+  }
+
+  ion-datetime::part(calendar-day active) {
+    background: var(--color-btn-secondary) !important;
+    color: var(--color-text) !important;
+    font-weight: 700;
+    border: 1px solid var(--color-text) !important;
+    box-shadow: none;
+  }
+
+  ion-datetime::part(calendar-day today) {
+    border: 1px solid var(--color-black);
+    color: var(--color-black);
+    background-color: var(--color-text);
+    box-shadow: none;
+    font-weight: 700;
+  }
+
+  ion-datetime::part(month-year-button) {
+    color: var(--color-text);
+    font-weight: 700;
+    text-transform: capitalize;
+  }
+
+  ion-datetime::part(wheel-item) {
+    color: var(--color-text);
+    font-weight: 600;
+    background-color: transparent;
+  }
+
+  ion-datetime::part(wheel-item active) {
+    font-weight: 700;
+  }
+
+  ion-datetime::part(time-button) {
+    margin-top: -40px;
+    height: fit-content;
+    color: var(--color-text);
+    border: 2px solid var(--color-text);
+    background-color: var(--color-input);
+    font-weight: 600;
   }
 }
 
-.btn_confirmar {
-  --background: var(--color-btn-primary);
-  color: var(--color-text);
-  font-size: 20px;
-  font-weight: 700;
-  border: 2px solid var(--color-text);
-  border-radius: 16px;
-  height: 50px;
-  margin-top: 10px;
+.campo2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+
+  label {
+    color: var(--color-text);
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  ion-input {
+    width: 85px !important;
+    height: 44px !important;
+    padding: 0 15px 0 0 !important;
+    font-size: 20px;
+    --highlight-color: none;
+  }
+}
+
+.btn-tertiary {
+  margin: 0;
+  height: 48px;
+  border: 1px solid var(--color-text);
+  --border-radius: 12px;
+  border-radius: 12px;
+  font-weight: 800;
 }
 
 .lista-reservas {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
 }
 
 .reserva-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: self-start;
+  gap: 10px;
   background: var(--color-input);
   border: 2px solid var(--color-text);
   border-radius: 14px;
   padding: 10px;
-  text-align: left;
-  color: var(--color-text);
   font-weight: 600;
+  width: 300px;
   box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
-}
 
-.reserva-card .confirmada {
-  color: #4caf50;
-}
+  p {
+    color: var(--color-text);
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+  }
 
-.reserva-card .rechazada {
-  color: #e53935;
-}
-
-.reserva-card .pendiente {
-  color: #ff9800;
+  strong {
+    text-decoration: underline;
+  }
 }
 
 .sin-reservas p {
   color: var(--color-text);
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
-}
-
-footer {
   text-align: center;
-
-  hr {
-    width: 15%;
-    margin: 8px auto;
-  }
-
-  .btn_footer {
-    width: 160px;
-    height: 45px;
-    font-size: 20px;
-    font-weight: 600;
-    border-radius: 12px;
-    border: 2px solid var(--color-text);
-    background-color: var(--color-btn-primary);
-    color: var(--color-text);
-  }
 }

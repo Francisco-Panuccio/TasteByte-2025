@@ -19,10 +19,11 @@
         [(ngModel)]="address"
         (ionBlur)="geocodeAddress()">
       </ion-input>
+
+      <ion-button class="btn-secondary" (click)="vaciar()">🗑️</ion-button>
     </ion-item>
 
     <div class="div_btns">
-      <ion-button class="btn-secondary" (click)="vaciar()">🗑️ Limpiar 🗑️</ion-button>
       <ion-button class="btn-primary" (click)="geocodeAddress()">🔎 Buscar 🔍</ion-button>
       <ion-button class="btn-primary" (click)="openMap()">🗺️ Elegir en el mapa 🗺️</ion-button>
       <ion-button class="btn-tertiary" [disabled]="!address || lat==null || lng==null" (click)="confirmar()">

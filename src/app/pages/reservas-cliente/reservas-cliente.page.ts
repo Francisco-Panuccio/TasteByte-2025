@@ -32,7 +32,7 @@ export class ReservasClientePage implements OnInit {
     private alertCtrl: AlertController,
     private router: Router,
     private route: ActivatedRoute
-  ) {}
+  ) { }
 
   async ngOnInit() {
     await this.cargarReservas();
@@ -50,7 +50,7 @@ export class ReservasClientePage implements OnInit {
   ngOnDestroy(): void {
     try {
       if (this.rtChannel) supabase.removeChannel(this.rtChannel);
-    } catch {}
+    } catch { }
   }
 
   private async configurarRealtime() {
@@ -93,7 +93,7 @@ export class ReservasClientePage implements OnInit {
     } catch (e: any) {
       this.mostrarToast(e.message || 'Error al cargar reservas');
     } finally {
-      this.loading = false;
+      setTimeout(() => (this.loading = false), 2000);
     }
   }
 
@@ -123,7 +123,7 @@ export class ReservasClientePage implements OnInit {
       <p>📅 <strong>${fechaStr}</strong></p>
       <p>🕒 <strong>${horaStr}</strong></p>
       <p>👥 Invitados: <strong>${this.invitados}</strong></p>
-      <p style="margin-top:10px;">¿Deseas crear esta reserva?</p>
+      <p style="margin-top:10px;">¿Desea crear esta reserva?</p>
     `,
       cssClass: 'alert-confirm',
       buttons: [
@@ -146,7 +146,7 @@ export class ReservasClientePage implements OnInit {
   async crearReserva() {
     try {
       if (!this.fechaSeleccionada) {
-        return this.mostrarToast('Selecciona fecha y hora.');
+        return this.mostrarToast('Seleccione fecha y hora.');
       }
 
       const fechaHora = new Date(this.fechaSeleccionada);
@@ -162,7 +162,7 @@ export class ReservasClientePage implements OnInit {
         invitados: this.invitados,
       });
 
-      await this.mostrarToast('Reserva creada correctamente ✅');
+      await this.mostrarToast('Reserva creada correctamente');
       this.fechaSeleccionada = '';
       this.horaSeleccionada = '';
       this.invitados = 2;
@@ -175,24 +175,11 @@ export class ReservasClientePage implements OnInit {
   async mostrarToast(msg: string) {
     const t = await this.toast.create({
       message: msg,
-      duration: 1600,
+      duration: 1500,
       position: 'top',
       cssClass: 'toast',
     });
     await t.present();
-  }
-
-  colorEstado(estado: string): string {
-    switch (estado) {
-      case 'confirmada':
-        return 'success';
-      case 'rechazada':
-        return 'danger';
-      case 'pendiente':
-        return 'warning';
-      default:
-        return 'medium';
-    }
   }
 
   volver() {

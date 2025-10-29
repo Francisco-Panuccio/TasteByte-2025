@@ -76,7 +76,7 @@ export class ReservasAdminPage implements OnInit {
 
     if (error) console.error('Error cargando reservas:', error);
     this.reservas = data ?? [];
-    this.loading = false;
+    setTimeout(() => (this.loading = false), 2000);
   }
 
   getFechaLocal(f: string) {
@@ -157,7 +157,7 @@ export class ReservasAdminPage implements OnInit {
         .eq('id', id);
 
       if (errRes) {
-        console.error('❌ Error al actualizar reserva:', errRes);
+        console.error('Error al actualizar reserva:', errRes);
         return;
       }
 
@@ -184,11 +184,11 @@ export class ReservasAdminPage implements OnInit {
           'Reserva Confirmada - TasteByte',
           `
         <p>Hola <b>${nombre || 'Cliente'}</b>.</p>
-        <p>Tu reserva para el <b>${this.getFechaLocal(
+        <p>Su reserva para el <b>${this.getFechaLocal(
           r.fecha_hora
         )}</b> fue <b>confirmada</b>.</p>
-        <p>Se te asignó la mesa N° <b>${mesaSeleccionada.numero}</b>.</p>
-        <p>¡Te esperamos! 🍽️</p>
+        <p>Se le asignó la mesa N° <b>${mesaSeleccionada.numero}</b>.</p>
+        <p>¡Lo Esperamos! 🍽️</p>
         `,
           'Reserva Confirmada'
         );
@@ -205,7 +205,7 @@ export class ReservasAdminPage implements OnInit {
 
       await this.cargarReservas();
     } catch (err) {
-      console.error('❌ Error en confirmar():', err);
+      console.error('Error en confirmar():', err);
       (
         await this.toast.create({
           message: 'Ocurrió un error al confirmar la reserva.',
@@ -249,9 +249,9 @@ export class ReservasAdminPage implements OnInit {
                 'Reserva Rechazada - TasteByte',
                 `
           <p>Hola <b>${nombre || 'Cliente'}</b>.</p>
-          <p>Lamentamos informarte que tu reserva para el <b>${fechaLocal}</b> fue <b>rechazada</b>.</p>
+          <p>Lamentamos informarle que su reserva para el <b>${fechaLocal}</b> fue <b>rechazada</b>.</p>
           <p><b>Motivo:</b> ${motivo}</p>
-          <p>Podés intentar en otro horario o comunicarte con nosotros.</p>
+          <p>Puede intentar en otro horario o comunicarse con nosotros.</p>
         `,
                 'Reserva Rechazada'
               );
@@ -260,7 +260,7 @@ export class ReservasAdminPage implements OnInit {
             await this.push.sendToRoles(
               ['cliente'],
               'Reserva rechazada',
-              `Tu reserva fue rechazada: ${motivo}`,
+              `Su reserva fue rechazada: ${motivo}`,
               { tipo: 'reserva_rechazada', reservaId: r.id }
             );
 
@@ -269,7 +269,7 @@ export class ReservasAdminPage implements OnInit {
               .delete()
               .eq('id', r.id);
             if (error) {
-              console.error('❌ Error al eliminar reserva:', error);
+              console.error('Error al eliminar reserva:', error);
               (
                 await this.toast.create({
                   message: 'Error al eliminar la reserva.',
