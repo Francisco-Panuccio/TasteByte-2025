@@ -14,10 +14,16 @@
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  gap: 20px;
+  gap: 15px;
   margin: 0;
-  padding: 0;
+  padding: 10px;
+  width: 350px;
+  height: 330px;
   text-align: center;
+  overflow: scroll;
+  border-radius: 20px;
+  border: 2px solid var(--color-text);
+  background-color: var(--color-container);
 }
 
 #container strong {
@@ -35,13 +41,13 @@
     radial-gradient(circle 80px at 0 155px,
       rgba(255, 255, 255, .10) 0 60%,
       rgba(255, 255, 255, 0) 61%),
-    var(--color-container);
+    var(--color-input);
   color: var(--color-text);
   font-size: 23px;
   font-weight: 600;
   margin: 0;
-  width: 155px;
-  height: 155px;
+  width: 150px;
+  height: 145px;
   border-radius: 20px;
   padding: 10px;
   border: 1px solid var(--color-text);
@@ -61,6 +67,11 @@
 #container:has(> p:first-of-type:nth-last-of-type(2)) {
   font-size: 40px;
   margin: 0;
+}
+
+#container:has(> p:nth-of-type(2):last-of-type) > p {
+  width: 140px;
+  height: 120px;
 }
 
 #container a {
