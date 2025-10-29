@@ -879,8 +879,8 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     this.mostrarCuenta = false;
     this.mostrarPedido = false;
     this.mostrarJuegos = false;
-    this.qrValido = true;
-    this.tienePermiso = true;
+    this.qrValido = false;
+    this.tienePermiso = false;
     this.qrMesaEscaneado = false;
   }
 

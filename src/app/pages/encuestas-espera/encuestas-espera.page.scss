@@ -83,7 +83,7 @@
     font-weight: 600;
     margin: 0;
     width: 150px;
-    height: 145px;
+    height: 140px;
     border-radius: 20px;
     --border-radius: 17px;
     padding: 0;
@@ -303,7 +303,7 @@ footer {
   border-radius: 20px;
   border: 2px solid var(--color-text);
   text-align: center;
-  margin: 10px 0 0 0 !important;
+  margin: 0 0 0 0 !important;
   animation: pulseIngreso 2s infinite ease-in-out;
 }
 
@@ -340,5 +340,5 @@ footer {
 }
 
 .btn_reserva {
-  --background: var(--color-btn-primary);
+  --background: var(--color-btn-secondary);
 }
