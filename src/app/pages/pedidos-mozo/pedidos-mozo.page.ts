@@ -234,6 +234,39 @@ export class PedidosMozoPage implements OnInit {
     }
   }
 
+  private async notificarAreasNuevoPedidoDelivery(p: any) {
+    const pid = String(p?.id ?? "");
+    if (!pid || this.sentNuevoPedido.has(pid)) return;
+    this.sentNuevoPedido.add(pid);
+
+    const title = "Nuevo pedido delivery";
+    const body = "Nuevo pedido delivery";
+    const data = {
+      tipo: "nuevo_pedido_delivery",
+      pedidoId: pid,
+      mesaId: null
+    };
+
+    const { data: toks } = await supabase
+      .from("push_tokens")
+      .select("token")
+      .in("role", ["bartender", "cocinero"])
+      .eq("active", true)
+      .eq("revoked", false);
+
+    const self = this.push.getToken?.() || null;
+    const list = Array.from(new Set((toks ?? []).map((t: any) => t.token as string)))
+      .filter((t) => (self ? t !== self : true));
+
+    if (!list.length) return;
+
+    if (typeof (this as any).push.sendToTokens === "function") {
+      await (this as any).push.sendToTokens(list, { title, body, data });
+    } else if (typeof (this as any).push.send === "function") {
+      await (this as any).push.send(list, title, body, data);
+    }
+  }
+
   async setEstado(
     pedidoId: string,
     estado: "aceptado" | "rechazado" | "pagado" | "recibido"
@@ -278,6 +311,8 @@ export class PedidosMozoPage implements OnInit {
               mesa_id: mesaId!,
               mesa_numero: mesaNumero,
             });
+          } else {
+            await this.notificarAreasNuevoPedidoDelivery({ id: pedidoId });
           }
         }
 
