@@ -16,7 +16,7 @@
       <div class="div_container">
         <div class="div_pedidos" *ngFor="let p of pedidos">
           <div class="div_data_pedido">
-            <p class="p_mesa">Mesa {{ p.mesa_numero }}</p>
+            <p class="p_mesa">{{ p.mesa_id === null ? "Delivery" : ("Mesa " + p.mesa_numero) }}</p>
             <p>Hora: {{ formatearHora(p.creado_en) }}</p>
             
             <div class="items-container">

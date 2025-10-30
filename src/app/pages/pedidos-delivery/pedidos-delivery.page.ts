@@ -114,6 +114,18 @@ export class PedidosDeliveryPage implements OnInit, OnDestroy {
     try {
       const next: Estado = "pendiente";
       await this.pedidos.actualizarEstado(r.id, next);
+      
+      if ((r.tipo ?? "delivery") === "delivery") {
+        await this.push.sendToRoles(
+          ["mozo"],
+          "Nuevo pedido delivery",
+          "Nuevo pedido delivery",
+          {
+            tipo: "nuevo_pedido_delivery",
+            pedidoId: r.id
+          }
+        );
+      }
 
       if (this.filtro === "pendiente") this.removeById(r.id);
 
