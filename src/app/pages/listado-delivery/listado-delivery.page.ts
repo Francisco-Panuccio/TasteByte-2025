@@ -14,7 +14,6 @@ import { Push } from 'src/app/services/push/push';
 import { supabase } from 'src/supabase.client';
 import { IonContent, IonModal, ToastController } from '@ionic/angular';
 import { Chat } from 'src/app/services/chat/chat';
-import { ChatMessage } from 'src/app/interfaces/chat-message';
 import * as L from 'leaflet';
 
 (L.Icon.Default as any).mergeOptions({
@@ -100,7 +99,7 @@ export class ListadoDeliveryPage implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     try {
       this.sub?.unsubscribe?.();
-    } catch {}
+    } catch { }
     this.maps.forEach((m) => m.remove());
     this.maps.clear();
     this.layers.clear();
@@ -233,7 +232,7 @@ export class ListadoDeliveryPage implements OnInit, OnDestroy {
           await this.push.send(
             targets,
             'Pedido Entregado 🏁',
-            'Tu pedido fue entregado con éxito. ¡Gracias por confiar en TasteByte!',
+            'Su pedido fue entregado con éxito. ¡Gracias por confiar en TasteByte!',
             {
               tipo: 'pedido_terminado',
               pedidoId: id,
@@ -308,7 +307,7 @@ export class ListadoDeliveryPage implements OnInit, OnDestroy {
         const g = await this.geocode(p.delivery_direccion);
         destLat = g.lat;
         destLng = g.lng;
-      } catch {}
+      } catch { }
     }
 
     if (destLat != null && destLng != null) {
@@ -463,7 +462,7 @@ export class ListadoDeliveryPage implements OnInit, OnDestroy {
             { onConflict: 'chat_id,role' }
           );
       }
-    } catch {}
+    } catch { }
   }
 
   private async notifyDeliveryPeers(
@@ -508,13 +507,13 @@ export class ListadoDeliveryPage implements OnInit, OnDestroy {
         preview?.slice(0, 100) || 'Toque para abrir el chat',
         { tipo: 'delivery_chat', chatId }
       );
-    } catch {}
+    } catch { }
   }
 
   private scrollToBottom(ms: number = 200) {
     try {
       this.chatContent?.scrollToBottom(ms);
-    } catch {}
+    } catch { }
   }
 
   private scrollToBottomAfterRender() {
@@ -550,7 +549,7 @@ export class ListadoDeliveryPage implements OnInit, OnDestroy {
           })
           .eq('token', tk);
       }
-    } catch {}
+    } catch { }
   }
 
   async logOut() {
@@ -561,10 +560,10 @@ export class ListadoDeliveryPage implements OnInit, OnDestroy {
           .from('push_tokens')
           .update({ active: false })
           .eq('token', tok);
-    } catch {}
+    } catch { }
     try {
       await (this.auth as any).signOut();
-    } catch {}
+    } catch { }
     this.router.navigateByUrl('/login', { replaceUrl: true });
   }
 }

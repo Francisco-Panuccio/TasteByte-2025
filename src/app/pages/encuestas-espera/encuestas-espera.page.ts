@@ -111,7 +111,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private usuarios: Usuarios,
     private session: ClienteSessionService
-  ) {}
+  ) { }
 
   async ngOnInit() {
     if (this.session.mesaAsignadaId && this.session.tienePermiso) {
@@ -286,15 +286,15 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
             const esAnon = !!this.anonimoId;
             const filtro = esAnon
               ? supabase
-                  .from('lista_espera')
-                  .select('id')
-                  .eq('cliente_anonimo_id', this.anonimoId!)
-                  .limit(1)
+                .from('lista_espera')
+                .select('id')
+                .eq('cliente_anonimo_id', this.anonimoId!)
+                .limit(1)
               : supabase
-                  .from('lista_espera')
-                  .select('id')
-                  .eq('cliente_id', this.clienteId!)
-                  .limit(1);
+                .from('lista_espera')
+                .select('id')
+                .eq('cliente_id', this.clienteId!)
+                .limit(1);
 
             const { data: sigue, error } = await filtro.maybeSingle();
 
@@ -309,7 +309,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
 
               try {
                 this.cd.detectChanges();
-              } catch {}
+              } catch { }
             });
 
             if (payload.eventType !== 'INSERT') {
@@ -317,7 +317,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
                 this.cargarMesaAsignada().then(() => {
                   try {
                     this.cd.detectChanges();
-                  } catch {}
+                  } catch { }
                 });
               }, 300);
             }
@@ -336,7 +336,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     if (this.listaEsperaSub) supabase.removeChannel(this.listaEsperaSub);
     try {
       this.chatSvc.unsubscribe?.();
-    } catch {}
+    } catch { }
   }
 
   trackDeliveryMsg = (_: number, m: { id: string }) => m.id;
@@ -370,7 +370,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
             { onConflict: 'chat_id,role' }
           );
       }
-    } catch {}
+    } catch { }
   }
 
   private async notifyDeliveryPeers(
@@ -415,7 +415,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
         preview?.slice(0, 100) || 'Toque para abrir el chat',
         { tipo: 'delivery_chat', chatId }
       );
-    } catch {}
+    } catch { }
   }
 
   private async intentarDeliveryUnlock(): Promise<void> {
@@ -648,7 +648,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
 
       if (asignacionActiva) {
         puedeEntrar = true;
-        this.mesaAsignadaId = asignacionActiva.mesa_id; 
+        this.mesaAsignadaId = asignacionActiva.mesa_id;
         this.session.mesaAsignadaId = asignacionActiva.mesa_id;
         this.session.tienePermiso = true;
       }
@@ -900,7 +900,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
           .from('intentos_juegos')
           .delete()
           .eq('cliente_id', this.clienteId);
-    } catch {}
+    } catch { }
   }
 
   async pedirCuenta(): Promise<void> {
@@ -945,7 +945,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   async salir() {
     try {
       await supabase.auth.signOut();
-    } catch {}
+    } catch { }
     this.session.limpiar();
     this.router.navigate(['/login'], { replaceUrl: true });
   }
@@ -986,7 +986,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
 
     this.chatSvc
       .bindMyPushToken(this.deliveryChatId, this.anonimoId)
-      .catch(() => {});
+      .catch(() => { });
 
     this.deliverySeenIds.clear();
     const msgs = await this.chatSvc.loadMessages(this.deliveryChatId, 200);
@@ -1009,7 +1009,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
 
     try {
       this.chatSvc.unsubscribe?.();
-    } catch {}
+    } catch { }
 
     this.chatSvc.subscribeToMessages(this.deliveryChatId, (m) => {
       if (m.user_id === this.myUserId) return;
@@ -1115,7 +1115,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     );
     this.chatId = chat.id;
 
-    this.chatSvc.bindMyPushToken(this.chatId, this.anonimoId).catch(() => {});
+    this.chatSvc.bindMyPushToken(this.chatId, this.anonimoId).catch(() => { });
 
     const since = await this.chatSvc.getMesaSince(mesaId);
 
@@ -1136,7 +1136,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
 
     try {
       this.chatSvc.unsubscribe?.();
-    } catch {}
+    } catch { }
 
     this.chatSvc.subscribeToMessages(
       this.chatId,
@@ -1234,7 +1234,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   private scrollToBottom(ms: number = 200) {
     try {
       this.chatContent?.scrollToBottom(ms);
-    } catch {}
+    } catch { }
   }
   private scrollToBottomAfterRender() {
     requestAnimationFrame(() => setTimeout(() => this.scrollToBottom(200), 0));
