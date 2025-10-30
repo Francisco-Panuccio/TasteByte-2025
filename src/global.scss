@@ -22,7 +22,11 @@
   --color-error: #ab3737;
 }
 
-html, body, ion-modal, ion-root, ion-app {
+html,
+body,
+ion-modal,
+ion-root,
+ion-app {
   background-color: #1C1B22;
   --background: #1C1B22;
 }
@@ -177,12 +181,11 @@ ion-popover::part(content) {
   --fade-background-rgb: none;
   border: 2px solid var(--color-text);
   border-radius: 20px;
-  color: var(--color-text);
+  color: var(--color-black);
 }
 
-ion-popover ion-picker-column-option:active {
-  color: var(--color-btn-secondary) !important;
-  font-weight: 600;
+ion-popover ion-picker-column-option.ion-color.ion-color-primary {
+  --ion-color-base: var(--color-text) !important;
 }
 
 ion-popover.dni-popover ion-list {

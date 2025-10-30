@@ -400,15 +400,13 @@ export class PedidosMozoPage implements OnInit {
       }
 
       const msg =
-        estado === "pagado"
-          ? "Pago validado"
-          : estado === "rechazado"
-            ? "Pedido rechazado"
-            : estado === "aceptado"
-              ? "Pedido aceptado"
-              : estado === "recibido"
-                ? "Pedido entregado"
-                : "Estado actualizado";
+        estado === "rechazado"
+          ? "Pedido rechazado"
+          : estado === "aceptado"
+            ? "Pedido aceptado"
+            : estado === "recibido"
+              ? "Pedido entregado"
+              : "Estado actualizado";
 
       (
         await this.toast.create({
@@ -1053,9 +1051,10 @@ export class PedidosMozoPage implements OnInit {
         const mesaNumero = mesaId != null ? this.mesasNum.get(mesaId) ?? mesaId : "NN";
         const isDelivery = mesaId == null;
         const body = isDelivery ? "Pedido entregado a Delivery" : `Pedido Mesa (${mesaNumero}) entregado`;
+        const roles: Array<"mozo" | "delivery"> = isDelivery ? ["delivery"] : ["mozo"];
 
         await this.push.sendToRoles(
-          ["mozo"],
+          roles,
           "Pedido listo",
           body,
           {
