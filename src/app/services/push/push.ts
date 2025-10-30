@@ -212,37 +212,23 @@ export class Push {
   }
 
   private async upsertToken(
-  token: string,
-  usuarioRowId: number | string | null,
-  role?: Role
-): Promise<void> {
-  try {
-    if (role) {
-      await supabase
-        .from('push_tokens')
-        .delete()
-        .eq('role', this.normRole(role))
-        .neq('token', token); 
-    }
+    token: string,
+    usuarioRowId: number | string | null,
+    role?: Role
+  ): Promise<void> {
     const payload: any = {
       token,
-      usuario_id: usuarioRowId ?? null,
+      usuario_id: usuarioRowId ?? null, 
       plataforma: Capacitor.getPlatform(),
       role: this.normRole(role),
       active: true,
       revoked: false,
     };
-
     const { error } = await supabase
       .from('push_tokens')
       .upsert(payload, { onConflict: 'token' });
-
     if (error) console.error('[push][upsertToken]', error, payload);
-  } catch (err) {
-    console.error('❌ [push][upsertToken][cleanup]', err);
   }
-}
-
 
   async send(
     to: string | string[],
