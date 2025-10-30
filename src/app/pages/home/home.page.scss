@@ -23,7 +23,7 @@
   overflow: scroll;
   border-radius: 20px;
   border: 2px solid var(--color-text);
-  background-color: var(--color-container);
+  background-color: #3b2820;
 }
 
 #container strong {
@@ -41,7 +41,7 @@
     radial-gradient(circle 80px at 0 155px,
       rgba(255, 255, 255, .10) 0 60%,
       rgba(255, 255, 255, 0) 61%),
-    var(--color-input);
+      #552a1a;
   color: var(--color-text);
   font-size: 23px;
   font-weight: 600;
