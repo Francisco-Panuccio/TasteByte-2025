@@ -114,9 +114,9 @@ export class ReservasAdminPage implements OnInit {
         (
           await this.toast.create({
             message: 'No se encontró el usuario registrado.',
-            duration: 2000,
+            duration: 1500,
             position: 'top',
-            cssClass: 'toast-error',
+            cssClass: 'toast',
           })
         ).present();
         return;
@@ -136,9 +136,9 @@ export class ReservasAdminPage implements OnInit {
         (
           await this.toast.create({
             message: 'No se encontró el cliente asociado a este usuario.',
-            duration: 2000,
+            duration: 1500,
             position: 'top',
-            cssClass: 'toast-error',
+            cssClass: 'toast',
           })
         ).present();
         return;
@@ -197,9 +197,9 @@ export class ReservasAdminPage implements OnInit {
       (
         await this.toast.create({
           message: `Reserva confirmada y asignada a mesa ${mesaSeleccionada.numero}.`,
-          duration: 2000,
-          position: 'bottom',
-          cssClass: 'toast-confirmado',
+          duration: 1500,
+          position: 'top',
+          cssClass: 'toast',
         })
       ).present();
 
@@ -209,9 +209,9 @@ export class ReservasAdminPage implements OnInit {
       (
         await this.toast.create({
           message: 'Ocurrió un error al confirmar la reserva.',
-          duration: 2000,
+          duration: 1500,
           position: 'top',
-          cssClass: 'toast-error',
+          cssClass: 'toast',
         })
       ).present();
     }
@@ -273,9 +273,9 @@ export class ReservasAdminPage implements OnInit {
               (
                 await this.toast.create({
                   message: 'Error al eliminar la reserva.',
-                  duration: 2000,
+                  duration: 1500,
                   position: 'top',
-                  cssClass: 'toast-error',
+                  cssClass: 'toast',
                 })
               ).present();
               return;
@@ -284,9 +284,9 @@ export class ReservasAdminPage implements OnInit {
             (
               await this.toast.create({
                 message: 'Reserva rechazada y eliminada correctamente.',
-                duration: 2000,
-                position: 'bottom',
-                cssClass: 'toast-rechazada',
+                duration: 1500,
+                position: 'top',
+                cssClass: 'toast',
               })
             ).present();
 
