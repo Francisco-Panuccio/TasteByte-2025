@@ -295,6 +295,6 @@ Dejar las imágenes en una carpeta compartida, así se pueden ver todas
   <img src="src/assets/imagesGithub/reservas-4.jpeg" alt="Reservas 4" width="400" height="800">
   <img src="src/assets/imagesGithub/reservas-5.jpeg" alt="Reservas 5" width="400" height="800">
   <img src="src/assets/imagesGithub/reservas-6.jpeg" alt="Reservas 6" width="400" height="800">
-  <img src="src/assets/imagesGithub/eleccion_fecha.jpeg" alt="Elección Fecha" width="400" height="800">
-  <img src="src/assets/imagesGithub/eleccion_hora.jpeg" alt="Elección Hora" width="400" height="800">
+  <img src="src/assets/imagesGithub/eleccion-fecha.jpeg" alt="Elección Fecha" width="400" height="800">
+  <img src="src/assets/imagesGithub/eleccion-hora.jpeg" alt="Elección Hora" width="400" height="800">
 </p>
