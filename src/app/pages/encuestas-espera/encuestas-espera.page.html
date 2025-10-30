@@ -20,12 +20,12 @@
     <div class="container">
       @if(!tienePermiso) {
         <ion-button class="btn_ingreso" (click)="escanearQr()">
-          Escanear QR de Ingreso
+          <img src="assets/images/qr.png" alt="Escanear QR de Ingreso">
         </ion-button>
 
         @if(!anonClient) {
           <ion-button class="btn_juegos" routerLink="/delivery">
-            Delivery
+            <img src="assets/home/deliveries.png" alt="Deliveries">
           </ion-button>
 
           <ion-button
@@ -39,7 +39,7 @@
               nombreCliente : nombreCliente
             }"
           >
-            Reservas
+            <img src="assets/images/reserva.png" alt="Reservas">
           </ion-button>
         } @else {
           <p class="texto_ingreso">
@@ -49,7 +49,7 @@
       } @else {
           @if(!deliveryUnlock) {
             <ion-button class="last-btn" (click)="escanearQrMesa()">
-              <img src="assets/images/qr.png" />
+              <img src="assets/images/qr.png"/>
             </ion-button>
           }
 
@@ -65,23 +65,23 @@
                   from: 'cliente'
                 }"
                 class="btn_juegos">
-                Ver Lista de Espera
+                <img src="assets/home/ver-lista-espera.png" alt="Ver Lista de Espera">
               </ion-button>
 
               <ion-button
                 color="medium"
                 [disabled]="yaRegistrado"
                 (click)="registrarseListaEspera()">
-                Unirse a Lista de Espera
+                <img src="assets/home/unirse-lista-espera.png" alt="Unirse a Lista de Espera">
               </ion-button>
             } @else {
                 <ion-button class="btn_chat" (click)="openDeliveryChat()">
-                  Consultar al Delivery
+                  <img src="assets/home/consultar.png" alt="Consultar al Delivery">
                 </ion-button>
             }
           } @else {
               <ion-button class="btn_chat" (click)="openChat()">
-                Consultar al Mozo
+                <img src="assets/home/consultar.png" alt="Consultar al Mozo">
               </ion-button>
             } 
 
@@ -94,7 +94,7 @@
               clienteId: clienteId,
               userId: userUid
             }">
-            Encuestas Clientes
+            <img src="assets/home/encuesta.png" alt="Encuestas Clientes">
           </ion-button>
 
           @if(mostrarPedido) {
@@ -108,7 +108,7 @@
                 usuarioId: usuarioId,
                 clienteId: clienteId
               }">
-              Pedido
+              <img src="assets/home/pedido.png" alt="Pedido">
             </ion-button>
           } 
 
@@ -123,7 +123,7 @@
                   userId: userUid,
                   mesaId: mesaAsignadaId
                 }">
-                Juegos
+                <img src="assets/home/juegos.png" alt="Juegos">
               </ion-button>
           } 
 
@@ -139,7 +139,7 @@
                 clienteId: clienteId,
                 userId: userUid
               }">
-              Pedir Cuenta
+              <img src="assets/home/pedir-cuenta.png" alt="Pedir Cuenta">
             </ion-button>
           } 
         }
