@@ -13,38 +13,50 @@ Imagen 1 (principal - mozo):
 Si el círculo que está en el medio de la pantalla es una foto del empleado, hacerla más grande. 
 Si 'Pedidos' es la única opción, quitar esa pantalla y redirigir directamente a la opción en cuestión.
 Evitar textos en botones (recordar que los empleados están en constatnte movimiento y poca luz, deberían poder acceder a las opciones con un golpe de vista. Reemplazarlo por íconos, imágenes alusivas, etc (grandes).
+
 Imagen 2 (principal - cocina):
 Ídem anterior.
+
 Imagen 3 (principal - bar):
 Ídem anterior.
+
 Imagen 4 (alta - plato):
 Agrandar el tamño para las fotos.
 El mensaje que indica que faltan 3 foto(s) tiene un par de problemas. Primero, sacar la 's' de entre los paréntesis, son 3 fotos. Segundo, ¿fondo verde oscuro y letras de color rojo? El contraste es pésimo. Luego del botón tomar fotos, sale cortado...
+
 Imagen 5 (registro empleado):
 Texto en campo DNI sale cortado. El botón para escanear el código es pequeño.
 Quitar el botón de Iniciar sesión, es una pantalla para generar un registro.
+
 Imagen 6 (¿carrito de compras?):
 Dejar más espacio para las descripciones, pueden se más extensas.
+
 Imagen 7 (?):
 Tiene mucho espacio libre y además no sé que es ¿botón sii? y otro botón abrir chat
+
 Imagen 8 (push - mesa asignada):
 Está bien.
+
 Imagen 9 (ingreso anónimo):
 Está bien.
+
 Imagen 10 (lista de espera):
 Quitar el estado, que siempre será pendiente si está en el listado. Aprovechar ese 'renglón' extra para agrandar un poco más la foto.
+
 Imagen 11 (correo rechazo):
 Falta el logo de la empresa. En cuanto al mensaje, quitar la parte que dice: "En unos minutos un dueño o supervisor autorizará su ingreso" ya que pueden pasar más que unos minutos y también puede pasar que no lo autoricen.
+
 Imagen 12 (pedidos mozo - aceptados):De nuevo, es un empleado que está en constante movimiento y, seguramente, mire el dispositivo mientres camine. Es un arco íris esta pantalla. De un golpe de vista no se lleva nada.
 Luego, quitar esos botones o solapas con los listados, generar botones flotantes, opciones de menú, o algo para que solo vea una sección a la vez, y de ser necesario, ingrese a la siguiente. ¿Impagados?
 El número de mesa, bien grande. El estado, acá tampoco va. Si estoy en el listado de 'Aceptados', el estado siempre será 'Aceptado'. El tiempo de espera es irrelevante para el mozo, pero si lo quieren dejar, quitar todas las abreviaturas. El total no interesa (hasta que se quiera abonar), quitar.
 Con toodo el espacio ganado, indicar, mediante gráficos, imágenes, íconos, etc. el estado del pedido en cada sector (cocina y bar)
+
 Imagen 13 (pedidos mozo - pendientes):Ídem anterior, no tener esos botones superioes. No hay listados para evaluar.
+
 Imagen 14 (iniciar sesión):Igualar en tamaño a los botones de la parte inferior 'Crear cuenta' y el de 'Ingreso anónimo'
 
 NOTA: muchos enlaces a las imágenes no cargan. Dichas imágenes no fueron evaluadas.
 Dejar las imágenes en una carpeta compartida, así se pueden ver todas
-
 
 
 ## Responsabilidades (Primera Semana) 🛠️
@@ -55,8 +67,10 @@ Dejar las imágenes en una carpeta compartida, así se pueden ver todas
 - Branch: panuccio/altas
 
 <p align="center">
-  <img src="src/assets/imagesGithub/home-dueno.jpeg" alt="Home Dueño" width="400" height="800">
-  <img src="src/assets/imagesGithub/home-supervisor.jpeg" alt="Home Supervisor" width="400" height="800">
+  <img src="src/assets/imagesGithub/home-dueno-1.jpeg" alt="Home Dueño 1" width="400" height="800">
+  <img src="src/assets/imagesGithub/home-dueno-2.jpeg" alt="Home Dueño 2" width="400" height="800">
+  <img src="src/assets/imagesGithub/home-supervisor-1.jpeg" alt="Home Supervisor 1" width="400" height="800">
+  <img src="src/assets/imagesGithub/home-supervisor-2.jpeg" alt="Home Supervisor 2" width="400" height="800">
   <img src="src/assets/imagesGithub/home-maitre.jpeg" alt="Home Maitre" width="400" height="800">
   <img src="src/assets/imagesGithub/home-cocinero.jpeg" alt="Home Cocinero" width="400" height="800">
   <img src="src/assets/imagesGithub/home-bartender.jpeg" alt="Home Bartender" width="400" height="800">
@@ -64,7 +78,6 @@ Dejar las imágenes en una carpeta compartida, así se pueden ver todas
   <img src="src/assets/imagesGithub/home-cliente-2.jpeg" alt="Home Cliente 2" width="400" height="800">
   <img src="src/assets/imagesGithub/home-cliente-1.jpeg" alt="Home Cliente 1" width="400" height="800">
   <img src="src/assets/imagesGithub/home-cliente-3.jpeg" alt="Home Cliente 3" width="400" height="800">
-  <img src="src/assets/imagesGithub/home-cliente-4.jpeg" alt="Home Cliente 4" width="400" height="800">
   <img src="src/assets/imagesGithub/alta-plato-1.jpeg" alt="Alta Plato 1" width="400" height="800">
   <img src="src/assets/imagesGithub/alta-plato-2.jpeg" alt="Alta Plato 2" width="400" height="800">
   <img src="src/assets/imagesGithub/alta-mesa.jpeg" alt="Alta Mesa" width="400" height="800">
@@ -263,6 +276,10 @@ Dejar las imágenes en una carpeta compartida, así se pueden ver todas
 <p align="center">
   <img src="src/assets/imagesGithub/delivery-1.jpeg" alt="Delivery 1" width="400" height="800">
   <img src="src/assets/imagesGithub/delivery-mapa.jpeg" alt="Delivery Mapa" width="400" height="800">
+  <img src="src/assets/imagesGithub/delivery-ubicacion.jpeg" alt="Delivery Ubicación" width="400" height="800">
+  <img src="src/assets/imagesGithub/delivery-pendiente.jpeg" alt="Delivery Pendiente" width="400" height="800">
+  <img src="src/assets/imagesGithub/sin-pedidos-delivery.jpeg" alt="Sin Pedidos Delivery" width="400" height="800">
+  <img src="src/assets/imagesGithub/sin-pedidos-delivery-dueno.jpeg" alt="Sin Pedidos Dueño Delivery" width="400" height="800">
 </p>
 
 * Roman
@@ -270,3 +287,14 @@ Dejar las imágenes en una carpeta compartida, así se pueden ver todas
 - Fecha Inicial: 25/10/2025
 - Fecha Final: 28/10/2025
 - Branch: roman
+
+<p align="center">
+  <img src="src/assets/imagesGithub/reservas-1.jpeg" alt="Reservas 1" width="400" height="800">
+  <img src="src/assets/imagesGithub/reservas-2.jpeg" alt="Reservas 2" width="400" height="800">
+  <img src="src/assets/imagesGithub/reservas-3.jpeg" alt="Reservas 3" width="400" height="800">
+  <img src="src/assets/imagesGithub/reservas-4.jpeg" alt="Reservas 4" width="400" height="800">
+  <img src="src/assets/imagesGithub/reservas-5.jpeg" alt="Reservas 5" width="400" height="800">
+  <img src="src/assets/imagesGithub/reservas-6.jpeg" alt="Reservas 6" width="400" height="800">
+  <img src="src/assets/imagesGithub/eleccion_fecha.jpeg" alt="Elección Fecha" width="400" height="800">
+  <img src="src/assets/imagesGithub/eleccion_hora.jpeg" alt="Elección Hora" width="400" height="800">
+</p>
