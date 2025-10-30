@@ -219,6 +219,7 @@ export class ReservasAdminPage implements OnInit {
 
   async rechazar(r: any) {
     const prompt = await this.alert.create({
+      cssClass: "alert-reservas",
       header: 'Motivo del rechazo',
       inputs: [
         {
