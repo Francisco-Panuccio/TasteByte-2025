@@ -299,7 +299,8 @@ ion-toast.toast2::part(header) {
 
 
 ion-alert.alert-foto,
-ion-alert.alert-cocina {
+ion-alert.alert-cocina,
+ion-alert.alert-reservas {
   --background: var(--color-btn-secondary);
   --backdrop-opacity: .35;
   --box-shadow: 0 10px 30px rgba(0, 0, 0, .4);
@@ -328,7 +329,8 @@ ion-alert.alert-cocina {
 }
 
 .alert-foto .alert-message,
-.alert-cocina .alert-message {
+.alert-cocina .alert-message,
+.alert-reservas .alert-message {
   font-weight: 600;
   padding: 0 16px 8px;
   font-size: 18px;
@@ -338,7 +340,8 @@ ion-alert.alert-cocina {
 }
 
 .alert-foto .alert-button-group,
-.alert-cocina .alert-button-group {
+.alert-cocina .alert-button-group,
+.alert-reservas .alert-button-group {
   display: flex;
   justify-content: end;
   align-items: center;
@@ -351,7 +354,8 @@ ion-alert.alert-cocina {
 }
 
 .alert-foto .alert-button,
-.alert-cocina .alert-button {
+.alert-cocina .alert-button,
+.alert-reservas .alert-button {
   text-align: center;
   font-weight: 800;
   font-size: 16px;
@@ -362,7 +366,8 @@ ion-alert.alert-cocina {
 }
 
 .alert-foto .alert-button-inner,
-.alert-cocina .alert-button-inner {
+.alert-cocina .alert-button-inner,
+.alert-reservas .alert-button-inner {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -370,10 +375,38 @@ ion-alert.alert-cocina {
   line-height: 1;
 }
 
-.alert-cocina .alert-button {
+.alert-cocina .alert-button,
+.alert-reservas .alert-button {
   width: 120px;
 }
 
-.alert-reservas {
-  
+.alert-reservas .alert-title {
+  color: var(--color-text);
+  font-size: 25px;
+  text-align: center;
+}
+
+.alert-reservas .alert-input-group {
+  padding-top: 0;
+}
+
+.alert-reservas .alert-head {
+  padding-bottom: 0;
+}
+
+.alert-reservas .alert-input-wrapper {
+  font-size: 18px;
+}
+
+.alert-reservas .alert-input-wrapper textarea {
+  color: var(--color-text);
+  border: 2px solid var(--color-black) !important;
+  border-radius: 20px;
+  padding: 10px;
+  height: 100px;
+}
+
+.alert-reservas .alert-wrapper {
+  border-radius: 16px;
+  border: 2px solid var(--color-text);
 }
