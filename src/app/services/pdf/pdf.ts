@@ -48,41 +48,40 @@ export class Pdf {
   }
 
   async subirFacturaYObtenerUrl(blob: Blob, fileName: string): Promise<string> {
-  const bucket = "facturas";
+    const bucket = "facturas";
 
-  const safeFileName = fileName
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") 
-    .replace(/\s+/g, "_")           
-    .replace(/[^a-zA-Z0-9._-]/g, ""); 
+    const safeFileName = fileName
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, "_")
+      .replace(/[^a-zA-Z0-9._-]/g, "");
 
-  const cleanName = safeFileName
-    .replace(/^Factura_+/, "Factura_")  
-    .replace(/\.pdf+$/, "") + ".pdf";   
+    const cleanName = safeFileName
+      .replace(/^Factura_+/, "Factura_")
+      .replace(/\.pdf+$/, "") + ".pdf";
 
-  const { error: upErr } = await supabase.storage
-    .from(bucket)
-    .upload(cleanName, blob, {
-      upsert: true,
-      contentType: "application/pdf",
-    });
+    const { error: upErr } = await supabase.storage
+      .from(bucket)
+      .upload(cleanName, blob, {
+        upsert: true,
+        contentType: "application/pdf",
+      });
 
-  if (upErr) {
-    console.error("❌ Error subiendo PDF a Supabase:", upErr);
-    throw upErr;
+    if (upErr) {
+      console.error("❌ Error subiendo PDF a Supabase:", upErr);
+      throw upErr;
+    }
+
+    const { data: pub } = supabase.storage.from(bucket).getPublicUrl(cleanName);
+    const url = pub?.publicUrl;
+
+    if (!url) {
+      throw new Error("No se pudo obtener la URL pública del PDF");
+    }
+
+    console.log("✅ Factura subida correctamente:", cleanName);
+    console.log("🌐 URL pública:", url);
+
+    return url;
   }
-
-  const { data: pub } = supabase.storage.from(bucket).getPublicUrl(cleanName);
-  const url = pub?.publicUrl;
-
-  if (!url) {
-    throw new Error("No se pudo obtener la URL pública del PDF");
-  }
-
-  console.log("✅ Factura subida correctamente:", cleanName);
-  console.log("🌐 URL pública:", url);
-
-  return url;
-}
-
 }

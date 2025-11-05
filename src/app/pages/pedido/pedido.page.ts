@@ -22,6 +22,11 @@ export class PedidoPage implements OnInit {
 
   mesaId?: number;
 
+  descuentoPct: number = 0;
+  descuentoMonto: number = 0;
+  totalConDescuento: number = 0;
+  totalMostrar: number = 0;
+
   constructor(
     private ar: ActivatedRoute,
     private pedidos: Pedidos,
@@ -51,6 +56,7 @@ export class PedidoPage implements OnInit {
         this.items = items;
         if (this.ped) {
           await this.verificarDescuento(this.ped.id);
+          this.calcularTotales();
         } else {
           await this.mostrarToast("No hay pedido activo");
         }
@@ -65,6 +71,7 @@ export class PedidoPage implements OnInit {
           this.ped = ped;
           this.items = items;
           if (this.ped) await this.verificarDescuento(this.ped.id);
+          this.calcularTotales();
         } else {
           await this.mostrarToast("No hay pedido asociado a la mesa");
         }
@@ -85,6 +92,7 @@ export class PedidoPage implements OnInit {
       await this.mostrarToast("Pedido no encontrado en la BD");
     } else {
       await this.verificarDescuento(this.ped.id);
+      this.calcularTotales();
     }
 
     this.loading = false;
@@ -93,8 +101,10 @@ export class PedidoPage implements OnInit {
   private async verificarDescuento(pedidoId: string) {
     const { data: desc, error: descError } = await supabase
       .from("descuentos")
-      .select("porcentaje, pedido_id")
+      .select("porcentaje, pedido_id, aplicado_en")
       .eq("pedido_id", pedidoId)
+      .order("aplicado_en", { ascending: false })
+      .limit(1)
       .maybeSingle();
 
     if (descError) {
@@ -102,9 +112,22 @@ export class PedidoPage implements OnInit {
       return;
     }
 
-    if (desc && this.ped?.total) {
-      this.ped.totalConDescuento = this.ped.total * (1 - desc.porcentaje / 100);
-    }
+    this.descuentoPct = Number(desc?.porcentaje ?? 0);
+  }
+
+  private calcularTotales(): void {
+    const sumaItems = (this.items ?? []).reduce((acc, r: any) => {
+      const c = Number(r?.cantidad ?? 1);
+      const pu = Number(r?.precio_unit ?? 0);
+      return acc + c * pu;
+    }, 0);
+
+    const baseConDescuento = +(sumaItems * (1 - this.descuentoPct / 100)).toFixed(2);
+    this.descuentoMonto = +(sumaItems - baseConDescuento).toFixed(2);
+    this.totalConDescuento = baseConDescuento;
+
+    // Aquí solo se calcula el total con descuento, sin la propina
+    this.totalMostrar = this.totalConDescuento;
   }
 
   volver() {

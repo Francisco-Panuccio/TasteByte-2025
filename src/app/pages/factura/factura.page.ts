@@ -3,7 +3,13 @@ import { Component, ElementRef, Input, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 export interface ItemFactura { codigo: string; descripcion: string; cantidad: number; precioUnit: number; subtotal: number; }
-export interface TotalesFactura { total: number; }
+export interface TotalesFactura {
+  total: number;
+  propinaPct?: number;
+  propinaMonto?: number; 
+  descuentoPct?: number;
+  descuentoMonto?: number;
+}
 export interface FacturaData {
   fecha: Date;
   receptor: { cuitOdni: string; nombreCompleto: string; };
@@ -11,7 +17,7 @@ export interface FacturaData {
   totales: TotalesFactura;
 }
 
-const FACTURA_EMPTY: FacturaData = { fecha: new Date(), receptor: { cuitOdni: "", nombreCompleto: ""}, items: [], totales: { total: 0 } };
+const FACTURA_EMPTY: FacturaData = { fecha: new Date(), receptor: { cuitOdni: "", nombreCompleto: "" }, items: [], totales: { total: 0, propinaPct: 0, propinaMonto: 0, descuentoPct: 0, descuentoMonto: 0 } };
 
 @Component({
   selector: 'app-factura',

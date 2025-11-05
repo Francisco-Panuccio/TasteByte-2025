@@ -45,7 +45,6 @@ export class DeepLinkService {
       let accessToken: string | null = null;
       let refreshToken: string | null = null;
 
-      // Intentar extraer del hash (formato actual)
       try {
         const hashParams = new URL(url).hash.substring(1);
         const params = new URLSearchParams(hashParams);
@@ -55,7 +54,6 @@ export class DeepLinkService {
         console.log('❌ Error parseando hash:', e);
       }
 
-      // Si no se encontraron en el hash, intentar en query params (por si acaso)
       if (!accessToken || !refreshToken) {
         try {
           const urlObj = new URL(url);
@@ -92,7 +90,6 @@ export class DeepLinkService {
           } else {
             console.log('❌ Usuario no existe en la base de datos, cerrando sesión...');
             await supabase.auth.signOut();
-            // No navegar - quedará en el login
           }
         } else {
           console.log('❌ setSession no devolvió sesión');
@@ -134,7 +131,6 @@ export class DeepLinkService {
     try {
       console.log('🏠 Navegando al home...');
 
-      // Usar NgZone para asegurar la navegación en el contexto de Angular
       this.ngZone.run(() => {
         this.router.navigateByUrl('/home', { replaceUrl: true })
           .then(success => {

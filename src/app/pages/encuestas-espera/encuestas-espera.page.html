@@ -47,14 +47,14 @@
           </p>
         }
       } @else {
-          @if(!deliveryUnlock) {
+          @if(!deliveryUnlock && !isDelivery) {
             <ion-button class="last-btn" (click)="escanearQrMesa()">
               <img src="assets/images/qr.png"/>
             </ion-button>
           }
 
           @if(!tieneMesa) { 
-            @if(!deliveryUnlock) {
+            @if(!deliveryUnlock && !isDelivery) {
               <ion-button
                 routerLink="/lista-espera"
                 [queryParams]="{

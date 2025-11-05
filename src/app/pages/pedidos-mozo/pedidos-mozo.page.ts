@@ -21,9 +21,9 @@ type Filtro =
 
 const FACTURA_EMPTY: FacturaData = {
   fecha: new Date(),
-  receptor: { cuitOdni: '', nombreCompleto: '' },
+  receptor: { cuitOdni: "", nombreCompleto: "" },
   items: [],
-  totales: { total: 0 },
+  totales: { total: 0, propinaPct: 0, propinaMonto: 0, descuentoPct: 0, descuentoMonto: 0 },
 };
 
 @Component({
@@ -832,58 +832,71 @@ export class PedidosMozoPage implements OnInit {
     let user: any = null;
     if (emailCliente) {
       const { data: u } = await supabase
-        .from('usuarios')
-        .select('id, apellidos, nombres, numero_documento, numero_cuil')
-        .eq('correo_electronico', emailCliente)
+        .from("usuarios")
+        .select("id, apellidos, nombres, numero_documento, numero_cuil")
+        .eq("correo_electronico", emailCliente)
         .maybeSingle();
       user = u;
     }
 
     const { data: ped } = await supabase
-      .from('pedidos')
-      .select('id, total')
-      .eq('id', pedidoId)
+      .from("pedidos")
+      .select("id, total")
+      .eq("id", pedidoId)
       .maybeSingle();
 
     const { data: rows } = await supabase
-      .from('pedido_items')
-      .select('id, cantidad, precio_unit, nombre, producto_id')
-      .eq('pedido_id', pedidoId)
-      .order('id', { ascending: true });
+      .from("pedido_items")
+      .select("id, cantidad, precio_unit, nombre, producto_id")
+      .eq("pedido_id", pedidoId)
+      .order("id", { ascending: true });
 
-    const nombreCompleto = user
-      ? `${user.nombres} ${user.apellidos}`.trim()
-      : 'Cliente Anonimo';
+    const { data: descRow } = await supabase
+      .from("descuentos")
+      .select("porcentaje, aplicado_en")
+      .eq("pedido_id", pedidoId)
+      .order("aplicado_en", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-    const cuitOdni =
-      user?.numero_documento || user?.numero_cuil || 'No especificado';
+    const nombreCompleto = user ? `${user.nombres} ${user.apellidos}`.trim() : "Cliente Anonimo";
+    const cuitOdni = user?.numero_documento || user?.numero_cuil || "No especificado";
 
     const items: ItemFactura[] = (rows ?? []).map((r: any, i: number) => ({
       codigo: String(r?.producto_id ?? r?.id ?? i + 1),
-      descripcion: String(r?.nombre ?? 'Item'),
+      descripcion: String(r?.nombre ?? "Item"),
       cantidad: Number(r?.cantidad ?? 1),
       precioUnit: Number(r?.precio_unit ?? 0),
       subtotal: Number(r?.cantidad ?? 1) * Number(r?.precio_unit ?? 0),
     }));
 
-    const total = Number(
-      ped?.total ?? items.reduce((a, b) => a + (b.subtotal || 0), 0)
-    );
+    const sumaItems = items.reduce((a, b) => a + (b.subtotal || 0), 0);
+    const descuentoPct = Number(descRow?.porcentaje ?? 0);
+    const baseConDescuento = +(sumaItems * (1 - descuentoPct / 100)).toFixed(2);
+    const totalFinal = Number(ped?.total ?? sumaItems);
+    const propinaMonto = +Math.max(0, totalFinal - baseConDescuento).toFixed(2);
+    const descuentoMonto = +(sumaItems - baseConDescuento).toFixed(2);
+    const propinaPct = baseConDescuento > 0 ? Math.round((propinaMonto / baseConDescuento) * 100) : 0;
 
     const fecha = new Date().toISOString().slice(0, 10);
     const safeNombre = nombreCompleto
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/\s+/g, '_')
-      .replace(/[^a-zA-Z0-9_-]/g, '');
-
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, "_")
+      .replace(/[^a-zA-Z0-9_-]/g, "");
     const fileName = `Factura_${fecha}_${safeNombre}_p${pedidoId}.pdf`;
 
     const data: FacturaData = {
       fecha: new Date(),
       receptor: { cuitOdni, nombreCompleto },
       items,
-      totales: { total },
+      totales: {
+        total: totalFinal,
+        propinaPct,
+        propinaMonto,
+        descuentoPct,
+        descuentoMonto,
+      },
     };
 
     return { data, fileName };
@@ -916,6 +929,10 @@ export class PedidosMozoPage implements OnInit {
       total: data.totales.total,
       filename: fileName,
       pdfBase64: base64,
+      propinaPct: data.totales.propinaPct ?? 0,
+      propinaMonto: data.totales.propinaMonto ?? 0,
+      descuentoPct: data.totales.descuentoPct ?? 0,
+      descuentoMonto: data.totales.descuentoMonto ?? 0,
     });
     (
       await this.toast.create({
@@ -930,39 +947,56 @@ export class PedidosMozoPage implements OnInit {
 
   async emitirFacturaParaAnonimoYUrl(pedidoId: string): Promise<string> {
     const { data: ped } = await supabase
-      .from('pedidos')
-      .select('mesa_id, total')
-      .eq('id', pedidoId)
+      .from("pedidos")
+      .select("mesa_id, total")
+      .eq("id", pedidoId)
+      .maybeSingle();
+    if (!ped) throw new Error("Pedido no encontrado para generar factura");
+
+    const { data: itemsRows } = await supabase
+      .from("pedido_items")
+      .select("nombre, cantidad, precio_unit, producto_id")
+      .eq("pedido_id", pedidoId);
+
+    const { data: descRow } = await supabase
+      .from("descuentos")
+      .select("porcentaje, aplicado_en")
+      .eq("pedido_id", pedidoId)
+      .order("aplicado_en", { ascending: false })
+      .limit(1)
       .maybeSingle();
 
-    if (!ped) throw new Error('Pedido no encontrado para generar factura');
+    const items = (itemsRows ?? []).map((r: any, i: number) => ({
+      codigo: String(r.producto_id ?? i + 1),
+      descripcion: r.nombre ?? "Item",
+      cantidad: Number(r.cantidad ?? 1),
+      precioUnit: Number(r.precio_unit ?? 0),
+      subtotal: Number(r.cantidad ?? 1) * Number(r.precio_unit ?? 0),
+    }));
 
-    const { data: items } = await supabase
-      .from('pedido_items')
-      .select('nombre, cantidad, precio_unit, producto_id')
-      .eq('pedido_id', pedidoId);
+    const sumaItems = items.reduce((acc, it) => acc + it.subtotal, 0);
+    const descuentoPct = Number(descRow?.porcentaje ?? 0);
+    const baseConDescuento = +(sumaItems * (1 - descuentoPct / 100)).toFixed(2);
+    const totalFinal = Number(
+      ped.total ?? sumaItems
+    );
+    const propinaMonto = +Math.max(0, totalFinal - baseConDescuento).toFixed(2);
+    const descuentoMonto = +(sumaItems - baseConDescuento).toFixed(2);
+    const propinaPct = baseConDescuento > 0 ? Math.round((propinaMonto / baseConDescuento) * 100) : 0;
 
     const fecha = new Date().toISOString().slice(0, 10);
     const fileName = `Factura_${fecha}_Cliente_Anonimo_p${pedidoId}.pdf`;
 
-    const facturaData = {
+    const facturaData: FacturaData = {
       fecha: new Date(),
-      receptor: { nombreCompleto: 'Cliente Anónimo', cuitOdni: 'N/A' },
-      items: (items ?? []).map((r: any, i: number) => ({
-        codigo: String(r.producto_id ?? i + 1),
-        descripcion: r.nombre ?? 'Item',
-        cantidad: Number(r.cantidad ?? 1),
-        precioUnit: Number(r.precio_unit ?? 0),
-        subtotal: Number(r.cantidad ?? 1) * Number(r.precio_unit ?? 0),
-      })),
+      receptor: { nombreCompleto: "Cliente Anónimo", cuitOdni: "N/A" },
+      items,
       totales: {
-        total:
-          ped.total ??
-          (items ?? []).reduce(
-            (acc, r: any) =>
-              acc + Number(r.cantidad ?? 1) * Number(r.precio_unit ?? 0),
-            0
-          ),
+        total: totalFinal,
+        propinaPct,
+        propinaMonto,
+        descuentoPct,
+        descuentoMonto,
       },
     };
 
@@ -972,37 +1006,29 @@ export class PedidosMozoPage implements OnInit {
     const el = this.facturaCmp.root.nativeElement;
     await this.waitForRender(el);
     const blob = await this.pdf.exportarA4(el, fileName);
-
     const url = await this.pdf.subirFacturaYObtenerUrl(blob, fileName);
-    console.log('✅ Factura anónima generada:', url);
 
     const { data: chatRow } = await supabase
-      .from('chats')
-      .select('id')
-      .eq('mesa_id', ped.mesa_id)
+      .from("chats")
+      .select("id")
+      .eq("mesa_id", ped.mesa_id)
       .maybeSingle();
 
     if (chatRow?.id) {
       const { data: part } = await supabase
-        .from('chat_participants')
-        .select('push_token')
-        .eq('chat_id', chatRow.id)
-        .eq('role', 'cliente')
+        .from("chat_participants")
+        .select("push_token")
+        .eq("chat_id", chatRow.id)
+        .eq("role", "cliente")
         .maybeSingle();
-
       const token = part?.push_token;
       if (token) {
-        await this.push.send(
-          token,
-          'Factura disponible',
-          'Tocá para descargar tu factura.',
-          {
-            tipo: 'factura',
-            pedidoId,
-            mesaId: ped.mesa_id,
-            url,
-          }
-        );
+        await this.push.send(token, "Factura disponible", "Tocá para descargar tu factura.", {
+          tipo: "factura",
+          pedidoId,
+          mesaId: ped.mesa_id,
+          url,
+        });
       }
     }
 

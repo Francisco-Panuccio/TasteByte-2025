@@ -3,7 +3,11 @@
 } @else {
   <header>
     <img src="assets/icon/cubiertos.png">
-    <title>Pedido Mesa {{ ped?.mesa?.numero ?? ped?.mesa_id }}</title>
+    <title>
+      {{ ped?.tipo === 'delivery'
+          ? 'Pedido Delivery'
+          : 'Pedido Mesa ' + (ped?.mesa?.numero ?? ped?.mesa_id) }}
+    </title>
     <img src="assets/icon/cubiertos.png">
   </header>
 
@@ -23,13 +27,10 @@
               </div>
 
               <div class="div_orden">
-                @if(ped?.totalConDescuento) {
-                  <p>
-                    Total con Descuento: {{ ped?.totalConDescuento | currency:"ARS":"symbol-narrow":"1.0-0" }}
-                  </p>
-                } @else {
-                  <p><span>Total: </span> {{ ped?.total | currency:"ARS":"symbol-narrow":"1.0-0" }}</p>
-                }              
+                <div class="div_middle">
+                  <p>Descuento ({{ descuentoPct }}%): - {{ descuentoMonto | currency:"ARS":"symbol-narrow":"1.0-0" }}</p>
+                </div>
+                <p class="total"><span>Total: </span> {{ totalMostrar | currency:"ARS":"symbol-narrow":"1.0-0" }}</p>          
               </div>
             </div>
           </div>

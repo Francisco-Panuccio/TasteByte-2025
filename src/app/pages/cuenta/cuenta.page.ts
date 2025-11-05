@@ -19,6 +19,8 @@ export class CuentaPage implements OnInit {
   descuento: number = 0;
   propinaSeleccionada: number = 0;
   totalFinal: number = 0;
+  descuentoMonto: number = 0;
+  propinaMonto: number = 0;
   loading = true;
 
   anonimoId?: string;
@@ -52,41 +54,42 @@ export class CuentaPage implements OnInit {
 
   private async cargarPedido() {
     const { data: ped, error: errPed } = await supabase
-      .from('pedidos')
-      .select('id, total, estado, cliente_uid')
-      .eq('id', this.pedidoId)
+      .from("pedidos")
+      .select("id, total, estado, cliente_uid")
+      .eq("id", this.pedidoId)
       .maybeSingle();
-
     if (errPed || !ped) {
-      await this.mostrarToast('Error cargando pedido.');
+      await this.mostrarToast("Error cargando pedido.");
       return;
     }
     this.ped = ped;
 
-    const { data: itemsTotales, error: errItems } = await supabase
-      .from('pedido_items')
-      .select('id, nombre, tipo, cantidad, precio_unit')
-      .eq('pedido_id', this.pedidoId);
+    const { data: itemsTotales } = await supabase
+      .from("pedido_items")
+      .select("id, nombre, tipo, cantidad, precio_unit")
+      .eq("pedido_id", this.pedidoId);
 
-    if (!errItems && itemsTotales) this.items = itemsTotales;
+    if (itemsTotales) this.items = itemsTotales;
 
     const { data: desc } = await supabase
-      .from('descuentos')
-      .select('porcentaje')
-      .eq('pedido_id', this.pedidoId)
+      .from("descuentos")
+      .select("porcentaje")
+      .eq("pedido_id", this.pedidoId)
+      .order("aplicado_en", { ascending: false })
+      .limit(1)
       .maybeSingle();
 
-    if (desc) this.descuento = desc.porcentaje;
+    this.descuento = Number(desc?.porcentaje ?? 0);
     this.actualizarTotal();
     this.loading = false;
   }
 
   actualizarTotal() {
-    let subtotal = this.ped.total;
-    if (this.descuento > 0) {
-      subtotal = subtotal * (1 - this.descuento / 100);
-    }
-    this.totalFinal = subtotal * (1 + this.propinaSeleccionada / 100);
+    const base = Number(this.ped?.total ?? 0);
+    this.descuentoMonto = +((base * this.descuento) / 100).toFixed(2);
+    const baseConDesc = +(base - this.descuentoMonto).toFixed(2);
+    this.propinaMonto = +((baseConDesc * this.propinaSeleccionada) / 100).toFixed(2);
+    this.totalFinal = +(baseConDesc + this.propinaMonto).toFixed(2);
   }
 
   async escanearPropina() {

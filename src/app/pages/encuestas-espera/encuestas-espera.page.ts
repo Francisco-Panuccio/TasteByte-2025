@@ -106,6 +106,10 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   clienteFoto = '';
   tieneMesa = false;
 
+  get isDelivery(): boolean {
+    return !this.mesaAsignadaId && !!this.pedidoId;
+  }
+
   constructor(
     private router: Router,
     private route: ActivatedRoute,
@@ -422,34 +426,34 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     if (this.mesaAsignadaId) return;
 
     let q = supabase
-      .from('pedidos')
-      .select('id, estado, tipo, delivery_direccion')
-      .eq('tipo', 'delivery')
-      .order('created_at', { ascending: false })
+      .from("pedidos")
+      .select("id, estado, tipo, delivery_direccion")
+      .eq("tipo", "delivery")
+      .order("created_at", { ascending: false })
       .limit(1);
 
-    if (this.email) q = q.eq('cliente_email', this.email);
-    else if (this.userUid) q = q.eq('cliente_uid', this.userUid);
+    if (this.email) q = q.eq("cliente_email", this.email);
+    else if (this.userUid) q = q.eq("cliente_uid", this.userUid);
     else {
       const { data: au } = await supabase.auth.getUser();
       const uid = au?.user?.id ?? null;
-      if (uid) q = q.eq('cliente_uid', uid);
+      if (uid) q = q.eq("cliente_uid", uid);
     }
 
     const { data } = await q;
     const p = data?.[0];
     if (!p) return;
 
-    if (['recibido', 'terminado'].includes(p.estado)) {
-      this.deliveryUnlock = true;
+    if (["aceptado", "recibido", "terminado"].includes(p.estado)) {
       this.pedidoId = p.id;
       this.estadoPedido = p.estado;
+
+      this.deliveryUnlock = ["recibido", "terminado"].includes(p.estado);
 
       this.qrValido = true;
       this.tienePermiso = true;
       this.yaRegistrado = true;
-
-      this.qrMesaEscaneado = true;
+      this.qrMesaEscaneado = false;
 
       this.actualizarFlags();
       this.suscribirPedido(this.pedidoId);
@@ -773,6 +777,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
           if (nuevoEstado) {
             this.estadoPedido = nuevoEstado;
             this.session.estadoPedido = nuevoEstado;
+            this.actualizarFlags();
           }
         }
       )
@@ -828,43 +833,34 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   }
 
   private actualizarFlags() {
-    const st = this.estadoPedido!.toLowerCase();
+    if (!this.estadoPedido) {
+      this.mostrarCuenta = this.mostrarPedido = this.mostrarJuegos = false;
+      return;
+    }
+
+    const st = this.estadoPedido.toLowerCase();
     const unlock = this.deliveryUnlock;
+    const isDelivery = !this.mesaAsignadaId && !!this.pedidoId;
 
-    if (!this.qrMesaEscaneado && !unlock) {
+    if (!this.qrMesaEscaneado && !unlock && !isDelivery) {
       this.mostrarCuenta = false;
       this.mostrarPedido = false;
       this.mostrarJuegos = false;
       return;
     }
 
-    if (!this.pedidoId) {
-      this.mostrarCuenta = false;
-      this.mostrarPedido = false;
-      this.mostrarJuegos = false;
-      return;
-    }
-
-    this.mostrarPedido = [
-      'pendiente',
-      'aceptado',
-      'recibido',
-      'terminado',
-    ].includes(st);
+    this.mostrarPedido = ["pendiente", "aceptado", "recibido", "terminado"].includes(st);
     this.mostrarJuegos = unlock
-      ? ['aceptado', 'recibido', 'terminado'].includes(st)
-      : ['aceptado', 'recibido'].includes(st);
-    this.mostrarCuenta =
-      (this.qrMesaEscaneado || unlock) &&
-      ['recibido', 'terminado'].includes(st);
+      ? ["aceptado", "recibido", "terminado"].includes(st)
+      : ["aceptado", "recibido"].includes(st);
 
-    if (['impagado', 'cancelado'].includes(st)) {
-      this.mostrarCuenta = false;
-      this.mostrarJuegos = false;
-      this.mostrarPedido = false;
+    this.mostrarCuenta = (this.qrMesaEscaneado || unlock || isDelivery)
+      && ["recibido", "terminado"].includes(st);
+
+    if (["impagado", "cancelado"].includes(st)) {
+      this.mostrarCuenta = this.mostrarJuegos = this.mostrarPedido = false;
     }
-
-    if (this.estadoPedido === 'pagado') {
+    if (st === "pagado") {
       this.limpiarIntentosJuegos();
       this.resetVista();
     }

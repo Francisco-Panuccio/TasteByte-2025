@@ -58,6 +58,50 @@ Imagen 14 (iniciar sesión):Igualar en tamaño a los botones de la parte inferio
 NOTA: muchos enlaces a las imágenes no cargan. Dichas imágenes no fueron evaluadas.
 Dejar las imágenes en una carpeta compartida, así se pueden ver todas
 
+## Correcciones Morelli - Clase 09 (04/11/25)
+
+Puntos de recuperatorio:
+Mostrar la que tanto los descuentos como las propinas figuren en la FC.
+Punto 23:
+El botón de acceder con google no debe estar en la sección de ingresos rápidos, sino en junto con los botones de ingresar o crear cuenta.
+Recuerden que los botones de acceso rapido solo se usan a modo de testeo.
+
+Punto 24:
+Cambienle los estilos al modal de motivo de rechazo, no lo dejen con los estilos que trae por defecto.
+
+Punto 25 ok
+
+Punto 26:
+La mesa siempre se libera después de pagar, se libera pasando los 45 min cuando el cliente no tomo la reserva. De lo contrario el cliente se va sin pagar si se queda sentado mas de 45 min.
+Todo este flujo háganlo modificando las fechas y estados en la bd, no hace falta que esperen 45 min...
+
+Punto 27:
+El mensaje "Delivery en curso" solo se debe mostrar cuando el pedido haya sido aceptado sino debería decir "esperando aprobación" o algo por el estilo.
+Con los pedido de delivery también debería poder acceder a los juegos mientras espero.
+ 
+Punto 28:
+Quitar el titulo de "Pedidos mozo" si son de delivery.
+Si es confirmado, se repetirán los pasos 14 y 16 y 17.
+ 
+Punto 29:
+Al mapa le falta mostrar la dirección.
+Poner Fecha a los mensaje del chat.
+Agrandar el botón de "Enviar" en el chat.
+Por que esta el titulo de "Pedido mesa" si es un pedido de delivery?
+En el detalle de la cuenta debe figurar el monto de los descuentos / propinas además del porcentaje.
+El detalle que llega al mail tampoco muestra ls descuentos o propinas.
+La factura no muestra los descuentos  / propinas.
+ 
+Punto 31:
+Al hacer movimiento hacia la derecha e izquierda (repetidas veces) se vuelve al principio
+(al primer producto del menú).
+ 
+Imágenes:
+A la cocina no tiene por que importarle el importe del pedido, quitar importe de la lista de pedidos cocina / bar.
+En la sección de generar reserva si usan el calendar hagan todo desde ahí, quitar botones para seleccionar año y mes. Es mas, hilando fino el año no se debería seleccionar.
+Los mails deberían tener diferentes colores y fuentes entre los de aceptado y rechazado.
+Quitar la pantalla de credenciales invalidas, eso debería ser un mensaje de error dentro del login solamente.
+
 
 ## Responsabilidades (Primera Semana) 🛠️
 * Panuccio
@@ -162,6 +206,11 @@ Dejar las imágenes en una carpeta compartida, así se pueden ver todas
   <img src="src/assets/imagesGithub/email-1.jpeg" alt="Email 1" width="400" height="800">
   <img src="src/assets/imagesGithub/email-2.jpeg" alt="Email 2" width="400" height="800">
   <img src="src/assets/imagesGithub/email-3.jpeg" alt="Email 3" width="400" height="800">
+  <img src="src/assets/imagesGithub/email-aceptacion-1.jpeg" alt="Email Aceptación 1" width="400" height="800">
+  <img src="src/assets/imagesGithub/email-aceptacion-2.jpeg" alt="Email Aceptación 2" width="400" height="800">
+  <img src="src/assets/imagesGithub/email-rechazo-1.jpeg" alt="Email Rechazo 1" width="400" height="800">
+  <img src="src/assets/imagesGithub/email-rechazo-2.jpeg" alt="Email Rechazo 2" width="400" height="800">
+  <img src="src/assets/imagesGithub/email-rechazo-3.jpeg" alt="Email Rechazo 3" width="400" height="800">
 </p>
 
 
@@ -225,8 +274,8 @@ Dejar las imágenes en una carpeta compartida, así se pueden ver todas
 - Branch: roman
 
 <p align="center">
-  <img src="src/assets/imagesGithub/cuenta.jpeg" alt="Pedir Cuenta" width="400" height="800">
-  <img src="src/assets/imagesGithub/cuenta-completa.jpeg" alt="Cuenta Completa" width="400" height="800">
+  <img src="src/assets/imagesGithub/cuenta-1.jpeg" alt="Pedir Cuenta 1" width="400" height="800">
+  <img src="src/assets/imagesGithub/cuenta-2.jpeg" alt="Pedir Cuenta 2" width="400" height="800">
 </p>
 
 * Avallone

@@ -22,7 +22,7 @@
             <ion-item class="input-field" lines="none">
               <ion-input class="input" placeholder="Correo Electrónico" formControlName="email"></ion-input>
             </ion-item>
-            <div class="error_email">
+            <div>
               @if((formLogin.get("email")?.hasError("email") ||
               formLogin.get("email")?.hasError("required")) &&
               formLogin.get("email")?.touched) {
@@ -33,15 +33,22 @@
             <ion-item class="input-field" lines="none">
               <ion-input class="input" placeholder="Contraseña" type="password" formControlName="password"></ion-input>
             </ion-item>
-            <div class="error_pass">
+            <div>
               @if((formLogin.get("password")?.hasError("minlength") ||
               formLogin.get("password")?.hasError("required")) &&
               formLogin.get("password")?.touched) {
               <app-form-errors [control]="formLogin.get('password')" />
               }
             </div>
-  
-            <ion-button expand="block" class="btn-primary" (click)="onLogin()" [disabled]="formLogin.invalid">Ingresar</ion-button>
+            
+            @if(errorFlag){
+              <app-form-errors [control]="formLogin" style="margin: -5px 0 5px 0 !important;"/>
+            }
+
+            <div class="btns_login">
+              <ion-button expand="block" class="btn-primary" (click)="onLogin()" [disabled]="formLogin.invalid">Ingresar</ion-button>
+              <ion-button expand="block" size="small" class="btn-secondary google" (click)="loginWithGoogle()">Ingresar con<img src="assets/images/logo-google.png"></ion-button>
+            </div>
           </form>
     
           <hr>
@@ -57,7 +64,6 @@
               <button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'bartender@hotmail.com', password: 'bartender12345'})"><img src="assets/images/ic_bartender.png" alt="bartender"></button>
               <button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'delivery@hotmail.com', password: 'delivery12345'})"><img src="assets/images/ic_delivery.png" alt="delivery"></button>
               <button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'clienteregistrado@hotmail.com', password: 'clienteregistrado12345'})"><img src="assets/images/ic_cliente.png" alt="cliente"></button>
-              <button expand="block" size="small" class="btn-secondary google" (click)="loginWithGoogle()"><img src="assets/images/logo-google.png" alt="google"></button>
             </div>
           </div>
     
