@@ -17,25 +17,27 @@ import { DeepLinkService } from '../../services/deep-link/depp-link';
 export class LoginPage implements OnInit {
   loading = true;
   errorMsg = false;
+  errorFlag = false;
   errorText = "Ocurrió un error";
   perfilOnInit = "";
 
   formLogin: ReturnType<FormBuilder["group"]>;
   private errorAudio = new Audio("assets/sounds/error.mp3");
 
-  constructor(
-    private fb: FormBuilder,
-    private auth: AuthService,
-    private router: Router,
-    private push: Push,
-    private deepLinkService: DeepLinkService
-  ) {
+  constructor(private fb: FormBuilder, private auth: AuthService, private router: Router, private push: Push, private deepLinkService: DeepLinkService) {
     this.formLogin = this.fb.group({
       email: ["", [Validators.required, Validators.email]],
       password: ["", [Validators.required, Validators.minLength(6)]],
     });
     this.errorAudio.preload = "auto";
     try { this.errorAudio.load(); } catch { }
+
+    this.formLogin.valueChanges.subscribe(() => {
+      if (this.formLogin.hasError("credentials")) {
+        const { credentials, ...rest } = this.formLogin.errors as Record<string, any>;
+        this.formLogin.setErrors(Object.keys(rest).length ? rest : null);
+      }
+    });
   }
 
   private isApproved(perfil?: string, estado?: string): boolean {
@@ -134,6 +136,7 @@ export class LoginPage implements OnInit {
 
   async onLogin() {
     this.errorMsg = false;
+    this.errorFlag = false;
     this.formLogin.markAllAsTouched();
     this.formLogin.updateValueAndValidity({ emitEvent: true });
     if (this.formLogin.invalid) return;
@@ -142,8 +145,9 @@ export class LoginPage implements OnInit {
 
     const { error: signErr } = await this.auth.signIn(email, password);
     if (signErr) {
-      this.errorText = "Credenciales Inválidas";
-      this.errorMsg = true;
+      this.errorFlag = true;
+      const prev = this.formLogin.errors ?? {};
+      this.formLogin.setErrors({ ...prev, credentials: true });
       await this.errorFeedback();
       return;
     }

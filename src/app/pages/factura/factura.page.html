@@ -124,15 +124,13 @@
             <span class="text-right" style="width:60%;"><b style="font-weight: 800;">IVA 5%: $</b></span><span
               class="text-right" style="width:40%"><b style="font-weight: 800;">0,00</b></span>
             <span class="text-right" style="width:60%;"><b style="font-weight: 800;">IVA 2.5%: $</b></span><span
-              class="text-right" style="width:40%"><b style="font-weight: 800;">0,00</b></span>
-            <span class="text-right" style="width:60%;"><b style="font-weight: 800;">IVA 0%: $</b></span><span
-              class="text-right" style="width:40%"><b style="font-weight: 800;">0,00</b></span>
-            <span class="text-right" style="width:60%;"><b style="font-weight: 800;">Importe Otros Tributos:
-                $</b></span><span class="text-right" style="width:40%"><b style="font-weight: 800;">0,00</b></span>
+              class="text-right" style="width:40%"><b style="font-weight: 800;">0,00</b></span>            
+            <span class="text-right" style="width:60%;"><b style="font-weight: 800;">Propina ({{ data.totales.propinaPct }}%): $</b></span>
+            <span class="text-right" style="width:40%"><b style="font-weight: 800;">{{ data.totales.propinaMonto | currency:'ARS':'symbol-narrow' }}</b></span>
+            <span class="text-right" style="width:60%;"><b style="font-weight: 800;">Descuento ({{ data.totales.descuentoPct }}%): $</b></span>
+            <span class="text-right" style="width:40%"><b style="font-weight: 800;">{{ data.totales.descuentoMonto | currency:'ARS':'symbol-narrow' }}</b></span>
             <span class="text-right" style="width:60%;"><b style="font-weight: 800;">Importe Total:
-                $</b></span><span class="text-right" style="width:40%"><b style="font-weight: 800;">{{data.totales.total
-                |
-                number:"1.2-2"}}</b></span>
+                $</b></span><span class="text-right" style="width:40%"><b style="font-weight: 800;">{{data.totales.total | number:"1.2-2"}}</b></span>
           </div>
         </div>
         <div class="flex relative orden" style="margin-top: 5px; border: 2px solid black;">

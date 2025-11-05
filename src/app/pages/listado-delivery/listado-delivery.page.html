@@ -13,7 +13,7 @@
         <div #map class="div_mapa"></div>
 
         <div class="div_data_pedido">
-          <p>📦 Para: {{ nombreCompleto }}</p>
+          <p>📦 {{ nombreCompleto }}</p>
           <p>🗓️ {{ p.created_at | date:'short' }}</p>
         </div>
 
@@ -66,10 +66,10 @@
                [class.cliente-msg]="m.role==='cliente'"
                *ngFor="let m of messages">
             <div class="bubble">
-              <div class="body">{{ m.text | titlecase }}</div>
+              <div class="body" [class.mozo-body]="m.role==='delivery'">{{ m.text | titlecase }}</div>
               <div [class.mozo-meta]="m.role==='delivery'"
                    [class.cliente-meta]="m.role==='cliente'">
-                {{ m.role==='delivery' ? 'Delivery' : 'Cliente' }} • {{ m.time }}
+                {{ m.createdAt | date:'short' }}
               </div>
             </div>
           </div>

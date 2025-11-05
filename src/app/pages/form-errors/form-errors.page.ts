@@ -18,6 +18,7 @@ export class FormErrorsPage {
 
     const errors: ValidationErrors = this.control.errors;
     if (errors['required']) return 'Campo requerido';
+    if (errors["credentials"]) return "Credenciales inválidas";
     if (errors['minlength']) return `Mínimo ${errors['minlength'].requiredLength} caracteres`;
     if (errors['maxlength']) return `Máximo ${errors['maxlength'].requiredLength} caracteres`;
     if (errors['email']) return 'Formato de correo electrónico inválido';

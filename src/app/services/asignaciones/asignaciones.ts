@@ -7,7 +7,6 @@ type EstadoAsignacion = 'pendiente' | 'asignada' | 'sentado' | 'liberada' | 'can
 export class AsignacionesMesaService {
   private table = 'asignaciones_mesa';
 
-  // Maitre asigna
   async asignarMesa(params: { mesaId: number; clienteId?: number; clienteAnonimoId?: string; estado?: EstadoAsignacion }) {
     const payload: any = {
       mesa_id: params.mesaId,
@@ -21,7 +20,6 @@ export class AsignacionesMesaService {
     return data;
   }
 
-  // Obtener la asignación activa de este cliente
   async getActivaPorCliente(params: { clienteId?: number; clienteAnonimoId?: string }) {
     let q = supabase
       .from(this.table)
@@ -35,10 +33,9 @@ export class AsignacionesMesaService {
 
     const { data, error } = await q.maybeSingle();
     if (error && error.code !== 'PGRST116') throw error;
-    return data; // puede ser null
+    return data;
   }
 
-  // Realtime: avisar cuando cambie mi asignación
   subscribeMiAsignacion(params: { clienteId?: number; clienteAnonimoId?: string }, cb: (payload: any) => void) {
     const filter = params.clienteId
       ? `cliente_id=eq.${params.clienteId}`
@@ -52,7 +49,6 @@ export class AsignacionesMesaService {
     return channel;
   }
 
-  // Validar acceso al QR (mesa)
   async puedeAcceder(mesaId: number, params: { clienteId?: number; clienteAnonimoId?: string }) {
     let q = supabase
       .from(this.table)

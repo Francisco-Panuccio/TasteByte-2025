@@ -75,12 +75,12 @@ export class DeliveryPage implements OnInit {
       const p = data?.[0];
       if (!p) return;
 
-      if (["recibido", "terminado", "impagado"].includes(p.estado)) {
+      if (["aceptado", "recibido", "terminado", "impagado"].includes(p.estado)) {
         this.router.navigate(["/encuestas-espera"], { replaceUrl: true });
         return;
       }
 
-      if (["en_espera", "pendiente", "aceptado"].includes(p.estado)) {
+      if (["en_espera", "pendiente"].includes(p.estado)) {
         this.router.navigate(["/mesa-ocupada"], {
           queryParams: {
             delivery: true,

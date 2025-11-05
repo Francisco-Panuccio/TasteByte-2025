@@ -145,6 +145,10 @@ title {
   text-align: start;
 }
 
+.mozo-body {
+  text-align: end;
+}
+
 .cliente-meta {
   display: flex;
   justify-content: space-between;
@@ -201,7 +205,7 @@ ion-content.ion-content-chat {
     border: 2px solid var(--color-btn-primary);
     --border-radius: 16px;
     border-radius: 16px;
-    font-size: 14px;
+    font-size: 22px;
     font-weight: 600;
   }
 }
@@ -210,4 +214,18 @@ ion-item::part(native) {
   --background: transparent;
   background-color: transparent;
   width: 100%;
+}
+
+:host ::ng-deep .addr-control {
+  filter: opacity(0.9);
+  background: var(--color-container);
+  color: var(--color-text);
+  border: 1px solid var(--color-text);
+  border-radius: 10px;
+  padding: 5px;
+  margin: 0;
+  font-weight: 600;
+  font-size: 14px;
+  text-align: center;
+  width: fit-content;
 }

@@ -21,13 +21,9 @@
             
             <div class="items-container">
               <div class="item" *ngFor="let it of p.items">
-                <span class="item-nombre">🍽️{{ it.nombre }}</span>
+                <span class="item-nombre">🍽️ {{ it.nombre }}</span>
                 <span class="item-cantidad">x{{ it.cantidad }}</span>
               </div>
-            </div>
-
-            <div class="pedido-meta">
-              <span class="meta-total">{{ p.total | currency:'ARS':'symbol':'1.2-2' }}</span>
             </div>
 
             <div class="estado-pedido">

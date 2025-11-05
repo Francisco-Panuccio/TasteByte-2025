@@ -20,11 +20,10 @@
               <div class="item">
                 <div class="data">
                   <p>{{ it.nombre }}</p>
-                  <p>{{ it.tipo | titlecase}}</p>
                 </div>
                 <div class="qty">
-                  <p>{{ it.precio_unit | currency:"ARS":"symbol-narrow":"1.0-0" }}</p>
                   <p>x{{ it.cantidad }}</p>
+                  <p>{{ it.precio_unit | currency:"ARS":"symbol-narrow":"1.0-0" }}</p>
                 </div>
               </div>
             }
@@ -34,22 +33,22 @@
             <p><b>Subtotal:</b> {{ ped?.total | currency:"ARS":"symbol-narrow":"1.0-0" }}</p>
 
             @if(descuento > 0) {
-              <p class="descuento">💸Descuento aplicado: - {{ descuento }}%</p>
+              <p class="descuento">💸Descuento ({{descuento}}%): <br> - {{descuentoMonto | currency:"ARS":"symbol-narrow":"1.0-0"}}</p>
             }
 
             <div class="div_propina">
-              <ion-button class="btn-secondary" (click)="escanearPropina()">
-                QR Propina
-              </ion-button>
-
               @if(propinaSeleccionada > 0) {
-                <p class="propina-text">Propina seleccionada: {{ propinaSeleccionada }}%</p>
+                <p class="propina-text">🪙Propina ({{propinaSeleccionada}}%): <br> + {{propinaMonto | currency:"ARS":"symbol-narrow":"1.0-0"}}</p>
                 <ion-button class="btn-quit" (click)="quitarPropina()">
                   Quitar Propina
                 </ion-button>
               } @else {
                 <p class="propina-text2">Sin propina seleccionada</p>
               }
+
+              <ion-button class="btn-secondary" (click)="escanearPropina()">
+                QR Propina
+              </ion-button>
             </div>
 
             <p class="total_final">

@@ -1,13 +1,4 @@
-import {
-  Component,
-  OnInit,
-  OnDestroy,
-  inject,
-  ViewChild,
-  ElementRef,
-  ViewChildren,
-  QueryList,
-} from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ViewChild, ElementRef, ViewChildren, QueryList } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from 'src/app/services/auth/auth';
 import { Push } from 'src/app/services/push/push';
@@ -231,7 +222,7 @@ export class ListadoDeliveryPage implements OnInit, OnDestroy {
         if (targets.length) {
           await this.push.send(
             targets,
-            'Pedido Entregado 🏁',
+            'Pedido Entregado',
             'Su pedido fue entregado con éxito. ¡Gracias por confiar en TasteByte!',
             {
               tipo: 'pedido_terminado',
@@ -245,7 +236,7 @@ export class ListadoDeliveryPage implements OnInit, OnDestroy {
 
       (
         await this.toast.create({
-          message: 'Pedido marcado como terminado ✅',
+          message: 'Pedido marcado como terminado',
           duration: 1500,
           position: 'top',
           cssClass: 'toast',
@@ -292,9 +283,10 @@ export class ListadoDeliveryPage implements OnInit, OnDestroy {
 
     const map = L.map(el, { center: [ORIGEN.lat, ORIGEN.lng], zoom: 13 });
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap',
+      attribution: '',
       maxZoom: 19,
     }).addTo(map);
+    map.attributionControl.setPrefix('');
 
     const origen = L.marker([ORIGEN.lat, ORIGEN.lng])
       .addTo(map)
@@ -311,9 +303,10 @@ export class ListadoDeliveryPage implements OnInit, OnDestroy {
     }
 
     if (destLat != null && destLng != null) {
-      const destino = L.marker([destLat, destLng])
-        .addTo(map)
-        .bindTooltip('Destino');
+      const destino = L.marker([destLat, destLng]).addTo(map)
+      const addr = p.delivery_direccion ?? "Dirección no disponible";
+      this.addAddressControl(map, addr);
+
       try {
         const line = await this.route(
           [ORIGEN.lat, ORIGEN.lng],
@@ -335,6 +328,18 @@ export class ListadoDeliveryPage implements OnInit, OnDestroy {
     }
 
     this.maps.set(p.id, map);
+  }
+
+  private addAddressControl(map: L.Map, text: string): void {
+    const C = L.Control.extend({
+      onAdd: () => {
+        const div = L.DomUtil.create("div", "addr-control");
+        div.innerHTML = `${text}`;
+        return div;
+      }
+    });
+    const ctrl = new C({ position: "bottomleft" } as any);
+    map.addControl(ctrl as any);
   }
 
   private async geocode(q: string): Promise<{ lat: number; lng: number }> {
@@ -402,7 +407,7 @@ export class ListadoDeliveryPage implements OnInit, OnDestroy {
     this.messages = rows.map((m) => {
       seen.add(m.id);
       const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
-      return { ...vm, role: vm.from === 'yo' ? 'delivery' : 'cliente' };
+      return { ...vm, role: vm.from === 'yo' ? 'delivery' : 'cliente', createdAt: new Date(m.created_at) };
     });
     this.chatOpen = true;
     this.scrollToBottomAfterRender();
@@ -419,6 +424,7 @@ export class ListadoDeliveryPage implements OnInit, OnDestroy {
         this.messages.push({
           ...vm,
           role: vm.from === 'yo' ? 'delivery' : 'cliente',
+          createdAt: new Date(m.created_at)
         });
 
         if (vm.from !== 'yo') {

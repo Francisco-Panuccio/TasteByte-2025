@@ -41,6 +41,10 @@ export class Email {
       subject?: string;
       title?: string;
       kind?: string;
+      propinaPct?: number;
+      propinaMonto?: number;
+      descuentoPct?: number;
+      descuentoMonto?: number;
     }
   ): Promise<void> {
     const fmt = new Intl.NumberFormat("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -52,6 +56,11 @@ export class Email {
         <td style="padding:6px;border-bottom:1px solid #ddd;text-align:right;">${fmt.format(it.subtotal)}</td>
       </tr>
     `).join("");
+
+    const propinaPct = Number(payload.propinaPct ?? 0);
+    const propinaMonto = Number(payload.propinaMonto ?? 0);
+    const descuentoPct = Number(payload.descuentoPct ?? 0);
+    const descuentoMonto = Number(payload.descuentoMonto ?? 0);
 
     const html = `
       <div style="font-family:Arial,sans-serif;font-size:14px;color:#111;">
@@ -70,6 +79,8 @@ export class Email {
           </thead>
           <tbody>${filas}</tbody>
         </table>
+        <p style="text-align:right;margin-top:10px;"><b>Propina (${propinaPct}%): $ ${fmt.format(propinaMonto)}</b></p>
+        <p style="text-align:right;margin-top:10px;"><b>Descuento (${descuentoPct}%): $ ${fmt.format(descuentoMonto)}</b></p>
         <p style="text-align:right;margin-top:10px;font-size:16px;"><b>Total: $ ${fmt.format(payload.total)}</b></p>
       </div>
     `;

@@ -61,7 +61,7 @@ title {
         font-weight: 600;
         font-size: 18px;
         padding: 5px;
-        width: 100%;
+        width: 50%;
         margin: 0;
       }
 
@@ -80,12 +80,31 @@ title {
 
     .div_orden {
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       text-align: center;
       background-color: var(--color-btn-tertiary);
       width: 100%;
       border-bottom: 2px solid var(--color-text);
+
+      .div_middle {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        border-bottom: 2px solid var(--color-text);
+        width: 100%;
+
+        p {
+          width: 100%;
+          font-size: 20px;
+          text-align: center;
+          font-weight: 600;
+          padding: 5px 0;
+          color: var(--color-text);
+        }
+      }
 
       p {
         font-size: 30px;

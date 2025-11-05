@@ -15,7 +15,7 @@ import { Motion, OrientationListenerEvent } from '@capacitor/motion';
 
 type Tab = 'platos' | 'bebidas' | 'postres';
 type AddItem = { id: number; nombre: string; precio: number; duracionMin: number; tipo: 'plato' | 'bebida' | 'postre' };
-type Estado = 'pendiente' | 'aceptado' | 'rechazado' | 'recibido' | 'terminado';
+type Estado = 'en_espera' | 'pendiente' | 'aceptado' | 'rechazado' | 'recibido' | 'terminado';
 type PedidoRow = { id: string; estado: Estado; mesa_id: number | null };
 
 @Component({
@@ -388,23 +388,43 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
 
   private applyEstado(raw: any) {
     const norm = (raw ?? '').toString().trim().toLowerCase();
-    const ok = ['pendiente', 'aceptado', 'rechazado', "recibido", 'terminado'] as const;
+    const ok = ['en_espera', 'pendiente', 'aceptado', 'rechazado', "recibido", 'terminado'] as const;
     this.estadoPedido = (ok as readonly string[]).includes(norm) ? (norm as Estado) : null;
     this.updateBanner();
   }
 
   private updateBanner(): void {
-    const base = this.deliveryFlag ? 'Delivery' : 'Pedido';
+    if (this.deliveryFlag) {
+      switch (this.estadoPedido) {
+        case "en_espera":
+          this.bannerMsg = "En espera de aprobación...";
+          return;
+        case "pendiente":
+        case "aceptado":
+          this.bannerMsg = "Delivery en curso, espere por favor.";
+          return;
+        case "terminado":
+          this.bannerMsg = "Pedido despachado. Pronto llegará.";
+          return;
+        case "recibido":
+          this.bannerMsg = "Pedido entregado, disfrute su comida";
+          return;
+        default:
+          this.bannerMsg = "";
+          return;
+      }
+    }
+
     switch (this.estadoPedido) {
-      case 'pendiente':
-      case 'aceptado':
-        this.bannerMsg = `${base} en curso, espere por favor.`;
+      case "pendiente":
+      case "aceptado":
+        this.bannerMsg = "Pedido en curso, espere por favor.";
         break;
-      case 'terminado':
-        this.bannerMsg = this.deliveryFlag ? 'Pedido despachado. Pronto llegará.' : 'Pedido entregado, disfrute su comida';
+      case "terminado":
+        this.bannerMsg = "Pedido entregado, disfrute su comida";
         break;
       default:
-        this.bannerMsg = '';
+        this.bannerMsg = "";
     }
   }
 
@@ -419,7 +439,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   private async buscarPedidoActivoDb(): Promise<PedidoRow | null> {
     let q = supabase.from('pedidos')
       .select('id, estado, mesa_id, tipo')
-      .in('estado', ['pendiente', 'aceptado'])
+      .in('estado', ['en_espera', 'pendiente', 'aceptado'])
       .order('created_at', { ascending: false })
       .limit(1) as any;
 
@@ -671,7 +691,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
             this.itemsSel,
             this.total,
             this.etaMin,
-            'pendiente',
+            this.deliveryFlag ? "en_espera" : "pendiente",
             this.deliveryFlag ? { delivery: true, address: this.deliveryAddress, lat: this.deliveryLat, lng: this.deliveryLng } : undefined
           );
           pedidoId = existente.id;
@@ -696,8 +716,9 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
       }
 
       this.pedidoEnCurso = true;
-      this.applyEstado('pendiente');
+      this.applyEstado(this.deliveryFlag ? "en_espera" : "pendiente");
       this.pedidoActualId = pedidoId!;
+      this.carritoFlag = false;
 
       this.unsubEstado?.();
       this.unsubEstado = this.pedidos.onEstadoPedido(pedidoId!, async (estado: any) => {
@@ -705,7 +726,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
           this.applyEstado(estado);
           if (this.estadoPedido === 'aceptado') {
             this.buildPlatoYBebida();
-            if (!this.deliveryFlag) this.gotoEncuestasEspera();
+            this.gotoEncuestasEspera();
           } else if (this.estadoPedido === 'rechazado') {
             this.pedidoEnCurso = false;
             this.submitting = false;
@@ -773,6 +794,8 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
       q.tienePermiso = true;
       q.qrValido = true;
       return q;
+    } else {
+      return { tienePermiso: true, qrValido: true };
     }
   }
 

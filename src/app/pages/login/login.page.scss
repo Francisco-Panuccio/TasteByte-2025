@@ -79,6 +79,8 @@ form {
 
 .btn-primary {
   margin: 0 0 0 0;
+  height: 44px;
+  width: 250px;
 }
 
 .btn-secondary {
@@ -137,9 +139,9 @@ hr {
     height: 65px;
     border: 1px solid var(--color-text);
 
-    &:nth-child(5), 
-    &:nth-child(6), 
-    &:nth-child(7), 
+    &:nth-child(5),
+    &:nth-child(6),
+    &:nth-child(7),
     &:nth-child(8),
     &:nth-child(9) {
       margin-bottom: 0;
@@ -160,16 +162,6 @@ hr {
   p {
     color: var(--color-text);
     margin: 0;
-  }
-
-  .error_email {
-    margin: 10px auto 20px auto;
-    text-align: center;
-  }
-
-  .error_pass {
-    margin: 20px auto 10px auto;
-    text-align: center;
   }
 
   ion-button {
@@ -201,10 +193,24 @@ hr {
   }
 }
 
-.google {
-  img {
-    width: 80%;
-    height: 80%;
-    object-fit: cover;
+.btns_login {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+
+  .google {
+    height: 44px;
+    width: 250px;
+    margin: 0;
+    border: 1px solid var(--color-text);
+
+    img {
+      width: 30px;
+      height: 30px;
+      object-fit: cover;
+      margin-left: 10px;
+    }
   }
 }

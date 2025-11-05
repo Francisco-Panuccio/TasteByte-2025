@@ -36,7 +36,7 @@ export class ReservasAdminPage implements OnInit {
   ngOnDestroy(): void {
     try {
       if (this.rtChannel) supabase.removeChannel(this.rtChannel);
-    } catch {}
+    } catch { }
   }
 
   private configurarRealtime() {
@@ -175,18 +175,17 @@ export class ReservasAdminPage implements OnInit {
       );
 
       if (emailUsuario) {
-        const nombre = `${usuarios.nombres ?? ''} ${
-          usuarios.apellidos ?? ''
-        }`.trim();
+        const nombre = `${usuarios.nombres ?? ''} ${usuarios.apellidos ?? ''
+          }`.trim();
         await this.email.enviarEmailPersonalizado(
-          'ReservaConfirmada',
+          'aceptado',
           emailUsuario,
           'Reserva Confirmada - TasteByte',
           `
         <p>Hola <b>${nombre || 'Cliente'}</b>.</p>
         <p>Su reserva para el <b>${this.getFechaLocal(
-          r.fecha_hora
-        )}</b> fue <b>confirmada</b>.</p>
+            r.fecha_hora
+          )}</b> fue <b>confirmada</b>.</p>
         <p>Se le asignó la mesa N° <b>${mesaSeleccionada.numero}</b>.</p>
         <p>¡Lo Esperamos! 🍽️</p>
         `,
@@ -238,14 +237,13 @@ export class ReservasAdminPage implements OnInit {
             if (!motivo) return;
 
             const email = r.usuarios?.correo_electronico;
-            const nombre = `${r.usuarios?.nombres ?? ''} ${
-              r.usuarios?.apellidos ?? ''
-            }`.trim();
+            const nombre = `${r.usuarios?.nombres ?? ''} ${r.usuarios?.apellidos ?? ''
+              }`.trim();
             const fechaLocal = this.getFechaLocal(r.fecha_hora);
 
             if (email) {
               await this.email.enviarEmailPersonalizado(
-                'ReservaRechazada',
+                'rechazado',
                 email,
                 'Reserva Rechazada - TasteByte',
                 `

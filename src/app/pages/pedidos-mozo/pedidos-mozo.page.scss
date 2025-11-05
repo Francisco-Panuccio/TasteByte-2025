@@ -349,7 +349,7 @@ ion-content.ion-content-chat {
     border: 2px solid var(--color-btn-primary);
     --border-radius: 16px;
     border-radius: 16px;
-    font-size: 14px;
+    font-size: 22px;
     font-weight: 600;
   }
 }
@@ -439,10 +439,11 @@ ion-item::part(native) {
   height: 260px;
   border-top: 2px solid var(--color-text);
   background:
-    radial-gradient(circle 300px at 195px 120px,
-      rgba(255, 255, 255, .10) 0 60%,
-      rgba(255, 255, 255, 0) 61%),
+    radial-gradient(circle closest-side at center,
+      rgba(255,255,255,.10) 0 60%,
+      rgba(255,255,255,0) 61%),
     var(--color-btn-secondary);
+  background-repeat: no-repeat;
 
   img {
     width: 100%;
