@@ -8,6 +8,7 @@ import { PedidosDeliveryPageRoutingModule } from './pedidos-delivery-routing.mod
 
 import { PedidosDeliveryPage } from './pedidos-delivery.page';
 import { LoadingPage } from '../loading/loading.page';
+import { FacturaPage } from '../factura/factura.page';
 
 @NgModule({
   imports: [
@@ -15,7 +16,8 @@ import { LoadingPage } from '../loading/loading.page';
     FormsModule,
     IonicModule,
     PedidosDeliveryPageRoutingModule,
-    LoadingPage
+    LoadingPage,
+    FacturaPage
   ],
   declarations: [PedidosDeliveryPage]
 })

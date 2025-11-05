@@ -107,7 +107,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
   tieneMesa = false;
 
   get isDelivery(): boolean {
-    return !this.mesaAsignadaId && !!this.pedidoId;
+    return !this.tieneMesa && !!this.pedidoId;
   }
 
   constructor(
@@ -138,29 +138,21 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       this.qrValido = this.session.qrValido;
       this.yaRegistrado = this.session.yaRegistrado;
       this.anonimoId = this.session.anonimoId ?? undefined;
-      this.usuarioId = this.session.usuarioId
-        ? Number(this.session.usuarioId)
-        : null;
-      this.clienteId = this.session.clienteId
-        ? Number(this.session.clienteId)
-        : null;
+      this.usuarioId = this.session.usuarioId ? Number(this.session.usuarioId) : null;
+      this.clienteId = this.session.clienteId ? Number(this.session.clienteId) : null;
       this.userUid = this.session.userUid ?? undefined;
     }
 
     this.route.queryParams.subscribe(async (params) => {
-      this.clienteId = params['clienteId']
-        ? Number(params['clienteId'])
-        : this.clienteId;
-      this.usuarioId = params['usuarioId']
-        ? Number(params['usuarioId'])
-        : this.usuarioId;
-      this.anonimoId = params['anonimoId'] ?? this.anonimoId;
-      this.tienePermiso = params['tienePermiso'] ?? this.tienePermiso;
-      this.userUid = params['userId'] ?? this.userUid;
-      this.mostrarCuenta = params['mostrarCuenta'] ?? this.mostrarCuenta;
+      this.clienteId = params["clienteId"] ? Number(params["clienteId"]) : this.clienteId;
+      this.usuarioId = params["usuarioId"] ? Number(params["usuarioId"]) : this.usuarioId;
+      this.anonimoId = params["anonimoId"] ?? this.anonimoId;
+      this.tienePermiso = params["tienePermiso"] ?? this.tienePermiso;
+      this.userUid = params["userId"] ?? this.userUid;
+      this.mostrarCuenta = params["mostrarCuenta"] ?? this.mostrarCuenta;
 
       if (!this.clienteId && !this.anonimoId && !this.usuarioId) {
-        this.router.navigate(['/login'], { replaceUrl: true });
+        this.router.navigate(["/login"], { replaceUrl: true });
         return;
       }
 
@@ -171,14 +163,14 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
         this.anonClient = true;
 
         const { data: anon } = await supabase
-          .from('clientes_anonimos')
-          .select('nombre, foto_url')
-          .eq('id', this.anonimoId)
+          .from("clientes_anonimos")
+          .select("nombre, foto_url")
+          .eq("id", this.anonimoId)
           .maybeSingle();
 
-        this.nombreCliente = anon?.nombre || 'Cliente Anónimo';
-        this.clienteFoto = anon?.foto_url || '';
-        this.email = '☠︎ anonimo ☠︎';
+        this.nombreCliente = anon?.nombre || "Cliente Anónimo";
+        this.clienteFoto = anon?.foto_url || "";
+        this.email = "☠︎ anonimo ☠︎";
         this.usuarioId = null;
       } else {
         this.myUserId = au.user?.id ?? undefined;
@@ -188,15 +180,13 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
         this.email = `${usuarioDB!.correo_electronico}`.trim();
 
         const { data: usuario } = await supabase
-          .from('usuarios')
-          .select('nombres, apellidos, foto_url')
-          .eq('id', this.id)
+          .from("usuarios")
+          .select("nombres, apellidos, foto_url")
+          .eq("id", this.id)
           .maybeSingle();
 
-        this.nombreCliente = usuario
-          ? `${usuario.nombres} ${usuario.apellidos}`
-          : 'Cliente';
-        this.clienteFoto = usuario?.foto_url ?? '';
+        this.nombreCliente = usuario ? `${usuario.nombres} ${usuario.apellidos}` : "Cliente";
+        this.clienteFoto = usuario?.foto_url ?? "";
         this.usuarioId = this.id;
       }
 
@@ -206,65 +196,77 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
 
       if (!this.usuarioId && this.clienteId) {
         const { data: cli } = await supabase
-          .from('clientes')
-          .select('usuario_id')
-          .eq('id', this.clienteId)
+          .from("clientes")
+          .select("usuario_id")
+          .eq("id", this.clienteId)
           .maybeSingle();
-        this.usuarioId =
-          typeof cli?.usuario_id === 'number' ? cli?.usuario_id : null;
+        this.usuarioId = typeof cli?.usuario_id === "number" ? cli?.usuario_id : null;
       }
 
       if (this.usuarioId) {
         const { data: usuario } = await supabase
-          .from('usuarios')
-          .select('nombres, apellidos, foto_url')
-          .eq('id', this.id)
+          .from("usuarios")
+          .select("nombres, apellidos, foto_url")
+          .eq("id", this.id)
           .maybeSingle();
-        this.nombreCliente = usuario
-          ? `${usuario.nombres} ${usuario.apellidos}`
-          : 'Cliente';
-        this.clienteFoto = usuario?.foto_url ?? '';
+        this.nombreCliente = usuario ? `${usuario.nombres} ${usuario.apellidos}` : "Cliente";
+        this.clienteFoto = usuario?.foto_url ?? "";
       } else if (this.anonimoId) {
         const { data: anonimo } = await supabase
-          .from('clientes_anonimos')
-          .select('nombre')
-          .eq('id', this.anonimoId)
+          .from("clientes_anonimos")
+          .select("nombre")
+          .eq("id", this.anonimoId)
           .maybeSingle();
-        this.nombreCliente = anonimo?.nombre || 'Cliente Anónimo';
+        this.nombreCliente = anonimo?.nombre || "Cliente Anónimo";
       }
 
       await this.push.init(au?.user?.id ?? null, "cliente");
       await this.push.ready();
 
+      const qpPedidoId = params["pedidoId"] as string | null;
+      if (qpPedidoId) {
+        this.pedidoId = qpPedidoId;
+
+        const { data: p } = await supabase
+          .from("pedidos")
+          .select("estado, tipo, mesa_id")
+          .eq("id", qpPedidoId)
+          .maybeSingle();
+
+        if (p && p.tipo === "delivery" && p.mesa_id == null) {
+          this.estadoPedido = p.estado ?? this.estadoPedido;
+          this.qrValido = true;
+          this.tienePermiso = true;
+          this.yaRegistrado = true;
+          this.tieneMesa = false;
+          this.deliveryUnlock = ["recibido", "terminado"].includes(p.estado);
+
+          this.actualizarFlags();
+          this.suscribirPedido(this.pedidoId);
+        }
+      }
+
       await this.cargarMesaAsignada();
       await this.intentarDeliveryUnlock();
 
       this.subscription = supabase
-        .channel('asignaciones_mesa_sub')
+        .channel("asignaciones_mesa_sub")
         .on(
-          'postgres_changes',
+          "postgres_changes",
           {
-            event: '*',
-            schema: 'public',
-            table: 'asignaciones_mesa',
-            filter: this.clienteId
-              ? `cliente_id=eq.${this.clienteId}`
-              : `cliente_anonimo_id=eq.${this.anonimoId}`,
+            event: "*",
+            schema: "public",
+            table: "asignaciones_mesa",
+            filter: this.clienteId ? `cliente_id=eq.${this.clienteId}` : `cliente_anonimo_id=eq.${this.anonimoId}`,
           },
           async (payload: any) => {
-            if (
-              payload.eventType === 'INSERT' ||
-              payload.eventType === 'UPDATE'
-            ) {
-              if (payload.new && typeof payload.new.mesa_id === 'number') {
+            if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
+              if (payload.new && typeof payload.new.mesa_id === "number") {
                 this.mesaAsignadaId = payload.new.mesa_id;
                 this.yaRegistrado = true;
                 this.tieneMesa = true;
                 this.zone.run(() => {
-                  this.mostrarToast(
-                    `Ya puede tomar asiento en la mesa #${this.mesaAsignadaId}.`,
-                    'Mesa Asginada'
-                  );
+                  this.mostrarToast(`Ya puede tomar asiento en la mesa #${this.mesaAsignadaId}.`, "Mesa Asignada");
                 });
 
                 this.session.mesaAsignadaId = this.mesaAsignadaId;
@@ -273,7 +275,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
 
                 await this.ensureChatAndSubscribe();
               }
-            } else if (payload.eventType === 'DELETE') {
+            } else if (payload.eventType === "DELETE") {
               await this.limpiarIntentosJuegos();
               this.resetVista();
             }
@@ -282,25 +284,17 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
         .subscribe();
 
       this.listaEsperaSub = supabase
-        .channel('lista_espera_sub')
+        .channel("lista_espera_sub")
         .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'lista_espera' },
+          "postgres_changes",
+          { event: "*", schema: "public", table: "lista_espera" },
           async (payload: any) => {
             const esAnon = !!this.anonimoId;
             const filtro = esAnon
-              ? supabase
-                .from('lista_espera')
-                .select('id')
-                .eq('cliente_anonimo_id', this.anonimoId!)
-                .limit(1)
-              : supabase
-                .from('lista_espera')
-                .select('id')
-                .eq('cliente_id', this.clienteId!)
-                .limit(1);
+              ? supabase.from("lista_espera").select("id").eq("cliente_anonimo_id", this.anonimoId!).limit(1)
+              : supabase.from("lista_espera").select("id").eq("cliente_id", this.clienteId!).limit(1);
 
-            const { data: sigue, error } = await filtro.maybeSingle();
+            const { data: sigue } = await filtro.maybeSingle();
 
             this.zone.run(() => {
               const estaba = this.yaRegistrado;
@@ -308,7 +302,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
               this.session.yaRegistrado = !!sigue;
 
               if (estaba && !this.yaRegistrado) {
-                this.mostrarToast('Fuiste removido de la lista de espera.');
+                this.mostrarToast("Fuiste removido de la lista de espera.");
               }
 
               try {
@@ -316,7 +310,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
               } catch { }
             });
 
-            if (payload.eventType !== 'INSERT') {
+            if (payload.eventType !== "INSERT") {
               setTimeout(() => {
                 this.cargarMesaAsignada().then(() => {
                   try {
@@ -333,6 +327,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       await this.ensureChatAndSubscribe();
     });
   }
+
 
   ngOnDestroy() {
     if (this.subscription) supabase.removeChannel(this.subscription);
@@ -444,7 +439,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     const p = data?.[0];
     if (!p) return;
 
-    if (["aceptado", "recibido", "terminado"].includes(p.estado)) {
+    if (["aceptado", "recibido", "terminado", "rechazado"].includes(p.estado)) {
       this.pedidoId = p.id;
       this.estadoPedido = p.estado;
 
@@ -453,7 +448,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       this.qrValido = true;
       this.tienePermiso = true;
       this.yaRegistrado = true;
-      this.qrMesaEscaneado = false;
+      this.tieneMesa = false;
 
       this.actualizarFlags();
       this.suscribirPedido(this.pedidoId);
@@ -840,7 +835,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
 
     const st = this.estadoPedido.toLowerCase();
     const unlock = this.deliveryUnlock;
-    const isDelivery = !this.mesaAsignadaId && !!this.pedidoId;
+    const isDelivery = this.isDelivery;
 
     if (!this.qrMesaEscaneado && !unlock && !isDelivery) {
       this.mostrarCuenta = false;
@@ -849,7 +844,11 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       return;
     }
 
-    this.mostrarPedido = ["pendiente", "aceptado", "recibido", "terminado"].includes(st);
+    const basePedido = ["pendiente", "aceptado", "recibido", "terminado"];
+    this.mostrarPedido = isDelivery
+      ? [...basePedido, "rechazado"].includes(st)
+      : basePedido.includes(st);
+
     this.mostrarJuegos = unlock
       ? ["aceptado", "recibido", "terminado"].includes(st)
       : ["aceptado", "recibido"].includes(st);

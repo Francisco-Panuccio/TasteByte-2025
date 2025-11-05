@@ -25,7 +25,7 @@ export class Pedidos {
         cliente_email: clienteEmail,
         total,
         eta_minutos: etaMin,
-        estado: extra?.delivery ? "en_espera" : "pendiente",
+        estado: "pendiente",
         tipo: extra?.delivery ? "delivery" : "mesa",
         delivery_direccion: extra?.address ?? null,
         delivery_lat: extra?.lat ?? null,
@@ -146,8 +146,8 @@ export class Pedidos {
     includeRejected: boolean = false
   ): Promise<any | null> {
     const estados: Pedido["estado"][] = includeRejected
-      ? ["pendiente", "aceptado", "terminado", "rechazado", "en_espera", "recibido"]
-      : ["pendiente", "aceptado", "terminado", "en_espera", "recibido"];
+      ? ["pendiente", "aceptado", "terminado", "rechazado", "recibido"]
+      : ["pendiente", "aceptado", "terminado", "recibido"];
 
     let q: any = supabase
       .from("pedidos")
@@ -240,7 +240,7 @@ export class Pedidos {
       .from("pedidos")
       .select("id, total, estado, mesa_id, cliente_uid, cliente_email, tipo")
       .eq("cliente_email", email)
-      .in("estado", ["pendiente", "aceptado", "terminado", "recibido", "en_espera"])
+      .in("estado", ["pendiente", "aceptado", "terminado", "recibido"])
       .order("created_at", { ascending: false })
       .limit(1);
     if (error) throw error;

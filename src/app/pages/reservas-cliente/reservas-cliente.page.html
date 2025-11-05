@@ -14,12 +14,16 @@
       <form class="form_reserva" (ngSubmit)="crearReserva()">
         <div class="campo">
           <ion-datetime
-            display-format="dd/MM/yyyy HH:mm"
             presentation="date-time"
+            [preferWheel]="true"
+            yearValues="2025"
+            [min]="'2025-01-01T00:00'"
+            [max]="'2025-12-31T23:59'"
+            hourCycle="h23"
             [(ngModel)]="fechaSeleccionada"
             name="fecha"
-            required>
-            <span slot="time-label" style="margin-top: -50px; text-decoration: underline;">Hora:</span>
+            required
+            [formatOptions]="{ month:'long', day:'2-digit', hour:'2-digit', minute:'2-digit' }">
           </ion-datetime>
         </div>
 

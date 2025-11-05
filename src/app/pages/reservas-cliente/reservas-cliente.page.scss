@@ -75,54 +75,14 @@
     --ion-color-step-500: var(--color-text);
     --ion-color-step-650: var(--color-text);
     border: 2px solid var(--color-text);
-    border-radius: 12px;
-    padding: 8px 0 0 0;
+    padding: 0;
     font-weight: 600;
-  }
-
-  ion-datetime::part(calendar-day) {
-    color: var(--color-text);
-  }
-
-  ion-datetime::part(calendar-day active) {
-    background: var(--color-btn-secondary) !important;
-    color: var(--color-text) !important;
-    font-weight: 700;
-    border: 1px solid var(--color-text) !important;
-    box-shadow: none;
-  }
-
-  ion-datetime::part(calendar-day today) {
-    border: 1px solid var(--color-black);
-    color: var(--color-black);
-    background-color: var(--color-text);
-    box-shadow: none;
-    font-weight: 700;
-  }
-
-  ion-datetime::part(month-year-button) {
-    color: var(--color-text);
-    font-weight: 700;
-    text-transform: capitalize;
   }
 
   ion-datetime::part(wheel-item) {
     color: var(--color-text);
     font-weight: 600;
     background-color: transparent;
-  }
-
-  ion-datetime::part(wheel-item active) {
-    font-weight: 700;
-  }
-
-  ion-datetime::part(time-button) {
-    margin-top: -40px;
-    height: fit-content;
-    color: var(--color-text);
-    border: 2px solid var(--color-text);
-    background-color: var(--color-input);
-    font-weight: 600;
   }
 }
 

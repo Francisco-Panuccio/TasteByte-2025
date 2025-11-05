@@ -117,3 +117,14 @@ title {
     object-fit: cover;
   }
 }
+
+.pdf-host {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 794px;
+  background: #fff;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: -1;
+}
