@@ -1110,9 +1110,8 @@ export class PedidosMozoPage implements OnInit {
           .maybeSingle();
         const mesaId = pedRow?.mesa_id as number | undefined;
         const mesaNumero = mesaId != null ? this.mesasNum.get(mesaId) ?? mesaId : "NN";
-        const isDelivery = mesaId == null;
-        const body = isDelivery ? "Pedido entregado a Delivery" : `Pedido Mesa (${mesaNumero}) entregado`;
-        const roles: Array<"mozo" | "delivery"> = isDelivery ? ["delivery"] : ["mozo"];
+        const body = `Pedido Mesa (${mesaNumero}) entregado`;
+        const roles: Array<"mozo"> = ["mozo"];
 
         await this.push.sendToRoles(
           roles,

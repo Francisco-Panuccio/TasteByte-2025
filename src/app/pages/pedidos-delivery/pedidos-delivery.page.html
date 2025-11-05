@@ -24,14 +24,16 @@
           </div>
 
           <div class="item-btns">
-            <button class="aprove" (click)="aceptar(r)">Aceptar</button>
-            <button class="quit" (click)="rechazar(r)">Rechazar</button>
+            <button class="aprove" *ngIf="r.estado==='pendiente'" (click)="aceptar(r)">Aceptar</button>
+            <button class="quit" *ngIf="r.estado==='pendiente'" (click)="rechazar(r)">Rechazar</button>
+            <button class="aprove" *ngIf="r.estado==='aceptado'" (click)="entregar(r)">Entregar</button>
+            <button class="aprove" *ngIf="r.estado==='impagado'" (click)="validarPago(r.id)">Validar Pago</button>
           </div>
         </div>
       </div>
     } @else {
       <div #vacio class="empty">
-        <p class="p_clientes">No hay Deliveries en Espera</p>
+        <p class="p_clientes">No hay Pedidos de Deliveries</p>
         <img src="assets/images/espera.png">
       </div>
     }
@@ -45,3 +47,5 @@
     <hr>
   </footer>
 }
+
+<app-factura #facturaCmp [data]="facturaData" class="pdf-host"></app-factura>

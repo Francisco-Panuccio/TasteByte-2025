@@ -97,6 +97,11 @@ export class ReservasClientePage implements OnInit {
     }
   }
 
+  private toLocalIso(d: Date): string {
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  }
+
   async confirmarReserva() {
     if (!this.fechaSeleccionada) {
       return this.mostrarToast('Selecciona fecha y hora.');
@@ -145,30 +150,25 @@ export class ReservasClientePage implements OnInit {
 
   async crearReserva() {
     try {
-      if (!this.fechaSeleccionada) {
-        return this.mostrarToast('Seleccione fecha y hora.');
-      }
+      if (!this.fechaSeleccionada) return this.mostrarToast("Seleccione fecha y hora.");
 
       const fechaHora = new Date(this.fechaSeleccionada);
+      if (isNaN(fechaHora.getTime())) return this.mostrarToast("La fecha u hora seleccionada no es válida.");
 
-      if (isNaN(fechaHora.getTime())) {
-        return this.mostrarToast('La fecha u hora seleccionada no es válida.');
-      }
-
-      const iso = fechaHora.toISOString();
+      const iso = this.toLocalIso(fechaHora);
 
       await this.reservasSvc.crearReserva({
         fecha_hora: iso,
         invitados: this.invitados,
       });
 
-      await this.mostrarToast('Reserva creada correctamente');
-      this.fechaSeleccionada = '';
-      this.horaSeleccionada = '';
+      await this.mostrarToast("Reserva creada correctamente");
+      this.fechaSeleccionada = "";
+      this.horaSeleccionada = "";
       this.invitados = 2;
       await this.cargarReservas();
     } catch (e: any) {
-      this.mostrarToast(e.message || 'No se pudo crear la reserva');
+      this.mostrarToast(e.message || "No se pudo crear la reserva");
     }
   }
 
@@ -180,6 +180,15 @@ export class ReservasClientePage implements OnInit {
       cssClass: 'toast',
     });
     await t.present();
+  }
+
+  fixYear(ev: CustomEvent) {
+    const v = ev.detail?.value as string;
+    if (!v) return;
+    const d = new Date(v);
+    if (isNaN(d.getTime())) return;
+    d.setFullYear(2025);
+    this.fechaSeleccionada = d.toISOString();
   }
 
   volver() {

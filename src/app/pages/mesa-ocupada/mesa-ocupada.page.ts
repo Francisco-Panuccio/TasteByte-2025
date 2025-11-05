@@ -15,7 +15,7 @@ import { Motion, OrientationListenerEvent } from '@capacitor/motion';
 
 type Tab = 'platos' | 'bebidas' | 'postres';
 type AddItem = { id: number; nombre: string; precio: number; duracionMin: number; tipo: 'plato' | 'bebida' | 'postre' };
-type Estado = 'en_espera' | 'pendiente' | 'aceptado' | 'rechazado' | 'recibido' | 'terminado';
+type Estado = 'pendiente' | 'aceptado' | 'rechazado' | 'recibido' | 'terminado';
 type PedidoRow = { id: string; estado: Estado; mesa_id: number | null };
 
 @Component({
@@ -388,7 +388,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
 
   private applyEstado(raw: any) {
     const norm = (raw ?? '').toString().trim().toLowerCase();
-    const ok = ['en_espera', 'pendiente', 'aceptado', 'rechazado', "recibido", 'terminado'] as const;
+    const ok = ['pendiente', 'aceptado', 'rechazado', "recibido", 'terminado'] as const;
     this.estadoPedido = (ok as readonly string[]).includes(norm) ? (norm as Estado) : null;
     this.updateBanner();
   }
@@ -396,10 +396,9 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   private updateBanner(): void {
     if (this.deliveryFlag) {
       switch (this.estadoPedido) {
-        case "en_espera":
+        case "pendiente":
           this.bannerMsg = "En espera de aprobación...";
           return;
-        case "pendiente":
         case "aceptado":
           this.bannerMsg = "Delivery en curso, espere por favor.";
           return;
@@ -439,7 +438,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
   private async buscarPedidoActivoDb(): Promise<PedidoRow | null> {
     let q = supabase.from('pedidos')
       .select('id, estado, mesa_id, tipo')
-      .in('estado', ['en_espera', 'pendiente', 'aceptado'])
+      .in('estado', ['pendiente', 'aceptado'])
       .order('created_at', { ascending: false })
       .limit(1) as any;
 
@@ -691,7 +690,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
             this.itemsSel,
             this.total,
             this.etaMin,
-            this.deliveryFlag ? "en_espera" : "pendiente",
+            "pendiente",
             this.deliveryFlag ? { delivery: true, address: this.deliveryAddress, lat: this.deliveryLat, lng: this.deliveryLng } : undefined
           );
           pedidoId = existente.id;
@@ -715,8 +714,12 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
         } catch { }
       }
 
+      if (this.deliveryFlag) {
+        await supabase.from("pedidos").update({ estado: "pendiente" }).eq("id", pedidoId);
+      }
+
       this.pedidoEnCurso = true;
-      this.applyEstado(this.deliveryFlag ? "en_espera" : "pendiente");
+      this.applyEstado("pendiente");
       this.pedidoActualId = pedidoId!;
       this.carritoFlag = false;
 
@@ -795,7 +798,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
       q.qrValido = true;
       return q;
     } else {
-      return { tienePermiso: true, qrValido: true };
+      return { tienePermiso: true, qrValido: true, pedidoId: this.pedidoActualId };
     }
   }
 

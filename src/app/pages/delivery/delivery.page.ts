@@ -80,7 +80,7 @@ export class DeliveryPage implements OnInit {
         return;
       }
 
-      if (["en_espera", "pendiente"].includes(p.estado)) {
+      if (["pendiente"].includes(p.estado)) {
         this.router.navigate(["/mesa-ocupada"], {
           queryParams: {
             delivery: true,
