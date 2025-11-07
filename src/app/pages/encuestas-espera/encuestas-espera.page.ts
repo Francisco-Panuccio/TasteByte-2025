@@ -340,6 +340,13 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
 
   trackDeliveryMsg = (_: number, m: { id: string }) => m.id;
 
+  private shouldToastMesaVinculada(mesaId: number): boolean {
+    const key = `mesa_vinc_${mesaId}`;
+    if (sessionStorage.getItem(key)) return false;
+    sessionStorage.setItem(key, "1");
+    return true;
+  }
+
   private async bindDeliveryChatToken(
     chatId: string,
     role: 'delivery' | 'cliente'
@@ -509,7 +516,9 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
           this.mesaAsignadaId = mesaId;
           this.actualizarFlags();
           this.suscribirPedido(this.pedidoId);
-          this.mostrarToast(`Mesa ${mesaNumero} vinculada correctamente.`);
+          if (this.shouldToastMesaVinculada(mesaId)) {
+            this.mostrarToast(`Mesa ${mesaNumero} vinculada correctamente.`);
+          }
         } else {
           const qp: any = {
             mesaId,
@@ -718,8 +727,10 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
 
         this.actualizarFlags();
         this.suscribirPedido(this.pedidoId);
-
-        this.mostrarToast(`Mesa ${mesaNumero} vinculada correctamente.`);
+        
+        if (this.shouldToastMesaVinculada(mesaId)) {
+          this.mostrarToast(`Mesa ${mesaNumero} vinculada correctamente.`);
+        }
         return;
       }
 

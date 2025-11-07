@@ -1,23 +1,23 @@
-import { ChangeDetectorRef, Component, inject, OnInit, ViewChild } from '@angular/core';
-import { IonContent, IonModal, ToastController } from '@ionic/angular';
-import { Chat } from 'src/app/services/chat/chat';
-import { ChatMessage } from 'src/app/interfaces/chat-message';
-import { Mesas } from 'src/app/services/mesas/mesas';
-import { Pedidos } from 'src/app/services/pedidos/pedidos';
-import { supabase } from 'src/supabase.client';
-import { Push } from 'src/app/services/push/push';
-import { FacturaData, FacturaPage, ItemFactura } from '../factura/factura.page';
-import { Email } from 'src/app/services/email/email';
-import { Pdf } from 'src/app/services/pdf/pdf';
-import { Router } from '@angular/router';
+import { ChangeDetectorRef, Component, inject, OnInit, ViewChild } from "@angular/core";
+import { IonContent, IonModal, ToastController } from "@ionic/angular";
+import { Chat } from "src/app/services/chat/chat";
+import { ChatMessage } from "src/app/interfaces/chat-message";
+import { Mesas } from "src/app/services/mesas/mesas";
+import { Pedidos } from "src/app/services/pedidos/pedidos";
+import { supabase } from "src/supabase.client";
+import { Push } from "src/app/services/push/push";
+import { FacturaData, FacturaPage, ItemFactura } from "../factura/factura.page";
+import { Email } from "src/app/services/email/email";
+import { Pdf } from "src/app/services/pdf/pdf";
+import { Router } from "@angular/router";
 
 type Filtro =
-  | 'pendiente'
-  | 'aceptado'
-  | 'rechazado'
-  | 'recibido'
-  | 'terminado'
-  | 'impagado';
+  | "pendiente"
+  | "aceptado"
+  | "rechazado"
+  | "recibido"
+  | "terminado"
+  | "impagado";
 
 const FACTURA_EMPTY: FacturaData = {
   fecha: new Date(),
@@ -27,9 +27,9 @@ const FACTURA_EMPTY: FacturaData = {
 };
 
 @Component({
-  selector: 'app-pedidos-mozo',
-  templateUrl: './pedidos-mozo.page.html',
-  styleUrls: ['./pedidos-mozo.page.scss'],
+  selector: "app-pedidos-mozo",
+  templateUrl: "./pedidos-mozo.page.html",
+  styleUrls: ["./pedidos-mozo.page.scss"],
   standalone: false,
 })
 export class PedidosMozoPage implements OnInit {
@@ -43,7 +43,7 @@ export class PedidosMozoPage implements OnInit {
   private cdr = inject(ChangeDetectorRef);
   private router = inject(Router);
 
-  filtro: Filtro = 'pendiente';
+  filtro: Filtro = "pendiente";
   loading = true;
   busy = false;
 
@@ -51,22 +51,22 @@ export class PedidosMozoPage implements OnInit {
   sub?: any;
 
   chatOpen = false;
-  @ViewChild('chatModal', { read: IonModal }) chatModal?: IonModal;
-  @ViewChild('chatContent') chatContent?: IonContent;
+  @ViewChild("chatModal", { read: IonModal }) chatModal?: IonModal;
+  @ViewChild("chatContent") chatContent?: IonContent;
 
-  @ViewChild('facturaCmp', { static: true }) facturaCmp!: FacturaPage;
+  @ViewChild("facturaCmp", { static: true }) facturaCmp!: FacturaPage;
   facturaData: FacturaData = FACTURA_EMPTY;
 
   messages: any[] = [];
-  newMsg = '';
+  newMsg = "";
   chatId?: string;
   myUserId?: string;
-  myName = 'Mozo';
+  myName = "Mozo";
   mesasNum = new Map<number, number>();
   mesaChatId?: number;
 
   inboxOpen = false;
-  @ViewChild('inboxModal', { read: IonModal }) inboxModal?: IonModal;
+  @ViewChild("inboxModal", { read: IonModal }) inboxModal?: IonModal;
   inbox: Array<{
     chatId: string;
     mesaId: number;
@@ -79,32 +79,32 @@ export class PedidosMozoPage implements OnInit {
   private sentPedidoCompleto = new Set<string>();
 
   async ngOnInit() {
-    window.addEventListener('refrescarPedidosMozo', () => this.cargar());
+    window.addEventListener("refrescarPedidosMozo", () => this.cargar());
 
     await this.ensureMozo();
 
     this.myUserId = await this.chatSvc.getMyUserId();
-    this.setFiltro('pendiente', true);
+    this.setFiltro("pendiente", true);
 
     this.sub = this.pedidosSrv.subscribeCambios(() => this.cargar());
 
     supabase
-      .channel('bar_pedidos_realtime')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bar_pedidos' }, () => this.cargar())
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'bar_pedidos' }, () => this.cargar())
+      .channel("bar_pedidos_realtime")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "bar_pedidos" }, () => this.cargar())
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "bar_pedidos" }, () => this.cargar())
       .subscribe();
 
     supabase
-      .channel('cocina_pedidos_realtime')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'cocina_pedidos' }, () => this.cargar())
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'cocina_pedidos' }, () => this.cargar())
+      .channel("cocina_pedidos_realtime")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "cocina_pedidos" }, () => this.cargar())
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "cocina_pedidos" }, () => this.cargar())
       .subscribe();
 
     supabase
-      .channel('mozo_chat_realtime')
+      .channel("mozo_chat_realtime")
       .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'chat_messages' },
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "chat_messages" },
         async (payload) => {
           const raw = payload.new as {
             id: string;
@@ -131,7 +131,7 @@ export class PedidosMozoPage implements OnInit {
             const vm = this.chatSvc.toViewMessage(msg, this.myUserId!);
             this.messages.push({
               ...vm,
-              role: vm.from === 'yo' ? 'mozo' : 'cliente',
+              role: vm.from === "yo" ? "mozo" : "cliente",
             });
             this.scrollToBottomAfterRender();
           }
@@ -147,14 +147,14 @@ export class PedidosMozoPage implements OnInit {
     const { data: au } = await supabase.auth.getUser();
     if (tk && au?.user?.id) {
       await supabase
-        .from('push_tokens')
+        .from("push_tokens")
         .update({
           usuario_id: au.user.id,
-          role: 'mozo',
+          role: "mozo",
           active: true,
           revoked: false,
         })
-        .eq('token', tk);
+        .eq("token", tk);
     }
   }
 
@@ -165,8 +165,53 @@ export class PedidosMozoPage implements OnInit {
 
   private async ensureMozo() {
     const { data } = await supabase.auth.getUser();
-    if (!data.user) throw new Error('Auth requerida');
+    if (!data.user) throw new Error("Auth requerida");
   }
+
+  private async getTokensClientePorMesa(mesaId: number): Promise<string[]> {
+    let tokens: string[] = [];
+
+    const { data: chatRow } = await supabase
+      .from("chats")
+      .select("id")
+      .eq("mesa_id", mesaId)
+      .maybeSingle();
+
+    if (!chatRow?.id) return tokens;
+
+    const { data: part } = await supabase
+      .from("chat_participants")
+      .select("user_id,push_token,role")
+      .eq("chat_id", chatRow.id)
+      .in("role", ["cliente", "anonimo"])
+      .maybeSingle();
+
+    if (part?.push_token) {
+      tokens = [part.push_token as string];
+    } else if (part?.user_id) {
+      const { data: toks } = await supabase
+        .from("push_tokens")
+        .select("token")
+        .eq("usuario_id", part.user_id as string)
+        .in("role", ["cliente", "anonimo"])
+        .eq("active", true)
+        .eq("revoked", false);
+      tokens = (toks ?? []).map((t: any) => t.token as string);
+    }
+
+    if (!tokens.length) return tokens;
+
+    const { data: valids } = await supabase
+      .from("push_tokens")
+      .select("token")
+      .in("token", tokens)
+      .in("role", ["cliente", "anonimo"])
+      .eq("active", true)
+      .eq("revoked", false);
+
+    return Array.from(new Set((valids ?? []).map((t: any) => t.token as string)));
+  }
+
 
   setFiltro(v: Filtro, force = false): void {
     if (this.busy) return;
@@ -179,33 +224,29 @@ export class PedidosMozoPage implements OnInit {
     this.loading = true;
     try {
       this.pedidos = await this.pedidosSrv.listar(this.filtro as any);
-      const ids = Array.from(
-        new Set(this.pedidos.map((p) => p.mesa_id))
-      ).filter(Boolean) as number[];
-      const mesas = await Promise.all(
-        ids.map((id) => this.mesasSrv.getById(id))
-      );
+      const ids = Array.from(new Set(this.pedidos.map((p) => p.mesa_id))).filter(Boolean) as number[];
+      const mesas = await Promise.all(ids.map((id) => this.mesasSrv.getById(id)));
       mesas.forEach((m) => {
         if (m) {
           this.mesasNum.set(m.id!, m.numero!);
         }
       });
 
-      if (this.filtro === 'aceptado') {
+      if (this.filtro === "aceptado") {
         const pids = this.pedidos.map((p) => p.id).filter(Boolean) as string[];
         if (!pids.length) return;
 
         const [{ data: bRows }, { data: cRows }] = await Promise.all([
           supabase
-            .from('bar_pedidos')
-            .select('pedido_id, estado, creado_en')
-            .in('pedido_id', pids)
-            .order('creado_en', { ascending: false }),
+            .from("bar_pedidos")
+            .select("pedido_id, estado, creado_en")
+            .in("pedido_id", pids)
+            .order("creado_en", { ascending: false }),
           supabase
-            .from('cocina_pedidos')
-            .select('pedido_id, estado, creado_en')
-            .in('pedido_id', pids)
-            .order('creado_en', { ascending: false }),
+            .from("cocina_pedidos")
+            .select("pedido_id, estado, creado_en")
+            .in("pedido_id", pids)
+            .order("creado_en", { ascending: false }),
         ]);
 
         const mapBar = new Map<string, string>();
@@ -217,8 +258,7 @@ export class PedidosMozoPage implements OnInit {
         const mapCocina = new Map<string, string>();
         for (const r of cRows ?? []) {
           const id = String((r as any).pedido_id);
-          if (!mapCocina.has(id))
-            mapCocina.set(id, (r as any).estado as string);
+          if (!mapCocina.has(id)) mapCocina.set(id, (r as any).estado as string);
         }
 
         this.pedidos = this.pedidos.map((p) => ({
@@ -231,39 +271,6 @@ export class PedidosMozoPage implements OnInit {
       }
     } finally {
       this.loading = false;
-    }
-  }
-
-  private async notificarAreasNuevoPedidoDelivery(p: any) {
-    const pid = String(p?.id ?? "");
-    if (!pid || this.sentNuevoPedido.has(pid)) return;
-    this.sentNuevoPedido.add(pid);
-
-    const title = "Nuevo pedido delivery";
-    const body = "Nuevo pedido delivery";
-    const data = {
-      tipo: "nuevo_pedido_delivery",
-      pedidoId: pid,
-      mesaId: null
-    };
-
-    const { data: toks } = await supabase
-      .from("push_tokens")
-      .select("token")
-      .in("role", ["bartender", "cocinero"])
-      .eq("active", true)
-      .eq("revoked", false);
-
-    const self = this.push.getToken?.() || null;
-    const list = Array.from(new Set((toks ?? []).map((t: any) => t.token as string)))
-      .filter((t) => (self ? t !== self : true));
-
-    if (!list.length) return;
-
-    if (typeof (this as any).push.sendToTokens === "function") {
-      await (this as any).push.sendToTokens(list, { title, body, data });
-    } else if (typeof (this as any).push.send === "function") {
-      await (this as any).push.send(list, title, body, data);
     }
   }
 
@@ -301,132 +308,83 @@ export class PedidosMozoPage implements OnInit {
         const mesaId = ped?.mesa_id as number | undefined;
         const esMesa = mesaId != null;
 
-        if (estado === "aceptado") {
+        if (estado === "aceptado" && esMesa) {
           await this.crearTicketsAreas(pedidoId);
-
-          if (esMesa) {
-            const mesaNumero = this.mesasNum.get(mesaId!);
-            await this.notificarAreasNuevoPedido({
-              id: pedidoId,
-              mesa_id: mesaId!,
-              mesa_numero: mesaNumero,
-            });
-          } else {
-            await this.notificarAreasNuevoPedidoDelivery({ id: pedidoId });
-          }
+          const mesaNumero = this.mesasNum.get(mesaId!) ?? mesaId!;
+          await this.notificarAreasNuevoPedido({
+            id: pedidoId,
+            mesa_id: mesaId!,
+            mesa_numero: mesaNumero,
+          });
         }
 
         if (estado === "pagado" && esMesa) {
           await this.mesasSrv.liberarMesa(mesaId!);
         }
 
-        if (estado === "pagado" && !esMesa && ped?.cliente_email) {
-          const { data: dataPed, error: errPedidos } = await supabase
-            .from("pedidos")
-            .delete()
-            .eq("cliente_email", ped.cliente_email);
-          if (!dataPed || errPedidos) throw errPedidos || new Error("No se pudo eliminar el pedido de delivery.");
-        }
-
         if (esMesa) {
-          let tokens: string[] = [];
-          const { data: chatRow } = await supabase
-            .from("chats")
-            .select("id")
-            .eq("mesa_id", mesaId!)
-            .maybeSingle();
-          if (chatRow?.id) {
-            const { data: part } = await supabase
-              .from("chat_participants")
-              .select("user_id,push_token")
-              .eq("chat_id", chatRow.id)
-              .eq("role", "cliente")
-              .maybeSingle();
-            if (part?.push_token) {
-              tokens = [part.push_token as string];
-            } else if (part?.user_id) {
-              const { data: toks } = await supabase
-                .from("push_tokens")
-                .select("token")
-                .eq("usuario_id", part.user_id as string)
-                .eq("role", "cliente")
-                .eq("active", true)
-                .eq("revoked", false);
-              tokens = (toks ?? []).map((t: any) => t.token as string);
-            }
-          }
+          const safe = await this.getTokensClientePorMesa(mesaId!);
 
-          if (tokens.length) {
-            const { data: valids } = await supabase
-              .from("push_tokens")
-              .select("token")
-              .in("token", tokens)
-              .eq("role", "cliente")
-              .eq("active", true)
-              .eq("revoked", false);
-            const safe = Array.from(new Set((valids ?? []).map((t: any) => t.token as string)));
+          if (safe.length) {
+            const mesaNumero = this.mesasNum.get(mesaId!) ?? mesaId!;
+            let title = "";
+            let body = "";
 
-            if (safe.length) {
-              const mesaNumero = this.mesasNum.get(mesaId!) ?? mesaId!;
-              let title = "";
-              let body = "";
+            if (estado === "pagado") {
+              try {
+                const { data: pedPago } = await supabase
+                  .from("pedidos")
+                  .select("id, cliente_email")
+                  .eq("id", pedidoId)
+                  .maybeSingle();
 
-              if (estado === "pagado") {
-                try {
-                  const { data: pedPago } = await supabase
-                    .from("pedidos")
-                    .select("id, cliente_email")
-                    .eq("id", pedidoId)
-                    .maybeSingle();
-
-                  if (!pedPago?.cliente_email) {
-                    const url = await this.emitirFacturaParaAnonimoYUrl(pedidoId);
-                    title = "Factura disponible";
-                    body = `Mesa ${mesaNumero}: toque para descargar su factura.`;
-                    await this.push.send(safe, title, body, {
-                      tipo: "factura",
-                      pedidoId,
-                      mesaId,
-                      mesaNumero,
-                      url,
-                    });
-                    return;
-                  } else {
-                    title = "Pago confirmado";
-                    body = `Mesa ${mesaNumero}: su pago fue validado ✅`;
-                    await this.push.send(safe, title, body, {
-                      tipo: "pedido",
-                      pedidoId,
-                      mesaId,
-                      estado,
-                    });
-                    return;
-                  }
-                } catch (e) {
-                  console.warn("⚠️ Error al generar o enviar factura push:", e);
+                if (!pedPago?.cliente_email) {
+                  const url = await this.emitirFacturaParaAnonimoYUrl(pedidoId);
+                  title = "Factura disponible";
+                  body = `Mesa ${mesaNumero}: toque para descargar su factura.`;
+                  await this.push.send(safe, title, body, {
+                    tipo: "factura",
+                    pedidoId,
+                    mesaId,
+                    mesaNumero,
+                    url,
+                  });
+                  return;
+                } else {
+                  title = "Pago confirmado";
+                  body = `Mesa ${mesaNumero}: su pago fue validado ✅`;
+                  await this.push.send(safe, title, body, {
+                    tipo: "pedido",
+                    pedidoId,
+                    mesaId,
+                    estado,
+                  });
+                  return;
                 }
-              } else if (estado === "recibido") {
-                title = "Pedido Recibido";
-                body = `Mesa ${mesaNumero}: su pedido fue entregado`;
-                await this.push.send(safe, title, body, {
-                  tipo: "pedido",
-                  pedidoId,
-                  mesaId,
-                  estado,
-                });
-              } else {
-                title = estado === "aceptado" ? "Pedido aceptado" : "Pedido rechazado";
-                body =
-                  estado === "aceptado"
-                    ? `Mesa ${mesaNumero}: su pedido fue aceptado`
-                    : `Mesa ${mesaNumero}: su pedido fue rechazado. Puede modificarlo y reenviarlo`;
-                await this.push.send(safe, title, body, {
-                  tipo: "pedido",
-                  pedidoId,
-                  mesaId,
-                  estado,
-                });
+              } catch (e) {
+                console.warn("⚠️ Error al generar o enviar factura push:", e);
               }
+            } else if (estado === "recibido") {
+              title = "Pedido Recibido";
+              body = `Mesa ${mesaNumero}: su pedido fue entregado`;
+              await this.push.send(safe, title, body, {
+                tipo: "pedido",
+                pedidoId,
+                mesaId,
+                estado,
+              });
+            } else {
+              title = estado === "aceptado" ? "Pedido aceptado" : "Pedido rechazado";
+              body =
+                estado === "aceptado"
+                  ? `Mesa ${mesaNumero}: su pedido fue aceptado`
+                  : `Mesa ${mesaNumero}: su pedido fue rechazado. Puede modificarlo y reenviarlo`;
+              await this.push.send(safe, title, body, {
+                tipo: "pedido",
+                pedidoId,
+                mesaId,
+                estado,
+              });
             }
           }
         }
@@ -460,19 +418,19 @@ export class PedidosMozoPage implements OnInit {
 
   private async crearTicketsAreas(pedidoId: string) {
     const { data: rows, error: eItems } = await supabase
-      .from('pedido_items')
-      .select('producto_id, nombre, cantidad, precio_unit, tipo')
-      .eq('pedido_id', pedidoId);
+      .from("pedido_items")
+      .select("producto_id, nombre, cantidad, precio_unit, tipo")
+      .eq("pedido_id", pedidoId);
     if (eItems) throw eItems;
 
-    const norm = (s: any) => String(s ?? '').toLowerCase().trim();
-    const cocinaRows = (rows ?? []).filter(r => ['plato', 'postre'].includes(norm((r as any).tipo)));
-    const barRows = (rows ?? []).filter(r => ['bebida'].includes(norm((r as any).tipo)));
+    const norm = (s: any) => String(s ?? "").toLowerCase().trim();
+    const cocinaRows = (rows ?? []).filter((r) => ["plato", "postre"].includes(norm((r as any).tipo)));
+    const barRows = (rows ?? []).filter((r) => ["bebida"].includes(norm((r as any).tipo)));
 
     const { data: pedRow, error: ePed } = await supabase
-      .from('pedidos')
-      .select('mesa_id')
-      .eq('id', pedidoId)
+      .from("pedidos")
+      .select("mesa_id")
+      .eq("id", pedidoId)
       .maybeSingle();
     if (ePed) throw ePed;
 
@@ -481,16 +439,16 @@ export class PedidosMozoPage implements OnInit {
     let mesa_numero: number | null = null;
     if (mesa_id != null) {
       const { data: mesaRow, error: eMesa } = await supabase
-        .from('mesas')
-        .select('numero')
-        .eq('id', mesa_id)
+        .from("mesas")
+        .select("numero")
+        .eq("id", mesa_id)
         .maybeSingle();
       if (eMesa) throw eMesa;
       mesa_numero = (mesaRow as any)?.numero ?? null;
     }
 
     const build = (arr: any[]) => {
-      const items = arr.map(r => ({
+      const items = arr.map((r) => ({
         producto_id: (r as any).producto_id,
         nombre: (r as any).nombre,
         cantidad: Number((r as any).cantidad ?? 0),
@@ -503,7 +461,7 @@ export class PedidosMozoPage implements OnInit {
         pedido_id: pedidoId,
         mesa_id,
         mesa_numero,
-        estado: 'pendiente',
+        estado: "pendiente",
         items,
         cantidad,
         total,
@@ -513,25 +471,29 @@ export class PedidosMozoPage implements OnInit {
 
     const barUpsert = barRows.length
       ? supabase
-        .from('bar_pedidos')
-        .upsert(build(barRows), { onConflict: 'pedido_id' })
+        .from("bar_pedidos")
+        .upsert(build(barRows), { onConflict: "pedido_id" })
         .select()
-        .then(({ error }) => { if (error) throw error; })
+        .then(({ error }) => {
+          if (error) throw error;
+        })
       : Promise.resolve();
 
     const cocinaUpsert = cocinaRows.length
       ? supabase
-        .from('cocina_pedidos')
-        .upsert(build(cocinaRows), { onConflict: 'pedido_id' })
+        .from("cocina_pedidos")
+        .upsert(build(cocinaRows), { onConflict: "pedido_id" })
         .select()
-        .then(({ error }) => { if (error) throw error; })
+        .then(({ error }) => {
+          if (error) throw error;
+        })
       : Promise.resolve();
 
     await Promise.all([barUpsert, cocinaUpsert]);
   }
 
   canEliminar(p: any): boolean {
-    return p.estado === 'aceptado' || p.estado === 'rechazado';
+    return p.estado === "aceptado" || p.estado === "rechazado";
   }
 
   async eliminar(p: any) {
@@ -542,20 +504,20 @@ export class PedidosMozoPage implements OnInit {
       this.pedidos = this.pedidos.filter((x) => x.id !== p.id);
       (
         await this.toast.create({
-          message: 'Pedido eliminado',
+          message: "Pedido eliminado",
           duration: 1200,
-          position: 'top',
-          cssClass: 'toast',
+          position: "top",
+          cssClass: "toast",
         })
       ).present();
       await this.cargar();
     } catch {
       (
         await this.toast.create({
-          message: 'No se pudo eliminar',
+          message: "No se pudo eliminar",
           duration: 1500,
-          position: 'top',
-          cssClass: 'toast',
+          position: "top",
+          cssClass: "toast",
         })
       ).present();
     } finally {
@@ -573,26 +535,26 @@ export class PedidosMozoPage implements OnInit {
       if (m) this.mesasNum.set(m.id!, m.numero!);
     }
 
-    const chat = await this.chatSvc.getOrCreateForMesa(mesaId, 'mozo');
+    const chat = await this.chatSvc.getOrCreateForMesa(mesaId, "mozo");
     this.chatId = chat.id;
 
     const { data: asignacion } = await supabase
-      .from('asignaciones_mesa')
-      .select('asignada_en')
-      .eq('mesa_id', mesaId)
-      .in('estado', ['pendiente', 'asignada', 'sentado'])
-      .order('asignada_en', { ascending: false })
+      .from("asignaciones_mesa")
+      .select("asignada_en")
+      .eq("mesa_id", mesaId)
+      .in("estado", ["pendiente", "asignada", "sentado"])
+      .order("asignada_en", { ascending: false })
       .limit(1)
       .maybeSingle();
 
     const since = asignacion?.asignada_en ?? new Date().toISOString();
 
     const { data: rows } = await supabase
-      .from('chat_messages')
-      .select('*')
-      .eq('chat_id', chat.id)
-      .gte('created_at', since)
-      .order('created_at', { ascending: true })
+      .from("chat_messages")
+      .select("*")
+      .eq("chat_id", chat.id)
+      .gte("created_at", since)
+      .order("created_at", { ascending: true })
       .limit(200);
 
     const msgs = rows ?? [];
@@ -601,7 +563,7 @@ export class PedidosMozoPage implements OnInit {
     this.messages = msgs.map((m) => {
       seen.add(m.id);
       const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
-      return { ...vm, role: vm.from === 'yo' ? 'mozo' : 'cliente' };
+      return { ...vm, role: vm.from === "yo" ? "mozo" : "cliente" };
     });
     this.scrollToBottomAfterRender();
 
@@ -620,7 +582,7 @@ export class PedidosMozoPage implements OnInit {
       const vm = this.chatSvc.toViewMessage(m, this.myUserId!);
       this.messages.push({
         ...vm,
-        role: vm.from === 'yo' ? 'mozo' : 'cliente',
+        role: vm.from === "yo" ? "mozo" : "cliente",
       });
 
       this.scrollToBottomAfterRender();
@@ -655,7 +617,7 @@ export class PedidosMozoPage implements OnInit {
     const t = this.newMsg.trim();
     if (!t || !this.chatId || !this.mesaChatId || this.busy) return;
     await this.chatSvc.sendMessage(this.chatId, t);
-    this.newMsg = '';
+    this.newMsg = "";
   }
 
   async abrirInbox() {
@@ -670,21 +632,18 @@ export class PedidosMozoPage implements OnInit {
   }
 
   private hhmm(d: Date): string {
-    const hh = String(d.getHours()).padStart(2, '0');
-    const mm = String(d.getMinutes()).padStart(2, '0');
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mm = String(d.getMinutes()).padStart(2, "0");
     return `${hh}:${mm}`;
   }
 
   private async cargarInbox() {
     const { data: msgs } = await supabase
-      .from('chat_messages')
-      .select('chat_id, body, created_at')
-      .order('created_at', { ascending: false })
+      .from("chat_messages")
+      .select("chat_id, body, created_at")
+      .order("created_at", { ascending: false })
       .limit(200);
-    const dedup = new Map<
-      string,
-      { chatId: string; lastText: string; time: string }
-    >();
+    const dedup = new Map<string, { chatId: string; lastText: string; time: string }>();
     for (const m of msgs ?? []) {
       const id = (m as any).chat_id as string;
       if (!dedup.has(id)) {
@@ -701,20 +660,11 @@ export class PedidosMozoPage implements OnInit {
       this.inbox = [];
       return;
     }
-    const { data: chats } = await supabase
-      .from('chats')
-      .select('id, mesa_id')
-      .in('id', chatIds);
+    const { data: chats } = await supabase.from("chats").select("id, mesa_id").in("id", chatIds);
     const byId = new Map<string, number>();
-    (chats ?? []).forEach((c: any) =>
-      byId.set(c.id as string, c.mesa_id as number)
-    );
-    const mesaIds = Array.from(
-      new Set((chats ?? []).map((c: any) => c.mesa_id as number))
-    );
-    const mesas = await Promise.all(
-      mesaIds.map((id) => this.mesasSrv.getById(id))
-    );
+    (chats ?? []).forEach((c: any) => byId.set(c.id as string, c.mesa_id as number));
+    const mesaIds = Array.from(new Set((chats ?? []).map((c: any) => c.mesa_id as number)));
+    const mesas = await Promise.all(mesaIds.map((id) => this.mesasSrv.getById(id)));
     mesas.forEach((m) => {
       if (m) this.mesasNum.set(m.id!, m.numero!);
     });
@@ -737,9 +687,9 @@ export class PedidosMozoPage implements OnInit {
 
   async validarPago(pedidoId: string): Promise<void> {
     const { data: ped } = await supabase
-      .from('pedidos')
-      .select('mesa_id, cliente_email')
-      .eq('id', pedidoId)
+      .from("pedidos")
+      .select("mesa_id, cliente_email")
+      .eq("id", pedidoId)
       .single();
 
     const mesaId = ped?.mesa_id as number;
@@ -756,52 +706,52 @@ export class PedidosMozoPage implements OnInit {
       console.log(e);
       (
         await this.toast.create({
-          message: 'No se pudo enviar la factura',
+          message: "No se pudo enviar la factura",
           duration: 1500,
-          position: 'top',
-          cssClass: 'toast',
+          position: "top",
+          cssClass: "toast",
         })
       ).present();
     } finally {
       this.loading = false;
     }
 
-    await this.setEstado(pedidoId, 'pagado');
+    await this.setEstado(pedidoId, "pagado");
 
     await this.push.sendToRoles(
-      ['dueño', 'supervisor'],
-      'Pago validado',
+      ["dueño", "supervisor"],
+      "Pago validado",
       `Pago Mesa (${mesaNumero}) Validado`,
-      { tipo: 'pago_validado', pedidoId, mesaId, mesaNumero }
+      { tipo: "pago_validado", pedidoId, mesaId, mesaNumero }
     );
   }
 
   private async notificarAreasNuevoPedido(p: any) {
-    const pid = String(p?.id ?? '');
+    const pid = String(p?.id ?? "");
     if (!pid || this.sentNuevoPedido.has(pid)) return;
     this.sentNuevoPedido.add(pid);
-    const mesaNumero = p?.mesa?.numero ?? p?.mesa_numero ?? p?.mesa_id ?? 'NN';
-    const title = 'Nuevo pedido';
+    const mesaNumero = p?.mesa?.numero ?? p?.mesa_numero ?? p?.mesa_id ?? "NN";
+    const title = "Nuevo pedido";
     const body = `Nuevo pedido mesa ${mesaNumero}`;
     const data = {
-      tipo: 'nuevo_pedido',
+      tipo: "nuevo_pedido",
       pedidoId: p?.id ?? null,
       mesaId: p?.mesa_id ?? p?.mesa?.id ?? null,
     };
     const { data: toks } = await supabase
-      .from('push_tokens')
-      .select('token')
-      .in('role', ['bartender', 'cocinero'])
-      .eq('active', true)
-      .eq('revoked', false);
+      .from("push_tokens")
+      .select("token")
+      .in("role", ["bartender", "cocinero"])
+      .eq("active", true)
+      .eq("revoked", false);
     const self = this.push.getToken?.() || null;
-    const list = Array.from(
-      new Set((toks ?? []).map((t: any) => t.token as string))
-    ).filter((t) => (self ? t !== self : true));
+    const list = Array.from(new Set((toks ?? []).map((t: any) => t.token as string))).filter((t) =>
+      self ? t !== self : true
+    );
     if (!list.length) return;
-    if (typeof (this as any).push.sendToTokens === 'function') {
+    if (typeof (this as any).push.sendToTokens === "function") {
       await (this as any).push.sendToTokens(list, { title, body, data });
-    } else if (typeof (this as any).push.send === 'function') {
+    } else if (typeof (this as any).push.send === "function") {
       await (this as any).push.send(list, title, body, data);
     }
   }
@@ -809,13 +759,12 @@ export class PedidosMozoPage implements OnInit {
   private async verificarPedidosCompletos() {
     const list = this.pedidos || [];
     for (const p of list) {
-      const id = String(p?.id ?? '');
+      const id = String(p?.id ?? "");
       if (!id || this.sentPedidoCompleto.has(id)) continue;
       const hasBar = p?.estadoBar != null && String(p.estadoBar).length > 0;
-      const hasCocina =
-        p?.estadoCocina != null && String(p.estadoCocina).length > 0;
-      const doneBar = p?.estadoBar === 'terminado';
-      const doneCocina = p?.estadoCocina === 'terminado';
+      const hasCocina = p?.estadoCocina != null && String(p.estadoCocina).length > 0;
+      const doneBar = p?.estadoBar === "terminado";
+      const doneCocina = p?.estadoCocina === "terminado";
       const ready =
         (hasBar && hasCocina && doneBar && doneCocina) ||
         (hasBar && !hasCocina && doneBar) ||
@@ -839,11 +788,7 @@ export class PedidosMozoPage implements OnInit {
       user = u;
     }
 
-    const { data: ped } = await supabase
-      .from("pedidos")
-      .select("id, total")
-      .eq("id", pedidoId)
-      .maybeSingle();
+    const { data: ped } = await supabase.from("pedidos").select("id, total").eq("id", pedidoId).maybeSingle();
 
     const { data: rows } = await supabase
       .from("pedido_items")
@@ -902,15 +847,9 @@ export class PedidosMozoPage implements OnInit {
     return { data, fileName };
   }
 
-  private async emitirFacturaYEnviar(
-    pedidoId: string,
-    emailCliente: string
-  ): Promise<void> {
-    const { data, fileName } = await this.buildFacturaData(
-      pedidoId,
-      emailCliente
-    );
-    if (!emailCliente) throw new Error('Email del cliente no disponible.');
+  private async emitirFacturaYEnviar(pedidoId: string, emailCliente: string): Promise<void> {
+    const { data, fileName } = await this.buildFacturaData(pedidoId, emailCliente);
+    if (!emailCliente) throw new Error("Email del cliente no disponible.");
     this.facturaData = data;
     this.cdr.detectChanges();
     await new Promise((r) => setTimeout(r, 0));
@@ -936,21 +875,17 @@ export class PedidosMozoPage implements OnInit {
     });
     (
       await this.toast.create({
-        message: 'Factura enviada correctamente',
+        message: "Factura enviada correctamente",
         duration: 1500,
-        position: 'top',
-        cssClass: 'toast',
+        position: "top",
+        cssClass: "toast",
       })
     ).present();
     this.facturaData = FACTURA_EMPTY;
   }
 
   async emitirFacturaParaAnonimoYUrl(pedidoId: string): Promise<string> {
-    const { data: ped } = await supabase
-      .from("pedidos")
-      .select("mesa_id, total")
-      .eq("id", pedidoId)
-      .maybeSingle();
+    const { data: ped } = await supabase.from("pedidos").select("mesa_id, total").eq("id", pedidoId).maybeSingle();
     if (!ped) throw new Error("Pedido no encontrado para generar factura");
 
     const { data: itemsRows } = await supabase
@@ -977,9 +912,7 @@ export class PedidosMozoPage implements OnInit {
     const sumaItems = items.reduce((acc, it) => acc + it.subtotal, 0);
     const descuentoPct = Number(descRow?.porcentaje ?? 0);
     const baseConDescuento = +(sumaItems * (1 - descuentoPct / 100)).toFixed(2);
-    const totalFinal = Number(
-      ped.total ?? sumaItems
-    );
+    const totalFinal = Number(ped.total ?? sumaItems);
     const propinaMonto = +Math.max(0, totalFinal - baseConDescuento).toFixed(2);
     const descuentoMonto = +(sumaItems - baseConDescuento).toFixed(2);
     const propinaPct = baseConDescuento > 0 ? Math.round((propinaMonto / baseConDescuento) * 100) : 0;
@@ -1008,18 +941,14 @@ export class PedidosMozoPage implements OnInit {
     const blob = await this.pdf.exportarA4(el, fileName);
     const url = await this.pdf.subirFacturaYObtenerUrl(blob, fileName);
 
-    const { data: chatRow } = await supabase
-      .from("chats")
-      .select("id")
-      .eq("mesa_id", ped.mesa_id)
-      .maybeSingle();
+    const { data: chatRow } = await supabase.from("chats").select("id").eq("mesa_id", ped.mesa_id).maybeSingle();
 
     if (chatRow?.id) {
       const { data: part } = await supabase
         .from("chat_participants")
         .select("push_token")
         .eq("chat_id", chatRow.id)
-        .eq("role", "cliente")
+        .in("role", ["cliente", "anonimo"])
         .maybeSingle();
       const token = part?.push_token;
       if (token) {
@@ -1038,7 +967,7 @@ export class PedidosMozoPage implements OnInit {
   private async waitForRender(el: HTMLElement) {
     await new Promise((r) => requestAnimationFrame(r));
     if ((document as any).fonts?.ready) await (document as any).fonts.ready;
-    const imgs = Array.from(el.querySelectorAll('img')) as HTMLImageElement[];
+    const imgs = Array.from(el.querySelectorAll("img")) as HTMLImageElement[];
     await Promise.all(
       imgs.map((i) =>
         i.complete
@@ -1055,22 +984,14 @@ export class PedidosMozoPage implements OnInit {
   ): Promise<{ valido: boolean; mensaje: string }> {
     try {
       const [{ data: barPedido }, { data: cocinaPedido }] = await Promise.all([
-        supabase
-          .from('bar_pedidos')
-          .select('estado')
-          .eq('pedido_id', pedidoId)
-          .maybeSingle(),
-        supabase
-          .from('cocina_pedidos')
-          .select('estado')
-          .eq('pedido_id', pedidoId)
-          .maybeSingle(),
+        supabase.from("bar_pedidos").select("estado").eq("pedido_id", pedidoId).maybeSingle(),
+        supabase.from("cocina_pedidos").select("estado").eq("pedido_id", pedidoId).maybeSingle(),
       ]);
 
       const hasBar = !!barPedido;
       const hasCocina = !!cocinaPedido;
-      const doneBar = hasBar && barPedido.estado === 'terminado';
-      const doneCocina = hasCocina && cocinaPedido.estado === 'terminado';
+      const doneBar = hasBar && barPedido.estado === "terminado";
+      const doneCocina = hasCocina && cocinaPedido.estado === "terminado";
 
       const ready =
         (hasBar && hasCocina && doneBar && doneCocina) ||
@@ -1078,64 +999,31 @@ export class PedidosMozoPage implements OnInit {
         (!hasBar && hasCocina && doneCocina);
 
       if (!ready) {
-        let mensaje = 'Falta terminar el pedido en ';
+        let mensaje = "Falta terminar el pedido en ";
 
         if (hasBar && hasCocina) {
           if (!doneBar && !doneCocina) {
-            mensaje += 'cocina y bar';
+            mensaje += "cocina y bar";
           } else if (!doneBar) {
-            mensaje += 'bar';
+            mensaje += "bar";
           } else if (!doneCocina) {
-            mensaje += 'cocina';
+            mensaje += "cocina";
           }
         } else if (hasBar && !doneBar) {
-          mensaje += 'bar';
+          mensaje += "bar";
         } else if (hasCocina && !doneCocina) {
-          mensaje += 'cocina';
+          mensaje += "cocina";
         } else {
-          mensaje = 'El pedido no está listo para entregar';
+          mensaje = "El pedido no está listo para entregar";
         }
 
-        return {
-          valido: false,
-          mensaje: mensaje,
-        };
+        return { valido: false, mensaje };
       }
 
-      try {
-        const { data: pedRow } = await supabase
-          .from("pedidos")
-          .select("id, mesa_id, mesas(numero)")
-          .eq("id", pedidoId)
-          .maybeSingle();
-        const mesaId = pedRow?.mesa_id as number | undefined;
-        const mesaNumero = mesaId != null ? this.mesasNum.get(mesaId) ?? mesaId : "NN";
-        const body = `Pedido Mesa (${mesaNumero}) entregado`;
-        const roles: Array<"mozo"> = ["mozo"];
-
-        await this.push.sendToRoles(
-          roles,
-          "Pedido listo",
-          body,
-          {
-            tipo: "pedido_listo",
-            pedidoId,
-            mesaId: mesaId ?? null,
-            mesa: String(mesaNumero),
-          }
-        );
-      } catch { }
-
-      return {
-        valido: true,
-        mensaje: 'Pedido entregado',
-      };
+      return { valido: true, mensaje: "Pedido entregado" };
     } catch (error) {
-      console.error('Error validando estado de áreas:', error);
-      return {
-        valido: false,
-        mensaje: 'Error al verificar el estado del pedido',
-      };
+      console.error("Error validando estado de áreas:", error);
+      return { valido: false, mensaje: "Error al verificar el estado del pedido" };
     }
   }
 
@@ -1143,6 +1031,6 @@ export class PedidosMozoPage implements OnInit {
     try {
       await supabase.auth.signOut();
     } catch { }
-    this.router.navigate(['/login'], { replaceUrl: true });
+    this.router.navigate(["/login"], { replaceUrl: true });
   }
 }
