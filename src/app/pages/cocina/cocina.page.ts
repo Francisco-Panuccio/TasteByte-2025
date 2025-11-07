@@ -109,7 +109,7 @@ export class CocinaPage implements OnInit, OnDestroy {
         .from("cocina_pedidos")
         .update({
           estado: "terminado",
-          terminado_en: new Date().toISOString(),
+          terminado_en: new Date().toISOString()
         })
         .eq("id", id);
 
@@ -131,7 +131,7 @@ export class CocinaPage implements OnInit, OnDestroy {
             tipo: "pedido_listo",
             pedido_id: pedido.pedido_id,
             mesa_id: pedido.mesa_id,
-            mensaje: `El pedido de ${etiqueta} está listo ✅`,
+            mensaje: `El pedido de ${etiqueta} está listo ✅`
           });
 
         if (insertError) {
@@ -141,31 +141,31 @@ export class CocinaPage implements OnInit, OnDestroy {
         if (pedido.mesa_id) {
           try {
             await this.push.sendToRoles(
-              ["mozo"],
+              ["mozo", "dueño", "dueno", "supervisor"],
               "Pedido completo",
               `El pedido de ${etiqueta} está listo para entregar.`,
               {
                 tipo: "pedido_listo",
                 pedidoId: pedido.pedido_id,
-                mesaId: pedido.mesa_id,
+                mesaId: pedido.mesa_id
               }
             );
           } catch (pushError) {
-            console.error("Error enviando push al mozo:", pushError);
+            console.error("Error enviando push al mozo/dueño/supervisor:", pushError);
           }
         } else {
           try {
             await this.push.sendToRoles(
-              ["mozo"],
+              ["mozo", "dueño", "dueno", "supervisor"],
               "Pedido completo",
               `El pedido del delivery está listo para entregar.`,
               {
                 tipo: "pedido_delivery_listo",
-                pedidoId: pedido.pedido_id,
+                pedidoId: pedido.pedido_id
               }
             );
           } catch (pushError) {
-            console.error("Error enviando push al delivery:", pushError);
+            console.error("Error enviando push al delivery/dueño/supervisor:", pushError);
           }
         }
       }
