@@ -289,7 +289,6 @@ export class AltaClientePage implements OnInit {
             "Bienvenido a TasteByte",
             `<p>Hola ${nombres + " " + apellidos}, gracias por registrarse.</p>
             <p>Su cuenta se encuentra actualmente pendiente de revisión, disculpe las molestias.</p>
-            <p>En minutos un dueño o supervisor autorizará su ingreso.</p>
             <p>Muchas gracias, esperamos que disfrute nuestras comidas en TasteByte.</p>`,
             "Registro Recibido - En Revisión"
           );
