@@ -91,7 +91,7 @@
         </div>
 
         @if(p.estadoBar && p.estadoCocina) {
-          @if(p.estadoBar && p.estadoCocina === "pendiente") {
+          @if(p.estadoBar === "pendiente" && p.estadoCocina === "pendiente") {
             <div class="div_cocinaBar both">
               <img src="assets/images/cocina-pendiente.png">
               <img src="assets/images/bar-pendiente.png">
