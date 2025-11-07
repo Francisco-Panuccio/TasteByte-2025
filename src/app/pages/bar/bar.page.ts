@@ -98,86 +98,85 @@ export class BarPage implements OnInit, OnDestroy {
   }
 
   private async finalizarPedido(id: string) {
-  try {
-    const pedido = this.pedidos.find((p) => p.id === id);
-    if (!pedido) {
-      this.mostrarToast("No se encontró el pedido.");
-      return;
-    }
-
-    const { error: updateError } = await supabase
-      .from("bar_pedidos")
-      .update({
-        estado: "terminado",
-        terminado_en: new Date().toISOString(),
-      })
-      .eq("id", id);
-
-    if (updateError) throw updateError;
-
-    const { data: completo, error: checkError } = await supabase.rpc(
-      "check_pedido_completo",
-      { p_pedido_id: pedido.pedido_id }
-    );
-
-    if (checkError) {
-      console.error("Error check_pedido_completo:", checkError);
-    } else if (completo === true) {
-      const etiqueta = this.etiquetaPedido(pedido);
-
-      const { error: insertError } = await supabase
-        .from("push_eventos")
-        .insert({
-          tipo: "pedido_listo",
-          pedido_id: pedido.pedido_id,
-          mesa_id: pedido.mesa_id,
-          mensaje: `El pedido de ${etiqueta} está listo ✅`,
-        });
-
-      if (insertError) {
-        console.error("Error insertando push_eventos:", insertError);
+    try {
+      const pedido = this.pedidos.find((p) => p.id === id);
+      if (!pedido) {
+        this.mostrarToast("No se encontró el pedido.");
+        return;
       }
 
-      if (pedido.mesa_id) {
-        try {
-          await this.push.sendToRoles(
-            ["mozo"],
-            "Pedido completo",
-            `El pedido de ${etiqueta} está listo para entregar.`,
-            {
-              tipo: "pedido_listo",
-              pedidoId: pedido.pedido_id,
-              mesaId: pedido.mesa_id,
-            }
-          );
-        } catch (pushError) {
-          console.error("Error enviando push al mozo:", pushError);
+      const { error: updateError } = await supabase
+        .from("bar_pedidos")
+        .update({
+          estado: "terminado",
+          terminado_en: new Date().toISOString(),
+        })
+        .eq("id", id);
+
+      if (updateError) throw updateError;
+
+      const { data: completo, error: checkError } = await supabase.rpc(
+        "check_pedido_completo",
+        { p_pedido_id: pedido.pedido_id }
+      );
+
+      if (checkError) {
+        console.error("Error check_pedido_completo:", checkError);
+      } else if (completo === true) {
+        const etiqueta = this.etiquetaPedido(pedido);
+
+        const { error: insertError } = await supabase
+          .from("push_eventos")
+          .insert({
+            tipo: "pedido_listo",
+            pedido_id: pedido.pedido_id,
+            mesa_id: pedido.mesa_id,
+            mensaje: `El pedido de ${etiqueta} está listo ✅`,
+          });
+
+        if (insertError) {
+          console.error("Error insertando push_eventos:", insertError);
         }
-      } else {
-        try {
-          await this.push.sendToRoles(
-            ["mozo"],
-            "Pedido completo",
-            `El pedido del delivery está listo para entregar.`,
-            {
-              tipo: "pedido_delivery_listo",
-              pedidoId: pedido.pedido_id,
-            }
-          );
-        } catch (pushError) {
-          console.error("Error enviando push al delivery:", pushError);
+
+        if (pedido.mesa_id) {
+          try {
+            await this.push.sendToRoles(
+              ["mozo"],
+              "Pedido completo",
+              `El pedido de ${etiqueta} está listo para entregar.`,
+              {
+                tipo: "pedido_listo",
+                pedidoId: pedido.pedido_id,
+                mesaId: pedido.mesa_id,
+              }
+            );
+          } catch (pushError) {
+            console.error("Error enviando push al mozo:", pushError);
+          }
+        } else {
+          try {
+            await this.push.sendToRoles(
+              ["mozo"],
+              "Pedido completo",
+              `El pedido del delivery está listo para entregar.`,
+              {
+                tipo: "pedido_delivery_listo",
+                pedidoId: pedido.pedido_id,
+              }
+            );
+          } catch (pushError) {
+            console.error("Error enviando push al delivery:", pushError);
+          }
         }
       }
-    }
 
-    await this.cargar();
-    this.mostrarToast("Pedido marcado como terminado");
-  } catch (error) {
-    console.error(error);
-    this.mostrarToast("Error al marcar el pedido como terminado");
+      await this.cargar();
+      this.mostrarToast("Pedido marcado como terminado");
+    } catch (error) {
+      console.error(error);
+      this.mostrarToast("Error al marcar el pedido como terminado");
+    }
   }
-}
-
 
   formatearHora(fecha: string): string {
     return new Date(fecha).toLocaleTimeString("es-AR", {

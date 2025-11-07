@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, inject, OnInit, ViewChild } from "@angular/core";
+import { ChangeDetectorRef, Component, inject, NgZone, OnInit, ViewChild } from "@angular/core";
 import { IonContent, IonModal, ToastController } from "@ionic/angular";
 import { Chat } from "src/app/services/chat/chat";
 import { ChatMessage } from "src/app/interfaces/chat-message";
@@ -42,6 +42,11 @@ export class PedidosMozoPage implements OnInit {
   private email = inject(Email);
   private cdr = inject(ChangeDetectorRef);
   private router = inject(Router);
+  private zone = inject(NgZone);
+
+  private chBar?: ReturnType<typeof supabase.channel>;
+  private chCocina?: ReturnType<typeof supabase.channel>;
+  private chChat?: ReturnType<typeof supabase.channel>;
 
   filtro: Filtro = "pendiente";
   loading = true;
@@ -79,33 +84,55 @@ export class PedidosMozoPage implements OnInit {
   private sentPedidoCompleto = new Set<string>();
 
   async ngOnInit() {
-    window.addEventListener("refrescarPedidosMozo", () => this.cargar());
+    window.addEventListener("refrescarPedidosMozo", () => this.zone.run(() => this.cargar()));
 
     await this.ensureMozo();
+
+    this.push.listenPedidosListosMozo(async (data: any) => {
+      const pedidoId = String(data?.pedido_id || data?.pedidoId || "");
+      if (!pedidoId) return;
+
+      await this.push.sendLocal(
+        "Pedido listo para entregar",
+        data?.mensaje || "Un pedido está listo para ser entregado"
+      );
+
+      if (window.location.href.includes("/pedidos-mozo")) {
+        window.dispatchEvent(new CustomEvent("refrescarPedidosMozo"));
+      }
+    });
 
     this.myUserId = await this.chatSvc.getMyUserId();
     this.setFiltro("pendiente", true);
 
-    this.sub = this.pedidosSrv.subscribeCambios(() => this.cargar());
+    this.sub = this.pedidosSrv.subscribeCambios(() => this.zone.run(() => this.cargar()));
 
-    supabase
+    this.chBar = supabase
       .channel("bar_pedidos_realtime")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "bar_pedidos" }, () => this.cargar())
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "bar_pedidos" }, () => this.cargar())
+      .on("postgres_changes",
+        { event: "INSERT", schema: "public", table: "bar_pedidos" },
+        () => this.zone.run(() => this.cargar()))
+      .on("postgres_changes",
+        { event: "UPDATE", schema: "public", table: "bar_pedidos" },
+        () => this.zone.run(() => this.cargar()))
       .subscribe();
 
-    supabase
+    this.chCocina = supabase
       .channel("cocina_pedidos_realtime")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "cocina_pedidos" }, () => this.cargar())
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "cocina_pedidos" }, () => this.cargar())
+      .on("postgres_changes",
+        { event: "INSERT", schema: "public", table: "cocina_pedidos" },
+        () => this.zone.run(() => this.cargar()))
+      .on("postgres_changes",
+        { event: "UPDATE", schema: "public", table: "cocina_pedidos" },
+        () => this.zone.run(() => this.cargar()))
       .subscribe();
 
-    supabase
+    this.chChat = supabase
       .channel("mozo_chat_realtime")
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "chat_messages" },
-        async (payload) => {
+        (payload) => this.zone.run(async () => {
           const raw = payload.new as {
             id: string;
             chat_id: string;
@@ -139,8 +166,8 @@ export class PedidosMozoPage implements OnInit {
           if (this.inboxOpen) {
             await this.cargarInbox();
           }
-        }
-      )
+          this.cdr.markForCheck();
+        }))
       .subscribe();
 
     const tk = this.push.getToken?.();
@@ -161,6 +188,9 @@ export class PedidosMozoPage implements OnInit {
   ngOnDestroy() {
     this.sub?.unsubscribe?.();
     this.chatSvc.unsubscribe();
+    if (this.chBar) supabase.removeChannel(this.chBar);
+    if (this.chCocina) supabase.removeChannel(this.chCocina);
+    if (this.chChat) supabase.removeChannel(this.chChat);
   }
 
   private async ensureMozo() {
@@ -224,6 +254,7 @@ export class PedidosMozoPage implements OnInit {
     this.loading = true;
     try {
       this.pedidos = await this.pedidosSrv.listar(this.filtro as any);
+      this.cdr.markForCheck();
       const ids = Array.from(new Set(this.pedidos.map((p) => p.mesa_id))).filter(Boolean) as number[];
       const mesas = await Promise.all(ids.map((id) => this.mesasSrv.getById(id)));
       mesas.forEach((m) => {
@@ -271,6 +302,8 @@ export class PedidosMozoPage implements OnInit {
       }
     } finally {
       this.loading = false;
+      this.cdr.markForCheck();
+      this.cdr.detectChanges();
     }
   }
 
@@ -414,7 +447,6 @@ export class PedidosMozoPage implements OnInit {
       this.busy = false;
     }
   }
-
 
   private async crearTicketsAreas(pedidoId: string) {
     const { data: rows, error: eItems } = await supabase
@@ -730,29 +762,39 @@ export class PedidosMozoPage implements OnInit {
     const pid = String(p?.id ?? "");
     if (!pid || this.sentNuevoPedido.has(pid)) return;
     this.sentNuevoPedido.add(pid);
+
     const mesaNumero = p?.mesa?.numero ?? p?.mesa_numero ?? p?.mesa_id ?? "NN";
     const title = "Nuevo pedido";
     const body = `Nuevo pedido mesa ${mesaNumero}`;
-    const data = {
-      tipo: "nuevo_pedido",
-      pedidoId: p?.id ?? null,
-      mesaId: p?.mesa_id ?? p?.mesa?.id ?? null,
-    };
-    const { data: toks } = await supabase
+    const data = { tipo: "nuevo_pedido", pedidoId: p?.id ?? null, mesaId: p?.mesa_id ?? p?.mesa?.id ?? null };
+
+    const { data: toks, error: errToks } = await supabase
       .from("push_tokens")
-      .select("token")
+      .select("token, role, active, revoked")
       .in("role", ["bartender", "cocinero"])
       .eq("active", true)
       .eq("revoked", false);
-    const self = this.push.getToken?.() || null;
-    const list = Array.from(new Set((toks ?? []).map((t: any) => t.token as string))).filter((t) =>
-      self ? t !== self : true
-    );
-    if (!list.length) return;
-    if (typeof (this as any).push.sendToTokens === "function") {
-      await (this as any).push.sendToTokens(list, { title, body, data });
-    } else if (typeof (this as any).push.send === "function") {
-      await (this as any).push.send(list, title, body, data);
+
+    if (errToks) { console.error("[BAR] query error", errToks); return; }
+
+    const list = Array.from(new Set((toks ?? []).map((t: any) => String(t.token))));
+
+    if (!list.length) {
+      console.warn("[BAR] sin tokens bartender/cocinero");
+      return;
+    }
+
+    try {
+      const svc: any = this.push;
+      if (typeof svc.sendToTokens === "function") {
+        await svc.sendToTokens(list, title, body, data);
+      } else if (typeof svc.send === "function") {
+        await svc.send(list, title, body, data);
+      } else {
+        console.warn("[BAR] Push service no expone send/sendToTokens");
+      }
+    } catch (e) {
+      console.error("[BAR] send error", e);
     }
   }
 
