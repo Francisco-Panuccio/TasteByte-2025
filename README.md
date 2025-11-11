@@ -344,6 +344,4 @@ Quitar la pantalla de credenciales invalidas, eso debería ser un mensaje de err
   <img src="src/assets/imagesGithub/reservas-4.jpeg" alt="Reservas 4" width="400" height="800">
   <img src="src/assets/imagesGithub/reservas-5.jpeg" alt="Reservas 5" width="400" height="800">
   <img src="src/assets/imagesGithub/rechazar-reserva.jpeg" alt="Rechazar Reserva" width="400" height="800">
-  <img src="src/assets/imagesGithub/eleccion-fecha.jpeg" alt="Elección Fecha" width="400" height="800">
-  <img src="src/assets/imagesGithub/eleccion-hora.jpeg" alt="Elección Hora" width="400" height="800">
 </p>
