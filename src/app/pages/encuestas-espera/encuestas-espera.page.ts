@@ -55,6 +55,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     role: "delivery" | "cliente";
     text: string;
     time: string;
+    createdAt: string;
   }[] = [];
   deliveryNewMsg = "";
   @ViewChild("deliveryChatContent") deliveryChatContent?: IonContent;
@@ -72,6 +73,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     role: "mozo" | "cliente";
     text: string;
     time: string;
+    createdAt: string;
   }[] = [];
   newMsg = "";
   @ViewChild("chatContent") chatContent?: IonContent;
@@ -953,6 +955,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
         role,
         text: vm.text,
         time: vm.time,
+        createdAt: vm.createdAt,
       };
     });
     for (const m of msgs) this.deliverySeenIds.add(m.id);
@@ -978,6 +981,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
           role,
           text: vm.text,
           time: vm.time,
+          createdAt: vm.createdAt,
         });
         this.scrollToBottomAfterRender();
       });
@@ -1004,8 +1008,8 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     const txt = this.deliveryNewMsg.trim();
     if (!txt) return;
 
-    const tempId = "temp-" + Date.now();
     const now = new Date();
+    const tempId = "temp-" + Date.now();
 
     this.deliveryMessages.push({
       id: tempId,
@@ -1013,6 +1017,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       role: "cliente",
       text: txt,
       time: this.hhmm(now),
+      createdAt: now.toISOString(),
     });
     this.scrollToBottomAfterRender();
     this.deliveryNewMsg = "";
@@ -1029,6 +1034,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
         role,
         text: vm.text,
         time: vm.time,
+        createdAt: vm.createdAt,
       };
     } else if (!this.deliverySeenIds.has(saved.id)) {
       this.deliveryMessages.push({
@@ -1037,6 +1043,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
         role,
         text: vm.text,
         time: vm.time,
+        createdAt: vm.createdAt,
       });
     }
 
@@ -1131,6 +1138,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
       role: "cliente",
       text: txt,
       time: this.hhmm(now),
+      createdAt: now.toISOString(),
     });
     this.scrollToBottomAfterRender();
     this.newMsg = "";
@@ -1147,6 +1155,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
         role,
         text: vm.text,
         time: vm.time,
+        createdAt: vm.createdAt,
       };
     } else if (!this.seenIds.has(saved.id)) {
       this.messages.push({
@@ -1155,6 +1164,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
         role,
         text: vm.text,
         time: vm.time,
+        createdAt: vm.createdAt,
       });
     }
 

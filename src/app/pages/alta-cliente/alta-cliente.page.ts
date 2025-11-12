@@ -129,6 +129,9 @@ export class AltaClientePage implements OnInit {
     this.fotoUrlReg = null;
     this.fotoPreviewAnon = null;
     this.fotoUrlAnon = null;
+
+    this.formAltaCliente.patchValue({ foto: null });
+    this.formAltaAnonimo.patchValue({ foto: null });
   }
 
   async escanearDNI() {

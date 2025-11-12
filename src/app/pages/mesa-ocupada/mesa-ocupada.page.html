@@ -43,6 +43,11 @@
           </ion-segment>
         </div>
   
+        <div class="div_show_total">
+          <p class="showTotal">{{ total | currency:"ARS":"symbol-narrow":"1.0-0" }}</p>
+          <p class="showETA">{{ etaMin }} minutos</p>
+        </div>
+
         <div class="grid">
           @if(tab==="platos"){
             @for(p of platos; track p.id){

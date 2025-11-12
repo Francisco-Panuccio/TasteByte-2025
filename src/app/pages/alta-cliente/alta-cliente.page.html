@@ -89,7 +89,7 @@
       <div class="foto-section">
         <ion-button class="btn_photo" (click)="sacarFoto()">Tomar Foto</ion-button>
         <div class="preview" *ngIf="fotoPreviewReg">
-          <img [src]="f['foto'].value" alt="Foto previa">
+          <img [src]="fotoPreviewReg" alt="Foto previa">
         </div>
         <div class="error2" *ngIf="!fotoPreviewReg && formAltaCliente.touched">
           <span>Foto requerida</span>
@@ -105,34 +105,34 @@
     }
     
     @if(tipoCliente === 'anonimo') {
-        <form class="form-anon" [formGroup]="formAltaAnonimo" (ngSubmit)="enviar('anonimo')">
-          <ion-item lines="none" class="input-field">
-            <ion-input class="input" type="text" placeholder="Nombre" formControlName="nombre"></ion-input>
-          </ion-item>
-          <div class="error">
-            @if((formAltaAnonimo.get("nombre")?.hasError("minlength") ||
-            formAltaAnonimo.get("nombre")?.hasError("required")) &&
-            formAltaAnonimo.get("nombre")?.touched) {
-              <app-form-errors [control]="formAltaAnonimo.get('nombre')" />
-            }
+      <form class="form-anon" [formGroup]="formAltaAnonimo" (ngSubmit)="enviar('anonimo')">
+        <ion-item lines="none" class="input-field">
+          <ion-input class="input" type="text" placeholder="Nombre" formControlName="nombre"></ion-input>
+        </ion-item>
+        <div class="error">
+          @if((formAltaAnonimo.get("nombre")?.hasError("minlength") ||
+          formAltaAnonimo.get("nombre")?.hasError("required")) &&
+          formAltaAnonimo.get("nombre")?.touched) {
+            <app-form-errors [control]="formAltaAnonimo.get('nombre')" />
+          }
+        </div>
+
+        <div class="foto-section">
+          <ion-button class="btn_photo" (click)="sacarFotoAnonimo()">Tomar Foto</ion-button>
+          <div class="preview">
+            <img [src]="fAnonimo['foto'].value || placeholderUrl" alt="Foto previa"/>
           </div>
-
-          <div class="foto-section">
-            <ion-button class="btn_photo" (click)="sacarFotoAnonimo()">Tomar Foto</ion-button>
-            <div class="preview">
-              <img [src]="fAnonimo['foto'].value || placeholderUrl" alt="Foto previa"/>
-            </div>
-            <div class="error2" *ngIf="!fotoPreviewAnon && formAltaAnonimo.touched">
-              <span>Foto requerida</span>
-            </div>
+          <div class="error2" *ngIf="!fotoPreviewAnon && formAltaAnonimo.touched">
+            <span>Foto requerida</span>
           </div>
+        </div>
 
-          <ion-button class="btn-primary" type="submit">
-            Registrar <br> Cliente Anónimo
-          </ion-button>
+        <ion-button class="btn-primary" type="submit">
+          Registrar <br> Cliente Anónimo
+        </ion-button>
 
-          <ion-button class="btn-tertiary" href="/home">Volver</ion-button>
-        </form>
-      }
+        <ion-button class="btn-tertiary" href="/home">Volver</ion-button>
+      </form>
+    }
   </ion-content>
 }

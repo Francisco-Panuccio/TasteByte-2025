@@ -22,7 +22,15 @@
           <div class="div_total">
             <div class="div_data"> 
               <div class="div_p">
-                <p><span class="condition">Estado: </span> {{ ped?.estado | titlecase }}</p>
+                @if(ped.estado === "recibido" && ped.tipo === "delivery") {
+                  <p><span class="condition">Estado: </span>En Camino</p>
+                } @else {
+                  @if(ped.estado === "aceptado") {
+                    <p><span class="condition">Estado: </span>En Preparación</p>
+                  } @else {
+                    <p><span class="condition">Estado: </span> {{ ped?.estado | titlecase }}</p>
+                  }
+                }
                 <p><span class="wait">Espera: </span> {{ ped?.eta_minutos }} minutos</p>
               </div>
 
@@ -49,7 +57,7 @@
             @if(ped?.estado === 'recibido' && ped?.tipo !== 'delivery') {
               <div class="div_btn_recibido">
                   <ion-button class="btn-tertiary" (click)="confirmarRecibido();" [disabled]="verificando">
-                  Terminar Pedido
+                  Confirmar Recepción
                 </ion-button>
               </div>
             }  

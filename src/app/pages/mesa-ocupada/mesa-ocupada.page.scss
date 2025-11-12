@@ -27,6 +27,30 @@ ion-segment-button:nth-child(2) {
   text-align: center;
 }
 
+.div_show_total {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  border-bottom: 2px solid var(--color-text);
+  padding: 5px 0;
+  background-color: var(--color-btn-secondary);
+
+  p {
+    color: var(--color-text);
+    font-weight: 600;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 25px;
+  }
+
+  .showETA {
+    border-left: 2px solid var(--color-text);
+  }
+}
+
 ion-content::part(scroll) {
   scroll-snap-type: y mandatory;
   scroll-padding-top: calc(var(--sticky-h, 0px) + var(--seg-h, 0px) + var(--grid-pad, 20px));
@@ -34,7 +58,7 @@ ion-content::part(scroll) {
 }
 
 .grid {
-  height: 450px;
+  height: 430px;
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
@@ -58,12 +82,12 @@ ion-content::part(scroll) {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   border: 2px solid var(--color-text);
   border-radius: 16px;
   background: var(--color-btn-primary);
   padding: .5rem;
-  height: 420px;
+  height: 400px;
   width: 100%;
   cursor: pointer;
 
@@ -144,7 +168,7 @@ ion-content::part(scroll) {
     --border-radius: 10px;
     border: 2px solid var(--color-text);
     border-radius: 10px;
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 600;
   }
 }

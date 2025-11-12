@@ -172,11 +172,14 @@
             [class.cliente-msg]="m.role==='cliente'"
             *ngFor="let m of messages; trackBy: trackMsg;">
               <div class="bubble">
-                <div class="body">{{ m.text | titlecase }}</div>
-
+                <div class="body" [class.cliente-body]="m.role==='cliente'">{{ m.text | titlecase }}</div>
                 <div [class.mozo-meta]="m.role==='mozo'"
                   [class.cliente-meta]="m.role==='cliente'">
-                  {{ m.role==='mozo' ? 'Mozo' : 'Cliente' }} • {{ m.time }}
+                  @if(m.role === "mozo") {
+                    Mozo • {{ m.createdAt | date:'short' }}
+                  } @else {
+                    {{ m.createdAt | date:'short' }}
+                  }
                 </div>
               </div>
           </div>
@@ -233,7 +236,7 @@
               <div
                 [class.mozo-meta]="m.role==='delivery'"
                 [class.cliente-meta]="m.role==='cliente'">
-                {{ m.role==='delivery' ? 'Delivery' : 'Cliente' }} • {{ m.time }}
+                {{ m.role==='delivery' ? 'Delivery' : 'Cliente' }} • {{ m.createdAt | date:'short' }}
               </div>
             </div>
           </div>
