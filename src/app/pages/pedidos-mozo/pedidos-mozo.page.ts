@@ -655,14 +655,8 @@ export class PedidosMozoPage implements OnInit {
     await this.chatModal?.dismiss();
     this.chatOpen = false;
     this.chatSvc.unsubscribe();
-
-    await this.cargarInbox();
-    this.inboxOpen = true;
-
-    const modal = this.inboxModal;
-    if (modal) {
-      await modal.present();
-    }
+    this.inboxOpen = false;
+    await this.inboxModal?.dismiss();
   }
 
   async enviar() {

@@ -553,12 +553,6 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     return !!this.pedidoEnCurso && this.estadoPedido !== 'rechazado';
   }
 
-  private hhmm(d: Date): string {
-    const hh = String(d.getHours()).padStart(2, '0');
-    const mm = String(d.getMinutes()).padStart(2, '0');
-    return `${hh}:${mm}`;
-  }
-
   incByPlato(p: Plato) {
     if (this.submitting || this.pedidoBloqueado) return;
     const id = p.id!;
@@ -616,10 +610,6 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
     this.itemsSel = arr;
     this.total = Number(total.toFixed(2));
     this.etaMin = arr.length ? Math.round(maxDur) : 0;
-  }
-
-  private formatARS(n: number): string {
-    return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', currencyDisplay: 'symbol' }).format(n);
   }
 
   private buildPlatoYBebida(): void {
@@ -727,7 +717,11 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
       this.unsubEstado = this.pedidos.onEstadoPedido(pedidoId!, async (estado: any) => {
         this.zone.run(async () => {
           this.applyEstado(estado);
-          if (this.estadoPedido === 'aceptado') {
+          if (this.estadoPedido === "aceptado" && this.deliveryFlag) {
+            this.buildPlatoYBebida();
+            this.updateBanner();
+          }
+          else if (this.estadoPedido === 'aceptado') {
             this.buildPlatoYBebida();
             this.gotoEncuestasEspera();
           } else if (this.estadoPedido === 'rechazado') {
@@ -798,12 +792,23 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
       q.qrValido = true;
       return q;
     } else {
-      return { tienePermiso: true, qrValido: true, pedidoId: this.pedidoActualId };
+      const m: any = {};
+      m.tienePermiso = true;
+      m.qrValido = true;
+      m.pedidoId = this.pedidoActualId;
+      m.deliveryFlag = true;
+      return m;
     }
   }
 
   private gotoEncuestasEspera(): void {
-    this.router.navigate(['/encuestas-espera'], { queryParams: this.buildEncuestaQuery() });
+    if (this.deliveryFlag) {
+      const tree = this.router.createUrlTree(["/encuestas-espera"], { queryParams: this.buildEncuestaQuery() });
+      const url = this.router.serializeUrl(tree);
+      window.location.href = url;
+    } else {
+      this.router.navigate(['/encuestas-espera'], { queryParams: this.buildEncuestaQuery() });
+    }
   }
 
   showCarrito() { this.carritoFlag = !this.carritoFlag; }
