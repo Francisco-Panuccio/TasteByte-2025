@@ -220,12 +220,13 @@ ion-item::part(native) {
   filter: opacity(0.9);
   background: var(--color-container);
   color: var(--color-text);
-  border: 1px solid var(--color-text);
+  border-top: 1px solid var(--color-text);
   border-radius: 10px;
   padding: 5px;
   margin: 0;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 20px;
   text-align: center;
   width: fit-content;
+  line-height: 1.2;
 }

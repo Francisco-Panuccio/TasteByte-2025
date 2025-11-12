@@ -41,6 +41,7 @@ export class PedidosDeliveryPage implements OnInit, OnDestroy {
   private pdf = inject(Pdf);
   private email = inject(Email);
   @ViewChild("facturaCmp", { static: true }) facturaCmp!: FacturaPage;
+  pedidoItemsByPedido: Record<string, Array<{ nombre: string; cantidad: number }>> = {};
 
   private readonly FACTURA_EMPTY: FacturaData = {
     fecha: new Date(),
@@ -132,6 +133,26 @@ export class PedidosDeliveryPage implements OnInit, OnDestroy {
       const { data, error } = await q;
       if (error) throw error;
       this.rows = (data ?? []) as PedidoDelivery[];
+
+      const pids = this.rows.map(p => p.id).filter(Boolean) as string[];
+      this.pedidoItemsByPedido = {};
+
+      if (pids.length) {
+        const { data: itemsRows, error: eItems } = await supabase
+          .from("pedido_items")
+          .select("pedido_id, nombre, cantidad")
+          .in("pedido_id", pids);
+
+        if (eItems) throw eItems;
+        for (const r of itemsRows ?? []) {
+          const pid = String(r.pedido_id);
+          if (!this.pedidoItemsByPedido[pid]) this.pedidoItemsByPedido[pid] = [];
+          this.pedidoItemsByPedido[pid].push({
+            nombre: String(r.nombre ?? ""),
+            cantidad: Number(r.cantidad ?? 0),
+          });
+        }
+      }
     } catch (e: any) {
       (await this.toast.create({ message: e?.message ?? "Error listando pedidos", duration: 1500, cssClass: "toast", position: "top" })).present();
     } finally {
