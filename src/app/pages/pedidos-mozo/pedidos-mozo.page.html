@@ -46,10 +46,6 @@
               <ion-label>Entregados</ion-label>
             </ion-item>
 
-            <ion-item button [detail]="false" [class.active]="filtro==='terminado'" (click)="setFiltro('terminado')">
-              <ion-label>Terminados</ion-label> 
-            </ion-item>
-
             <ion-item button [detail]="false" [class.active]="filtro==='impagado'"  (click)="setFiltro('impagado')">
               <ion-label>Sin Pagar</ion-label> 
             </ion-item>
@@ -61,33 +57,44 @@
     <div class="div_container" *ngIf="pedidos.length">
       <div class="div_pedidos" *ngFor="let p of pedidos">
         <div class="div_data_pedido">
-            @if(p.tipo === 'delivery') {
-              <p>📍{{ p.delivery_direccion | titlecase }}</p>
-            } @else {
+          @if(p.tipo === 'delivery') {
+            <p>📍{{ p.delivery_direccion | titlecase }}</p>
+          } @else {
+            <div class="div_btns">
               <p class="numero">Mesa: {{ mesasNum.get(p.mesa_id) ?? p.mesa_id }}</p>
-            }
-            @if(p.estado === "impagado") {
-              <p>💸Total: ${{ p.total }}</p>
-            }
-            <p>🗓️{{ p.created_at | date:'short' }}</p>
-            
-            @if(filtro === 'aceptado') {
-              <p>🍸Bar: {{ p.estadoBar ?? ' —' | titlecase }}</p>
-              <p>🍳Cocina: {{ p.estadoCocina ?? ' —' | titlecase }}</p>
-            }
+              <button (click)="abrirChat(p.mesa_id)" class="btn_chat" [disabled]="busy" *ngIf="p.mesa_id != null">Chat</button>
+            </div>
+          }
+          @if(p.estado === "impagado") {
+            <p class="total">💸Total: ${{ p.total }}</p>
+          }
+          @if(p.estado === "pendiente") {
+            <p class="fecha">🗓️{{ p.created_at | date:'short' }}</p>
+          }
+          
+          @if(p.estado === "recibido") {
+            <div class="div_items" *ngFor="let it of pedidoItemsByPedido[p.id]">
+              <p>● {{it.nombre | titlecase}}</p>
+              <p class="qnt">x{{it.cantidad}}</p>
+            </div>
+            <p class="fecha2">🗓️{{ p.created_at | date:'short' }}</p>
+          }
+
+          @if(p.estado === 'aceptado') {
+            <div class="div_items" *ngFor="let it of pedidoItemsByPedido[p.id]">
+              <p>● {{it.nombre | titlecase}}</p>
+              <p class="qnt">x{{it.cantidad}}</p>
+            </div>
+          }
         </div>
         
-        <div class="div_btns">
-          <button (click)="abrirChat(p.mesa_id)" class="btn_chat" [disabled]="busy" *ngIf="p.mesa_id != null">Chat</button>
-
+        <div class="another">
           <button class="btn_entregar" *ngIf="p.estado==='aceptado'" (click)="setEstado(p.id,'recibido')" [disabled]="busy">Entregar</button>
           
           <button class="btn_aceptar" *ngIf="p.estado==='pendiente'" (click)="setEstado(p.id,'aceptado')" [disabled]="busy">Aceptar</button>
           <button class="btn_rechazar" *ngIf="p.estado==='pendiente'" (click)="setEstado(p.id,'rechazado')" [disabled]="busy">Rechazar</button>
 
           <button class="btn_aceptar" *ngIf="p.estado==='impagado'" (click)="validarPago(p.id)" [disabled]="busy">Validar Pago</button>
-
-          <button class="btn_rechazar" *ngIf="canEliminar(p)" (click)="eliminar(p)" [disabled]="busy">Eliminar</button>
         </div>
 
         @if(p.estadoBar && p.estadoCocina) {

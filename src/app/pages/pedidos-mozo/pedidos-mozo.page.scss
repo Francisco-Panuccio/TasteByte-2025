@@ -60,7 +60,7 @@ ion-popover::part(content) {
   border-radius: 20px;
   text-align: center;
   left: 50% !important;
-  top: 55% !important;
+  top: 50% !important;
   transform: translate(-50%, -50%) !important;
 }
 
@@ -164,9 +164,21 @@ ion-popover::part(content) {
       justify-content: center;
       align-items: center;
       gap: 10px;
-      margin: 10px 0;
-      padding: 10px 0 10px 10px;
-      width: 250px;
+      margin: 0;
+      padding: 20px 10px;
+      width: 100%;
+
+      .div_items {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+
+        .qnt {
+          align-self: flex-end;
+          margin-right: 8px;
+        }
+      }
 
       p {
         color: var(--color-text);
@@ -176,48 +188,89 @@ ion-popover::part(content) {
         margin: 0;
       }
 
-      .numero {
-        font-size: 25px;
+      .total {
+        font-size: 28px;
+        border-top: 2px solid var(--color-text);
+        width: 100%;
+        padding-top: 15px;
+      }
+
+      .fecha,
+      .fecha2 {
+        align-self: center;
+        font-size: 24px;
+      }
+
+      .fecha2 {
+        width: 100%;
+        text-align: center;
+        padding-top: 15px;
+        margin-top: 10px;
+        border-top: 2px solid var(--color-text);
       }
     }
 
     .div_btns {
       display: flex;
-      flex-direction: column;
-      justify-content: center;
+      justify-content: space-evenly;
       align-items: center;
-      gap: 10px;
-      margin: 5px 0;
-      padding: 10px 10px 10px 0;
+      gap: 20px;
+      width: 100%;
+      margin-bottom: 10px;
+
+      .numero {
+        font-size: 30px;
+        align-self: center;
+      }
 
       button {
         color: var(--color-text);
-        font-size: 20px;
+        font-size: 22px;
         font-weight: 600;
         align-self: center;
-        width: 120px;
-        padding: 5px;
+        padding: 8px 5px;
         margin: 0;
+        width: 120px;
         border: 2px solid var(--color-text);
         border-radius: 10px;
-      }
-
-      .btn_aceptar {
-        background-color: rgb(70, 194, 87);
-      }
-
-      .btn_rechazar {
-        background-color: rgb(170, 61, 61);
-      }
-
-      .btn_entregar {
-        background-color: rgb(154, 149, 8);
       }
 
       .btn_chat {
         background-color: rgb(107, 170, 238);
       }
     }
+  }
+}
+
+.another {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+
+  button {
+    color: var(--color-text);
+    font-size: 26px;
+    font-weight: 600;
+    align-self: center;
+    width: 120px;
+    padding: 8px 5px;
+    margin: 0;
+    border-top: 2px solid var(--color-text);
+    width: 100%;
+  }
+
+  .btn_aceptar {
+    background-color: rgb(70, 194, 87);
+  }
+
+  .btn_rechazar {
+    background-color: rgb(170, 61, 61);
+    border-left: 2px solid var(--color-text);
+  }
+
+  .btn_entregar {
+    background-color: rgb(154, 149, 8);
   }
 }
 
@@ -436,12 +489,12 @@ ion-item::part(native) {
 
 .div_cocinaBar {
   width: 100%;
-  height: 260px;
+  height: 200px;
   border-top: 2px solid var(--color-text);
   background:
     radial-gradient(circle closest-side at center,
-      rgba(255,255,255,.10) 0 60%,
-      rgba(255,255,255,0) 61%),
+      rgba(255, 255, 255, .10) 0 60%,
+      rgba(255, 255, 255, 0) 61%),
     var(--color-btn-secondary);
   background-repeat: no-repeat;
 

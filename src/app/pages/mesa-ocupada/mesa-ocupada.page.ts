@@ -400,7 +400,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
           this.bannerMsg = "En espera de aprobación...";
           return;
         case "aceptado":
-          this.bannerMsg = "Delivery en curso, espere por favor.";
+          this.bannerMsg = "Pedido en curso, espere por favor.";
           return;
         case "terminado":
           this.bannerMsg = "Pedido despachado. Pronto llegará.";
@@ -746,9 +746,9 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
       });
 
       try {
-        const title = this.deliveryFlag ? 'Nuevo pedido de Delivery' : 'Nuevo pedido recibido';
+        const title = this.deliveryFlag ? 'Nuevo Pedido de Reparto' : 'Nuevo Pedido Recibido';
         const body = this.deliveryFlag
-          ? `Delivery: ${this.deliveryAddress || 'sin dirección'}`
+          ? `Dirección: ${this.deliveryAddress || 'sin dirección'}`
           : `Mesa ${this.mesa?.numero ?? this.mesaId ?? 'NN'}: nuevo pedido del cliente.`;
         const data = {
           tipo: this.deliveryFlag ? 'nuevo_pedido_delivery' : 'nuevo_pedido',

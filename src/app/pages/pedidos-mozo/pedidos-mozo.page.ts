@@ -53,6 +53,7 @@ export class PedidosMozoPage implements OnInit {
   busy = false;
 
   pedidos: any[] = [];
+  pedidoItemsByPedido: Record<string, Array<{ nombre: string; cantidad: number }>> = {};
   sub?: any;
 
   chatOpen = false;
@@ -254,6 +255,25 @@ export class PedidosMozoPage implements OnInit {
     this.loading = true;
     try {
       this.pedidos = await this.pedidosSrv.listar(this.filtro as any);
+      const pids = (this.pedidos.map(p => p.id).filter(Boolean) as string[]);
+      this.pedidoItemsByPedido = {};
+      if (pids.length) {
+        const { data: itemsRows, error: eItems } = await supabase
+          .from("pedido_items")
+          .select("pedido_id, nombre, cantidad")
+          .in("pedido_id", pids);
+        if (eItems) throw eItems;
+
+        for (const r of itemsRows ?? []) {
+          const pid = String((r as any).pedido_id);
+          if (!this.pedidoItemsByPedido[pid]) this.pedidoItemsByPedido[pid] = [];
+          this.pedidoItemsByPedido[pid].push({
+            nombre: String((r as any).nombre ?? ""),
+            cantidad: Number((r as any).cantidad ?? 0)
+          });
+        }
+      }
+
       this.cdr.markForCheck();
       const ids = Array.from(new Set(this.pedidos.map((p) => p.mesa_id))).filter(Boolean) as number[];
       const mesas = await Promise.all(ids.map((id) => this.mesasSrv.getById(id)));

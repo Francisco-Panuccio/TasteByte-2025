@@ -7,8 +7,8 @@
     <img src="assets/icon/cubiertos.png">
   </header>
 
-  <ion-content>
-    <ion-segment [(ngModel)]="segment">
+  <ion-content #c [class.snap]="segment==='graficos'">
+    <ion-segment [(ngModel)]="segment" (ionChange)="c.scrollToTop(0)">
       <ion-segment-button value="encuestas">
         <ion-label>Encuestas</ion-label>
       </ion-segment-button>
@@ -67,8 +67,8 @@
     }
 
     @if (segment === 'graficos') {
-      <div>
-        <ion-card>
+      <div class="charts">
+        <ion-card class="chart-card">
           <ion-card-header>⚪Calificación General (1-10)</ion-card-header>
           <ion-card-content>
             <apx-chart
@@ -80,7 +80,7 @@
           </ion-card-content>
         </ion-card>
 
-        <ion-card>
+        <ion-card class="chart-card">
           <ion-card-header>⚪Tiempo de Espera</ion-card-header>
           <ion-card-content>
             <apx-chart
@@ -92,7 +92,7 @@
           </ion-card-content>
         </ion-card>
 
-        <ion-card>
+        <ion-card class="chart-card">
           <ion-card-header>⚪Calidad de la Comida</ion-card-header>
           <ion-card-content>
             <apx-chart

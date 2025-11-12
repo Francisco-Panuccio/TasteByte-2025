@@ -74,7 +74,7 @@ export class Descuentos {
         } else if (email) {
           q = q.eq("cliente_email", email);
         } else {
-          await this.mostrarToast("No se puede identificar al cliente para delivery");
+          await this.mostrarToast("No se puede identificar al cliente para el reparto");
           return { ok: false, reason: "NO_IDENT" };
         }
 
@@ -127,7 +127,7 @@ export class Descuentos {
 
       localStorage.setItem(this.storageKey, JSON.stringify(payload));
       const destinoOk = isDelivery ? "delivery" : `Mesa ${mesaId}`;
-      await this.mostrarToast(`✅ Descuento del ${porc}% aplicado al pedido (${destinoOk})`);
+      await this.mostrarToast(`Descuento del ${porc}% aplicado al pedido (${destinoOk})`);
       return { ok: true };
     } catch (err: any) {
       await this.mostrarToast(`Error aplicarDescuento: ${err.message ?? err}`);

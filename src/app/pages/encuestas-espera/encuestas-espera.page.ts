@@ -887,9 +887,9 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
 
       if (this.deliveryUnlock && this.pedidoId) {
         await this.push.sendToRoles(
-          ["mozo"],
-          "Cuenta solicitada",
-          "Cliente delivery solicita la cuenta",
+          ["dueño", "supervisor"],
+          "Cuenta Solicitada",
+          "Cliente de reparto solicita la cuenta",
           { tipo: "pedir_cuenta_delivery", pedidoId: this.pedidoId }
         );
         this.mostrarToast("Aviso enviado.");
