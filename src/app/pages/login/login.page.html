@@ -1,81 +1,68 @@
 @if(loading) {
   <app-loading/>
 } @else {
-  @if(errorMsg) {
-  <ion-content class="ion-padding">
-    <div class="div_error">
-      <span>{{errorText}}</span>
-      <ion-button expand="block" class="btn_close" (click)="closeError()">Cerrar</ion-button>
-    </div>
-
-    <div class="img_background">
-      <img src="assets/icon/logo.png" class="logo"/>
-    </div>
-  </ion-content>
-  } @else {
-    <ion-content>
-      <div class="auth-container">
-        <div class="auth-card">
-          <h1 class="title">Iniciar Sesión</h1>
-    
-          <form [formGroup]="formLogin">
-            <ion-item class="input-field" lines="none">
-              <ion-input class="input" placeholder="Correo Electrónico" formControlName="email"></ion-input>
-            </ion-item>
-            <div>
-              @if((formLogin.get("email")?.hasError("email") ||
-              formLogin.get("email")?.hasError("required")) &&
-              formLogin.get("email")?.touched) {
-              <app-form-errors [control]="formLogin.get('email')" />
-              }
-            </div>
-    
-            <ion-item class="input-field" lines="none">
-              <ion-input class="input" placeholder="Contraseña" type="password" formControlName="password"></ion-input>
-            </ion-item>
-            <div>
-              @if((formLogin.get("password")?.hasError("minlength") ||
-              formLogin.get("password")?.hasError("required")) &&
-              formLogin.get("password")?.touched) {
-              <app-form-errors [control]="formLogin.get('password')" />
-              }
-            </div>
-            
-            @if(errorFlag){
-              <app-form-errors [control]="formLogin" style="margin: -5px 0 5px 0 !important;"/>
+  <ion-content>
+    <div class="auth-container">
+      <div class="auth-card">
+        <h1 class="title">Iniciar Sesión</h1>
+  
+        <form [formGroup]="formLogin">
+          <ion-item class="input-field" lines="none">
+            <ion-input class="input" placeholder="Correo Electrónico" formControlName="email"></ion-input>
+          </ion-item>
+          <div>
+            @if((formLogin.get("email")?.hasError("email") ||
+            formLogin.get("email")?.hasError("required")) &&
+            formLogin.get("email")?.touched) {
+            <app-form-errors [control]="formLogin.get('email')" />
             }
-
-            <div class="btns_login">
-              <ion-button expand="block" class="btn-primary" (click)="onLogin()" [disabled]="formLogin.invalid">Ingresar</ion-button>
-              <ion-button expand="block" size="small" class="btn-secondary google" (click)="loginWithGoogle()">Ingresar con<img src="assets/images/logo-google.png"></ion-button>
-            </div>
-          </form>
-    
-          <hr>
-
-          <div class="quick-logins">
-            <p class="subtitle">Accesos Rápidos:</p>
-            <div class="quick_btns">
-              <button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'dueno@hotmail.com', password: 'dueño12345'})"><img src="assets/images/ic_dueno.png" alt="dueño"></button>
-              <button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'supervisor@hotmail.com', password: 'supervisor12345'})"><img src="assets/images/ic_supervisor.png" alt="supervisor"></button>
-              <button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'maitre@hotmail.com', password: 'maitre12345'})"><img src="assets/images/ic_maitre.png" alt="maitre"></button>
-              <button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'mozo@hotmail.com', password: 'mozo12345'})"><img src="assets/images/ic_mozo.png" alt="mozo"></button>
-              <button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'cocinero@hotmail.com', password: 'cocinero12345'})"><img src="assets/images/ic_cocinero.png" alt="cocinero"></button>
-              <button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'bartender@hotmail.com', password: 'bartender12345'})"><img src="assets/images/ic_bartender.png" alt="bartender"></button>
-              <button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'delivery@hotmail.com', password: 'delivery12345'})"><img src="assets/images/ic_delivery.png" alt="delivery"></button>
-              <button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'clienteregistrado@hotmail.com', password: 'clienteregistrado12345'})"><img src="assets/images/ic_cliente.png" alt="cliente"></button>
-            </div>
           </div>
-    
-          <hr>
+  
+          <ion-item class="input-field" lines="none">
+            <ion-input class="input" placeholder="Contraseña" type="password" formControlName="password"></ion-input>
+          </ion-item>
+          <div>
+            @if((formLogin.get("password")?.hasError("minlength") ||
+            formLogin.get("password")?.hasError("required")) &&
+            formLogin.get("password")?.touched) {
+            <app-form-errors [control]="formLogin.get('password')" />
+            }
+          </div>
+          
+          @if(errorFlag){
+            <app-form-errors [control]="formLogin" style="margin: -5px 0 5px 0 !important;"/>
+          }
 
-          <div class="register-link">
-            <p class="p_account">¿No tenés cuenta?</p>
-            <ion-button routerLink="/register" class="btn-tertiary">Crear Cuenta</ion-button>
-            <ion-button class="btn-secondary" (click)="goAnonRegister()"> Ingreso Anónimo </ion-button>
+          <div class="btns_login">
+            <ion-button expand="block" class="btn-primary" (click)="onLogin()" [disabled]="formLogin.invalid">Ingresar</ion-button>
+            <ion-button expand="block" size="small" class="btn-secondary google" (click)="loginWithGoogle()">Ingresar con<img src="assets/images/logo-google.png"></ion-button>
+          </div>
+        </form>
+  
+        <hr>
+
+        <div class="quick-logins">
+          <p class="subtitle">Accesos Rápidos:</p>
+          <div class="quick_btns">
+            <button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'dueno@hotmail.com', password: 'dueño12345'})"><img src="assets/images/ic_dueno.png" alt="dueño"></button>
+            <button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'supervisor@hotmail.com', password: 'supervisor12345'})"><img src="assets/images/ic_supervisor.png" alt="supervisor"></button>
+            <button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'maitre@hotmail.com', password: 'maitre12345'})"><img src="assets/images/ic_maitre.png" alt="maitre"></button>
+            <button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'mozo@hotmail.com', password: 'mozo12345'})"><img src="assets/images/ic_mozo.png" alt="mozo"></button>
+            <button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'cocinero@hotmail.com', password: 'cocinero12345'})"><img src="assets/images/ic_cocinero.png" alt="cocinero"></button>
+            <button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'bartender@hotmail.com', password: 'bartender12345'})"><img src="assets/images/ic_bartender.png" alt="bartender"></button>
+            <button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'delivery@hotmail.com', password: 'delivery12345'})"><img src="assets/images/ic_delivery.png" alt="delivery"></button>
+            <button expand="block" size="small" class="btn-secondary" (click)="quickLogin({email: 'clienteregistrado@hotmail.com', password: 'clienteregistrado12345'})"><img src="assets/images/ic_cliente.png" alt="cliente"></button>
           </div>
         </div>
+  
+        <hr>
+
+        <div class="register-link">
+          <p class="p_account">¿No tenés cuenta?</p>
+          <ion-button routerLink="/register" class="btn-tertiary">Crear Cuenta</ion-button>
+          <ion-button class="btn-secondary" (click)="goAnonRegister()"> Ingreso Anónimo </ion-button>
+        </div>
       </div>
-    </ion-content>
-  }
+    </div>
+  </ion-content>
 }

@@ -226,9 +226,13 @@ ion-button {
   text-align: start;
 }
 
+.cliente-body {
+  text-align: end;
+}
+
 .cliente-meta {
   display: flex;
-  justify-content: space-between;
+  justify-content: end;
   align-items: center;
   color: var(--color-black);
   font-size: 14px;
@@ -238,7 +242,7 @@ ion-button {
 
 .mozo-meta {
   display: flex;
-  justify-content: space-between;
+  justify-content: start;
   align-items: center;
   color: var(--color-black);
   font-size: 14px;

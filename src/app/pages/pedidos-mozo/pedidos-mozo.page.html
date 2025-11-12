@@ -188,10 +188,14 @@
                [class.cliente-msg]="m.role==='cliente'"
                *ngFor="let m of messages">
             <div class="bubble">
-              <div class="body">{{ m.text | titlecase}}</div>
+              <div class="body" [class.mozo-body]="m.role==='mozo'">{{ m.text | titlecase}}</div>
               <div [class.mozo-meta]="m.role==='mozo'"
                    [class.cliente-meta]="m.role==='cliente'">
-                {{ m.role==='mozo' ? 'Mozo' : ('Mesa ' + (mesasNum.get(mesaChatId!) ?? "NN")) }} • {{ m.time }}
+                   @if(m.role === "cliente") {
+                    {{ ('Mesa ' + (mesasNum.get(mesaChatId!) ?? "NN")) }} • {{ m.createdAt | date:'short' }}
+                   } @else {
+                    {{ m.createdAt | date:'short' }}
+                   }
               </div>
             </div>
           </div>

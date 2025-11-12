@@ -33,8 +33,8 @@ export class LoginPage implements OnInit {
     try { this.errorAudio.load(); } catch { }
 
     this.formLogin.valueChanges.subscribe(() => {
-      if (this.formLogin.hasError("credentials")) {
-        const { credentials, ...rest } = this.formLogin.errors as Record<string, any>;
+      if (this.formLogin.hasError("credentials") || this.formLogin.hasError("invalid")) {
+        const { credentials, invalid, ...rest } = (this.formLogin.errors as Record<string, any>) ?? {};
         this.formLogin.setErrors(Object.keys(rest).length ? rest : null);
       }
     });
@@ -114,8 +114,11 @@ export class LoginPage implements OnInit {
           estado = cData?.estado;
           if (!this.isApproved(perfil, estado)) {
             await supabase.auth.signOut();
-            this.errorText = "Cuenta Rechazada o Pendiente de Aprobación.";
-            this.errorMsg = true;
+            this.errorFlag = true;
+            const prev = this.formLogin.errors ?? {};
+            this.formLogin.setErrors({ ...prev, invalid: true });
+            await this.errorFeedback();
+            this.loading = false;
             return;
           }
         }
@@ -194,9 +197,11 @@ export class LoginPage implements OnInit {
       estado = cData?.estado;
       if (!this.isApproved(perfil, estado)) {
         await supabase.auth.signOut();
-        this.errorText = "Cuenta Rechazada o Pendiente de Aprobación.";
-        this.errorMsg = true;
+        this.errorFlag = true;
+        const prev = this.formLogin.errors ?? {};
+        this.formLogin.setErrors({ ...prev, invalid: true });
         await this.errorFeedback();
+        this.loading = false;
         return;
       }
     }

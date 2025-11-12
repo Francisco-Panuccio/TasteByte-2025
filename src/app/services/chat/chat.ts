@@ -346,6 +346,7 @@ export class Chat {
     const userId = await this.getMyUserId(anonimoId);
     const role = await this.getMyRoleInChat(chatId, anonimoId);
     const fromName = await this.getMyDisplayName(anonimoId);
+    const myToken = this.push.getToken?.();
 
     const ins = await supabase
       .from("chat_messages")
@@ -370,8 +371,11 @@ export class Chat {
         .eq("active", true)
         .eq("revoked", false);
       const to = Array.from(new Set((data ?? []).map((r: any) => r.token as string).filter(Boolean)));
-      if (to.length) {
-        await this.push.send(to, `Nuevo mensaje del cliente${mesaId ? " de la mesa " + mesaId : ""}`, text, {
+
+      const filtered = myToken ? to.filter(t => t !== myToken) : to;
+
+      if (filtered.length) {
+        await this.push.send(filtered, `Nuevo mensaje del cliente${mesaId ? " de la mesa " + mesaId : ""}`, text, {
           tipo: "chat",
           mesaId,
           chatId,
@@ -382,8 +386,11 @@ export class Chat {
       }
     } else {
       const to = Array.from(new Set((await this.getClienteTokensPreferChat(chatId, mesaId ?? 0)).filter(Boolean)));
-      if (to.length) {
-        await this.push.send(to, "Nuevo mensaje del mozo", text, {
+
+      const filtered = myToken ? to.filter(t => t !== myToken) : to;
+
+      if (filtered.length) {
+        await this.push.send(filtered, "Nuevo mensaje del mozo", text, {
           tipo: "chat",
           mesaId,
           chatId,
@@ -431,16 +438,17 @@ export class Chat {
   toViewMessage(
     m: ChatMessage,
     myUserId: string
-  ): { id: string; from: "yo" | "mozo"; role: "mozo" | "cliente"; text: string; time: string } {
+  ): { id: string; from: "yo" | "mozo"; role: "mozo" | "cliente"; text: string; time: string; createdAt: string } {
     const fromMe = m.user_id === myUserId;
-    const role: "mozo" | "cliente" =
-      m.user_id?.startsWith("anon-") || (m.user_id && m.user_id.length < 36) ? "cliente" : "mozo";
+    const role: "mozo" | "cliente" = fromMe ? "cliente" : "mozo";
+
     return {
       id: m.id,
       from: fromMe ? "yo" : "mozo",
       role,
       text: m.body,
       time: this.hhmm(new Date(m.created_at)),
+      createdAt: m.created_at,
     };
   }
 
