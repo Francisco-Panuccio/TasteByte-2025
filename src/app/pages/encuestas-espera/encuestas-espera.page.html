@@ -23,6 +23,19 @@
           <img src="assets/images/qr.png" alt="Escanear QR de Ingreso">
         </ion-button>
 
+        <ion-button
+          routerLink="/lista-espera"
+          [queryParams]="{
+            anonimoId: anonimoId,
+            usuarioId: usuarioId,
+            clienteId: clienteId,
+            userId: userUid,
+            from: 'cliente'
+          }"
+          class="btn_juegos">
+          <img src="assets/home/ver-lista-espera.png" alt="Ver Lista de Espera">
+       </ion-button>
+
         @if(!anonClient) {
           <ion-button class="btn_juegos" routerLink="/delivery">
             <img src="assets/home/deliveries.png" alt="Deliveries">
@@ -55,25 +68,8 @@
 
           @if(!tieneMesa) { 
             @if(!deliveryUnlock && !isDelivery) {
-              <ion-button
-                routerLink="/lista-espera"
-                [queryParams]="{
-                  anonimoId: anonimoId,
-                  usuarioId: usuarioId,
-                  clienteId: clienteId,
-                  userId: userUid,
-                  from: 'cliente'
-                }"
-                class="btn_juegos">
-                <img src="assets/home/ver-lista-espera.png" alt="Ver Lista de Espera">
-              </ion-button>
+              
 
-              <ion-button
-                color="medium"
-                [disabled]="yaRegistrado"
-                (click)="registrarseListaEspera()">
-                <img src="assets/home/unirse-lista-espera.png" alt="Unirse a Lista de Espera">
-              </ion-button>
             } @else {
                 <ion-button class="btn_chat" (click)="openDeliveryChat()">
                   <img src="assets/home/consultar_delivery.png" alt="Consultar al Delivery">
