@@ -4,7 +4,7 @@
     <img src="assets/icon/cubiertos.png" />
   </header>
 
-  <ion-content>
+  <ion-content #buttonContainer>
     <div class="div_main">
       <div class="div_data">
         <div class="div_photo">
@@ -20,7 +20,7 @@
     <div class="container">
       @if(!tienePermiso) {
         <ion-button class="btn_ingreso" (click)="escanearQr()">
-          <img src="assets/images/qr.png" alt="Escanear QR de Ingreso">
+          <img class="qr_img" src="assets/images/qr.png" alt="Escanear QR de Ingreso">
         </ion-button>
 
         <ion-button
@@ -62,7 +62,7 @@
       } @else {
           @if(!deliveryUnlock && !isDelivery) {
             <ion-button class="last-btn" (click)="escanearQrMesa()">
-              <img src="assets/images/qr.png"/>
+              <img class="qr_img" src="assets/images/qr.png"/>
             </ion-button>
           }
 

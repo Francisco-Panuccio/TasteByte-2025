@@ -102,6 +102,86 @@ En la sección de generar reserva si usan el calendar hagan todo desde ahí, qui
 Los mails deberían tener diferentes colores y fuentes entre los de aceptado y rechazado.
 Quitar la pantalla de credenciales invalidas, eso debería ser un mensaje de error dentro del login solamente.
 
+## Correcciones Morelli - Clase 10 (12/11/25)
+
+Punto 1: ok
+
+Punto 2: ok
+
+Punto 3: ok
+
+Punto 4: ok
+
+Punto 5 y 6:
+Misma corrección de los mensajes de error del login.
+
+Punto 7:
+Los mensajes de error del login deben ser todos mensajes en la pantalla de login, no que lo redirija a otra pantalla, ya les había marcado esto con el error de credenciales inválidas.
+
+Punto 8: ok.
+
+Punto 9:
+El usuario se agrega a la lista de espera cuando escanea el qr de entrada.
+
+Punto 10: ok.
+
+Punto 11:
+Agranden el botón de enviar mensaje en el chat, esta muy chiquito.
+Agregar fecha a los mensajes.
+
+Punto 12:
+Mientras se hace el pedido debe estar visible en TODO MOMENTO el importe acumulado y el tiempo de espera.
+
+Punto 13:
+El mozo debe poder ver el detalle del pedido, sino como sabrá si lo puede aprobar.
+
+Punto 14: ok
+
+Punto 15 anónimo: ok
+
+Punto 15 registrado: ok
+
+Punto 16 17 y 18:
+En la pantalla de detalle del pedido del cliente, cuando el pedido esta en preparación, pónganle el estado en preparación y agrándenle la fuente, uds lo muestran en un toast que pasa rápido y se muy chico, no se llega  a ver el estado..
+Verificar que cada parte del pedido se visualice en el listado de pedidos pendientes. Para eso agreguen los items del pedido en el detalle del mozo y el estado de cada uno, además el mozo debe saber que el lo que tiene que entregar.
+
+Punto 19:
+El cliente debe confirmar la recepción del pedido.
+No debería haber ningún botón de terminar pedido en el detalle del pedido del cliente.
+
+Punto 20: ok.
+
+Punto 21 y 22:
+Mostrar que en la cuenta figuren los descuentos de los juegos.
+
+Punto 23: ok
+
+Punto 24:
+Verificar que no se pueda hacer una reserva el mismo día en un horario pasado.
+
+Punto 25: ok.
+
+Punto 26:
+ok
+
+Punto 27 y 28:
+Misma corrección que les hice en el detalle del mozo, muestren el detalle del pedido en el listado del dueño/supervisor para que sepa que es lo que aprueba o rechaza.
+
+Punto 29:
+En el listado del delivery agranden la fuente de la dirección, es el dato mas importante para el delivery en ese momento y debería poder verse en un golpe de vista.
+
+Punto 30: ok
+
+Punto 31: ok.
+
+Recuperatorio anónimo y registrado:
+ok
+
+Splash y sonidos: ok
+
+Correcciones Extra:
+Cuando el mozo entrega el pedido el cliente debe presionar un boton de confirmar recepcion. Si uds usaban el boton de finalizar pedido para eso, entonces cambienle el texto a confirnar recepcion
+
 
 ## Responsabilidades (Primera Semana) 🛠️
 * Panuccio

@@ -95,10 +95,38 @@ export class PedidosDeliveryPage implements OnInit, OnDestroy {
 
         if (ev === "DELETE") {
           this.removeById(r.id);
-        } else {
-          if (!ALLOWED_STATES.includes(r.estado) || !this.isVisible(r)) this.removeById(r.id);
-          else this.upsertRow(r);
+          delete this.pedidoItemsByPedido[r.id];
+          this.cdr.detectChanges();
+          return;
         }
+
+        if (!ALLOWED_STATES.includes(r.estado) || !this.isVisible(r)) {
+          this.removeById(r.id);
+          delete this.pedidoItemsByPedido[r.id];
+          this.cdr.detectChanges();
+          return;
+        }
+
+        this.upsertRow(r);
+
+        if (!this.pedidoItemsByPedido[r.id]) {
+          this.pedidoItemsByPedido[r.id] = [];
+        }
+
+        supabase
+          .from("pedido_items")
+          .select("pedido_id, nombre, cantidad")
+          .eq("pedido_id", r.id)
+          .then(({ data, error }) => {
+            if (!error) {
+              this.pedidoItemsByPedido[r.id] = (data ?? []).map((it: any) => ({
+                nombre: String(it.nombre ?? ""),
+                cantidad: Number(it.cantidad ?? 0),
+              }));
+              this.cdr.detectChanges();
+            }
+          });
+
         this.cdr.detectChanges();
       });
     };
@@ -153,6 +181,7 @@ export class PedidosDeliveryPage implements OnInit, OnDestroy {
           });
         }
       }
+      this.cdr.detectChanges();
     } catch (e: any) {
       (await this.toast.create({ message: e?.message ?? "Error listando pedidos", duration: 1500, cssClass: "toast", position: "top" })).present();
     } finally {
