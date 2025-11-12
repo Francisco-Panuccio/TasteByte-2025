@@ -224,13 +224,15 @@ Quitar la pantalla de credenciales invalidas, eso debería ser un mensaje de err
 <p align="center">
   <img src="src/assets/imagesGithub/mozo-pedido.jpeg" alt="Mozo Pedido" width="400" height="800">
   <img src="src/assets/imagesGithub/mozo-validar.jpeg" alt="Mozo Validar" width="400" height="800">
-  <img src="src/assets/imagesGithub/mozo-entregar-1.jpeg" alt="Mozo Entregar 1" width="400" height="800">
-  <img src="src/assets/imagesGithub/mozo-entregar-2.jpeg" alt="Mozo Entregar 2" width="400" height="800">
+  <img src="src/assets/imagesGithub/mozo-entregar.jpeg" alt="Mozo Entregar" width="400" height="800">
+  <img src="src/assets/imagesGithub/mozo-entregar-completo.jpeg" alt="Mozo Entregar Completo" width="400" height="800">
+  <img src="src/assets/imagesGithub/mozo-entregado.jpeg" alt="Mozo Entregado" width="400" height="800">
   <img src="src/assets/imagesGithub/mozo-menu.jpeg" alt="Mozo Menu" width="400" height="800">
   <img src="src/assets/imagesGithub/mozo-vacio.jpeg" alt="Mozo Vacio" width="400" height="800">
   <img src="src/assets/imagesGithub/encuestas.jpeg" alt="Encuestas" width="400" height="800">
   <img src="src/assets/imagesGithub/grafico-1.jpeg" alt="Graficos 1" width="400" height="800">
   <img src="src/assets/imagesGithub/grafico-2.jpeg" alt="Graficos 2" width="400" height="800">
+  <img src="src/assets/imagesGithub/grafico-3.jpeg" alt="Graficos 3" width="400" height="800">
   <img src="src/assets/imagesGithub/nueva-encuesta-1.jpeg" alt="Nueva Encuesta 1" width="400" height="800">
   <img src="src/assets/imagesGithub/nueva-encuesta-2.jpeg" alt="Nueva Encuesta 2" width="400" height="800">
 </p>

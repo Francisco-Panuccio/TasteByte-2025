@@ -142,7 +142,7 @@ export class BarPage implements OnInit, OnDestroy {
           try {
             await this.push.sendToRoles(
               ["mozo", "dueño", "dueno", "supervisor"],
-              "Pedido completo",
+              "Pedido Completo",
               `El pedido de ${etiqueta} está listo para entregar.`,
               {
                 tipo: "pedido_listo",
@@ -157,8 +157,8 @@ export class BarPage implements OnInit, OnDestroy {
           try {
             await this.push.sendToRoles(
               ["mozo", "dueño", "dueno", "supervisor"],
-              "Pedido completo",
-              `El pedido del delivery está listo para entregar.`,
+              "Pedido Completo",
+              `El pedido del repartidor está listo para ser entregado.`,
               {
                 tipo: "pedido_delivery_listo",
                 pedidoId: pedido.pedido_id

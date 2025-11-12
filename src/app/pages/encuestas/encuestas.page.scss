@@ -1,4 +1,3 @@
-
 .ion-padding-top {
   display: flex;
   flex-direction: column;
@@ -118,11 +117,38 @@ h3 {
   margin-bottom: 20px;
 }
 
+ion-content.snap::part(scroll) {
+  scroll-snap-type: y mandatory;
+  padding: 0;
+}
+
+.charts {
+  height: 495px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-auto-rows: calc(548px - 2 * var(--grid-pad, 20px));
+  place-items: center;
+  gap: 0;
+  padding: 20px;
+  scroll-snap-type: y mandatory;
+  scroll-padding-block: var(--grid-pad, 20px);
+}
+
+.charts>* {
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+}
+
 ion-card {
   margin: 20px 10px;
-  border: 2px solid var(--color-black);
+  border: 2px solid var(--color-text);
   border-radius: 20px;
   background-color: var(--color-text);
+  height: 465px;
+  width: 100%;
 }
 
 ion-card-header {
@@ -133,6 +159,7 @@ ion-card-header {
   font-weight: 600;
   letter-spacing: 1px;
   margin-bottom: 5px;
+  text-align: center;
 }
 
 ion-card-content {
@@ -145,4 +172,25 @@ apx-chart {
 
 :host ::ng-deep .apexcharts-legend-text {
   font-weight: 600 !important;
+}
+
+.chart-card ion-card-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chart-card apx-chart {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+:host ::ng-deep .apexcharts-legend {
+  justify-content: center !important;
+}
+
+:host ::ng-deep .apexcharts-legend-marker {
+  width: 12px !important;
+  height: 12px !important;
 }

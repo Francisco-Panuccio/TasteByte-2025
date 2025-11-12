@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { supabase } from 'src/supabase.client';
+import { ApexChart, ApexLegend, ApexDataLabels, ApexPlotOptions, ChartType } from "ng-apexcharts";
 
 type Segment = 'encuestas' | 'graficos';
 
@@ -28,28 +29,74 @@ export class EncuestasPage implements OnInit {
     opinion: string | null;
   }> = [];
 
-  qualityChart: any = {
-    chart: { type: "donut", height: 300, width: "100%" },
-    labels: ["Excelente", "Aceptable", "Regular", "Mala"],
-    series: [0, 0, 0, 0],
-    legend: { fontSize: "14px" },
-    dataLabels: { style: { fontSize: "14px", fontWeight: 600 } },
-    plotOptions: {
-      pie: {
-        donut: {
-          labels: {
-            show: true,
-            name: { show: true, fontSize: "14px", fontWeight: 600 },
-            value: { show: true, fontSize: "14px", fontWeight: 600 },
-            total: { show: true, fontSize: "14px", fontWeight: 600 }
+  qualityChart: {
+    chart: ApexChart;
+    labels: string[];
+    series: number[];
+    legend: ApexLegend;
+    dataLabels: ApexDataLabels;
+    plotOptions: ApexPlotOptions;
+  } = {
+      chart: {
+        type: "donut" as ChartType,
+        height: 390,
+        parentHeightOffset: 0,
+        toolbar: { show: false },
+        offsetY: -1
+      },
+      labels: ["Excelente", "Aceptable", "Regular", "Mala"],
+      series: [0, 0, 0, 0],
+
+      dataLabels: {
+        enabled: true,
+        formatter: (val: string) => `${Math.round(parseFloat(val))}%`,
+        style: { fontSize: "18px", fontWeight: 600 },
+        dropShadow: { enabled: false }
+      },
+
+      legend: {
+        show: true,
+        position: "bottom",
+        horizontalAlign: "center",
+        floating: false,
+        offsetY: 2,
+        fontSize: "14px",
+        itemMargin: { horizontal: 12, vertical: 6 }
+      },
+
+      plotOptions: {
+        pie: {
+          donut: {
+            size: "70%",
+            labels: {
+              show: true,
+              name: { show: true, fontSize: "14px", fontWeight: 600, offsetY: 6 },
+              value: {
+                show: true,
+                fontSize: "16px",
+                fontWeight: 700,
+                offsetY: -6,
+                formatter: ((
+                  _val: string,
+                  opts?: any
+                ): string => {
+                  const i = opts?.seriesIndex ?? 0;
+                  const v = (opts?.w?.globals?.series as number[])[i] || 0;
+                  const totals = (opts?.w?.globals?.seriesTotals as number[]) || [];
+                  const total = totals.reduce((a: number, b: number) => a + b, 0) || 1;
+                  return `${Math.round((v / total) * 100)}%`;
+                }) as unknown as (val: string) => string
+              },
+              total: { show: false }
+            }
           }
         }
       }
-    }
-  };
+    };
+
 
   waitChart: any = {
-    chart: { type: 'bar', height: 250, width: "100%" },
+    chart: { type: 'bar', height: 400, width: "100%" },
     series: [{ name: 'Respuestas', data: [0, 0, 0] }],
     xaxis: {
       categories: ["Bajo", "Razonable", "Excesivo"],
@@ -61,7 +108,7 @@ export class EncuestasPage implements OnInit {
   };
 
   ratingChart: any = {
-    chart: { type: "bar", height: 250, width: "100%", color: "black" },
+    chart: { type: "bar", height: 400, width: "100%", color: "black" },
     series: [{ name: "Calificaciones", data: new Array(10).fill(0) }],
     xaxis: {
       categories: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],

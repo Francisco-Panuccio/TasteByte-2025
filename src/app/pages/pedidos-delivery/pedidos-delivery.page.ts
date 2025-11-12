@@ -133,7 +133,7 @@ export class PedidosDeliveryPage implements OnInit, OnDestroy {
       if (error) throw error;
       this.rows = (data ?? []) as PedidoDelivery[];
     } catch (e: any) {
-      (await this.toast.create({ message: e?.message ?? "Error listando deliverys", duration: 1500, cssClass: "toast", position: "top" })).present();
+      (await this.toast.create({ message: e?.message ?? "Error listando pedidos", duration: 1500, cssClass: "toast", position: "top" })).present();
     } finally {
       this.loading = false;
     }
@@ -163,7 +163,7 @@ export class PedidosDeliveryPage implements OnInit, OnDestroy {
         const tokens = Array.from(new Set((toks ?? []).map((t: any) => t.token as string))).filter(Boolean);
         if (tokens.length) {
           const eta = r.eta_minutos ?? 0;
-          await Promise.resolve(this.push.send(tokens, "Pedido confirmado", `Tiempo estimado: ${eta} minutos`, {
+          await Promise.resolve(this.push.send(tokens, "Pedido Confirmado", `Tiempo estimado: ${eta} minutos`, {
             tipo: "delivery_confirmado",
             pedidoId: r.id,
             eta
@@ -219,15 +219,15 @@ export class PedidosDeliveryPage implements OnInit, OnDestroy {
         try {
           await this.push.sendToRoles(
             ["delivery"],
-            "Pedido despachado",
-            "Pedido entregado a Delivery",
+            "Pedido Despachado",
+            "Pedido entregado al repartidor",
             { tipo: "delivery_despachado", pedidoId: r.id }
           );
         } catch { }
       }
 
       if (this.filtro === "aceptado") this.removeById(r.id);
-      (await this.toast.create({ message: "Pedido entregado al Delivery", duration: 1400, position: "top", cssClass: "toast" })).present();
+      (await this.toast.create({ message: "Pedido entregado al repartidor", duration: 1400, position: "top", cssClass: "toast" })).present();
     } catch {
       (await this.toast.create({ message: "No se pudo entregar", duration: 1400, position: "top", cssClass: "toast" })).present();
       this.sentDespachado.delete(r.id);
@@ -345,8 +345,8 @@ export class PedidosDeliveryPage implements OnInit, OnDestroy {
     if (this.sentNuevoPedido.has(pid)) return;
     this.sentNuevoPedido.add(pid);
 
-    const title = "Nuevo pedido delivery";
-    const body = "Nuevo pedido delivery";
+    const title = "Nuevo Pedido";
+    const body = "Nuevo pedido de reparto";
     const data = { tipo: "nuevo_pedido_delivery", pedidoId: pid, mesaId: null };
 
     const { data: toks } = await supabase
@@ -492,69 +492,6 @@ export class PedidosDeliveryPage implements OnInit, OnDestroy {
     this.facturaData = this.FACTURA_EMPTY;
   }
 
-  private async emitirFacturaParaAnonimoYUrlDelivery(pedidoId: string): Promise<string> {
-    const { data: ped } = await supabase
-      .from("pedidos")
-      .select("total")
-      .eq("id", pedidoId)
-      .maybeSingle();
-    if (!ped) throw new Error("Pedido no encontrado para generar factura");
-
-    const { data: itemsRows } = await supabase
-      .from("pedido_items")
-      .select("nombre, cantidad, precio_unit, producto_id")
-      .eq("pedido_id", pedidoId);
-
-    const { data: descRow } = await supabase
-      .from("descuentos")
-      .select("porcentaje, aplicado_en")
-      .eq("pedido_id", pedidoId)
-      .order("aplicado_en", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    const items = (itemsRows ?? []).map((r: any, i: number) => ({
-      codigo: String(r.producto_id ?? i + 1),
-      descripcion: r.nombre ?? "Item",
-      cantidad: Number(r.cantidad ?? 1),
-      precioUnit: Number(r.precio_unit ?? 0),
-      subtotal: Number(r.cantidad ?? 1) * Number(r.precio_unit ?? 0),
-    }));
-
-    const sumaItems = items.reduce((acc, it) => acc + it.subtotal, 0);
-    const descuentoPct = Number(descRow?.porcentaje ?? 0);
-    const baseConDescuento = +(sumaItems * (1 - descuentoPct / 100)).toFixed(2);
-    const totalFinal = Number(ped.total ?? sumaItems);
-    const propinaMonto = +Math.max(0, totalFinal - baseConDescuento).toFixed(2);
-    const descuentoMonto = +(sumaItems - baseConDescuento).toFixed(2);
-    const propinaPct = baseConDescuento > 0 ? Math.round((propinaMonto / baseConDescuento) * 100) : 0;
-
-    const fecha = new Date().toISOString().slice(0, 10);
-    const fileName = `Factura_${fecha}_Cliente_Anonimo_p${pedidoId}.pdf`;
-
-    const facturaData: FacturaData = {
-      fecha: new Date(),
-      receptor: { nombreCompleto: "Cliente Anónimo", cuitOdni: "N/A" },
-      items,
-      totales: {
-        total: totalFinal,
-        propinaPct,
-        propinaMonto,
-        descuentoPct,
-        descuentoMonto,
-      },
-    };
-
-    this.facturaData = facturaData;
-    this.cdr.detectChanges();
-    await new Promise((r) => setTimeout(r, 0));
-    const el = this.facturaCmp.root.nativeElement;
-    await this.waitForRender(el);
-    const blob = await this.pdf.exportarA4(el, fileName);
-    const url = await this.pdf.subirFacturaYObtenerUrl(blob, fileName);
-    return url;
-  }
-
   async setEstado(
     pedidoId: string,
     estado: "aceptado" | "rechazado" | "pagado" | "recibido"
@@ -586,7 +523,7 @@ export class PedidosDeliveryPage implements OnInit, OnDestroy {
           .eq("revoked", false);
         const list = Array.from(new Set((toks ?? []).map((t: any) => t.token as string))).filter(Boolean);
         if (list.length) {
-          await this.push.send(list, "Pago confirmado", "Tu pago fue validado ✅", {
+          await this.push.send(list, "Pago Confirmado", "Tu pago fue validado", {
             tipo: "pedido",
             pedidoId,
             mesaId: null,
@@ -621,30 +558,7 @@ export class PedidosDeliveryPage implements OnInit, OnDestroy {
 
     this.loading = true;
     try {
-      if (ped?.cliente_email) {
-        await this.emitirFacturaYEnviarDelivery(pedidoId, ped.cliente_email);
-      } else {
-        const url = await this.emitirFacturaParaAnonimoYUrlDelivery(pedidoId);
-        if (ped?.cliente_uid) {
-          const { data: toks } = await supabase
-            .from("push_tokens")
-            .select("token")
-            .eq("usuario_id", ped.cliente_uid)
-            .eq("role", "cliente")
-            .eq("active", true)
-            .eq("revoked", false);
-
-          const list = Array.from(new Set((toks ?? []).map((t: any) => t.token as string))).filter(Boolean);
-          if (list.length) {
-            await this.push.send(list, "Factura disponible", "Tocá para descargar tu factura.", {
-              tipo: "factura",
-              pedidoId,
-              mesaId: null,
-              url,
-            });
-          }
-        }
-      }
+      await this.emitirFacturaYEnviarDelivery(pedidoId, ped!.cliente_email);
     } catch (e) {
       (await this.toast.create({ message: "No se pudo enviar la factura", duration: 1500, position: "top", cssClass: "toast" })).present();
     } finally {
@@ -652,13 +566,7 @@ export class PedidosDeliveryPage implements OnInit, OnDestroy {
     }
 
     await this.setEstado(pedidoId, "pagado");
-
-    await this.push.sendToRoles(
-      ["dueño", "supervisor"],
-      "Pago validado",
-      "Pago Delivery Validado",
-      { tipo: "pago_validado", pedidoId, mesaId: null }
-    );
+    (await this.toast.create({ message: "Pago validado", duration: 1500, position: "top", cssClass: "toast" })).present();
   }
 
   private async mostrarToast(message: string): Promise<void> {

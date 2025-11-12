@@ -17,7 +17,6 @@ export class Chat {
   private push = inject(Push);
   private chatKind = new Map<string, "mesa" | "delivery">();
 
-  // ---------- Utilidades ----------
   async getMyUserId(anonimoId?: string): Promise<string> {
     if (anonimoId) return `anon-${anonimoId}`;
     const { data, error } = await supabase.auth.getUser();
@@ -70,7 +69,6 @@ export class Chat {
     return kind === "delivery";
   }
 
-  // ---------- Delivery (tablas nuevas) ----------
   async getOrCreateForDeliveryByPedido(pedidoId: string): Promise<{ id: string }> {
     let { data: chat } = await supabase
       .from("delivery_chats")
@@ -223,7 +221,6 @@ export class Chat {
     return ins.data as ChatMessage;
   }
 
-  // ---------- Mesa (existente) ----------
   async getOrCreateForMesa(mesaId: number, role: Role = "cliente", anonimoId?: string): Promise<Chat> {
     let { data: chats } = await supabase.from("chats").select("*").eq("mesa_id", mesaId).limit(1);
     let chat: Chat | null = chats?.[0] ?? null;
