@@ -296,26 +296,7 @@ export class AltaClientePage implements OnInit {
             "Registro Recibido - En Revisión"
           );
         } catch { }
-
-        try {
-          const { data: rows, error: tkErr } = await supabase
-            .from("push_tokens").select("token")
-            .in("role", ["dueño", "supervisor"])
-            .eq("active", true).eq("revoked", false);
-          if (!tkErr) {
-            const tokens = (rows ?? []).map((r: any) => r.token as string).filter(Boolean);
-            if (tokens.length) {
-              await this.push.send(
-                tokens,
-                "",
-                "Nuevo cliente en lista de espera",
-                { screen: "clientes-pendientes", tipo: "cliente_registrado", cliente_id: (usuarioDB as any).id, cliente_nombre: `${nombres} ${apellidos}` }
-              );
-            }
-          }
-          await this.mostrarToast(`${nombres} ${apellidos} espera aprobación`, "📋 Nuevo Cliente Pendiente", 1000);
-        } catch { }
-
+        
         if (esEmpleado && currentSession) {
           await supabase.auth.setSession({
             access_token: currentSession.access_token,

@@ -202,26 +202,6 @@ export class RegisterPage implements OnInit {
             <p>Muchas gracias, esperamos que disfrute nuestras comidas en TasteByte.</p>`,
           "Registro Recibido - En Revisión"
         );
-        
-        try {
-          const { data: rows, error: tkErr } = await supabase
-            .from("push_tokens")
-            .select("token")
-            .in("role", ["dueno", "supervisor"])
-            .eq("active", true)
-            .eq("revoked", false);
-          if (!tkErr) {
-            const tokens = (rows ?? []).map((r: any) => r.token as string).filter(Boolean);
-            if (tokens.length) {
-              await this.push.send(
-                tokens,
-                "",
-                "Nuevo cliente en lista de espera",
-                { screen: "clientes-pendientes", tipo: "cliente_registrado", cliente_id: usuarioDB.id, cliente_nombre: clienteNombre }
-              );
-            }
-          }
-        } catch { }
       }
 
       try { await supabase.auth.signOut(); } catch { }
