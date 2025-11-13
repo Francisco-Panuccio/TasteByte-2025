@@ -201,24 +201,18 @@ export class PedidosDeliveryPage implements OnInit, OnDestroy {
 
       if (this.filtro === "pendiente") this.removeById(r.id);
 
-      if (r.cliente_uid) {
-        const { data: toks } = await supabase
-          .from("push_tokens")
-          .select("token")
-          .eq("usuario_id", r.cliente_uid)
-          .eq("role", "cliente")
-          .eq("active", true)
-          .eq("revoked", false);
-
-        const tokens = Array.from(new Set((toks ?? []).map((t: any) => t.token as string))).filter(Boolean);
-        if (tokens.length) {
-          const eta = r.eta_minutos ?? 0;
-          await Promise.resolve(this.push.send(tokens, "Pedido Confirmado", `Tiempo estimado: ${eta} minutos`, {
+      if (r.tipo === "delivery") {
+        const eta = r.eta_minutos ?? 0;
+        await this.push.sendToRoles(
+          ["cliente"],
+          "Pedido Confirmado",
+          `Tiempo estimado: ${eta} minutos`,
+          {
             tipo: "delivery_confirmado",
             pedidoId: r.id,
             eta
-          }));
-        }
+          }
+        );
       }
 
       await this.mostrarToast("Pedido aceptado");
@@ -233,6 +227,18 @@ export class PedidosDeliveryPage implements OnInit, OnDestroy {
     try {
       await this.pedidos.actualizarEstado(r.id, "rechazado");
       this.removeById(r.id);
+
+      if (r.tipo === "delivery") {
+        await this.push.sendToRoles(
+          ["cliente"],
+          "Pedido Rechazado",
+          "Tu pedido a domicilio fue rechazado. Puedes modificarlo y reenviarlo.",
+          {
+            tipo: "delivery_rechazado",
+            pedidoId: r.id
+          }
+        );
+      }
 
       await this.mostrarToast("Pedido rechazado");
     } catch {
