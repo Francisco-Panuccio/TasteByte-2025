@@ -396,7 +396,7 @@ export class PedidosDeliveryPage implements OnInit, OnDestroy {
     this.sentNuevoPedido.add(pid);
 
     const title = "Nuevo Pedido";
-    const body = "Nuevo pedido de reparto";
+    const body = "Nuevo pedido a domicilio";
     const data = { tipo: "nuevo_pedido_delivery", pedidoId: pid, mesaId: null };
 
     const { data: toks } = await supabase
