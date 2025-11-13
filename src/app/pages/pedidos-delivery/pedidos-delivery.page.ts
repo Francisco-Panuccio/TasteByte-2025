@@ -392,7 +392,43 @@ export class PedidosDeliveryPage implements OnInit, OnDestroy {
   private async notificarAreasNuevoPedidoDelivery(p: { id: string }): Promise<void> {
     const pid = String(p?.id ?? "");
     if (!pid) return;
-    if (this.sentNuevoPedido.has(pid)) return;
+
+    if (this.sentNuevoPedido.has(pid)) {
+      console.log("[delivery] Nuevo pedido delivery ya enviado (memoria):", pid);
+      return;
+    }
+
+    const { data: yaExiste, error: eCheck } = await supabase
+      .from("push_eventos")
+      .select("id")
+      .eq("tipo", "nuevo_pedido_delivery")
+      .eq("pedido_id", pid)
+      .maybeSingle();
+
+    if (!eCheck && yaExiste) {
+      console.log("[delivery] Nuevo pedido delivery ya estaba en push_eventos:", pid);
+      this.sentNuevoPedido.add(pid);
+      return;
+    }
+
+    const { error: eInsert } = await supabase
+      .from("push_eventos")
+      .insert({
+        tipo: "nuevo_pedido_delivery",
+        pedido_id: pid,
+        mesa_id: null,
+        mensaje: "Nuevo pedido a domicilio"
+      });
+
+    if (eInsert) {
+      console.warn("[delivery] Error insertando push_eventos (nuevo_pedido_delivery):", eInsert);
+      if ((eInsert as any).code === "23505") {
+        this.sentNuevoPedido.add(pid);
+        return;
+      }
+      return;
+    }
+
     this.sentNuevoPedido.add(pid);
 
     const title = "Nuevo Pedido";
@@ -407,8 +443,15 @@ export class PedidosDeliveryPage implements OnInit, OnDestroy {
       .eq("revoked", false);
 
     const self = this.push.getToken?.() || null;
-    const list = Array.from(new Set((toks ?? []).map((t: any) => t.token as string))).filter(t => (self ? t !== self : true));
-    if (!list.length) return;
+
+    const list = Array
+      .from(new Set((toks ?? []).map((t: any) => t.token as string)))
+      .filter(t => (self ? t !== self : true));
+
+    if (!list.length) {
+      console.log("[delivery] Sin tokens para bartender/cocinero en nuevo_pedido_delivery");
+      return;
+    }
 
     if (typeof (this as any).push.sendToTokens === "function") {
       await Promise.resolve((this as any).push.sendToTokens(list, { title, body, data }));
