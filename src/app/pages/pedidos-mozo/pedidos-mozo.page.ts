@@ -133,42 +133,55 @@ export class PedidosMozoPage implements OnInit {
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "chat_messages" },
-        (payload) => this.zone.run(async () => {
-          const raw = payload.new as {
-            id: string;
-            chat_id: string;
-            user_id: string;
-            body: string;
-            created_at: string;
-          } | null;
+        (payload) =>
+          this.zone.run(async () => {
+            const raw = payload.new as {
+              id: string;
+              chat_id: string;
+              user_id: string;
+              body: string;
+              created_at: string;
+            } | null;
 
-          if (!raw) return;
+            if (!raw) return;
 
-          const msg: ChatMessage = {
-            id: raw.id,
-            chat_id: raw.chat_id,
-            user_id: raw.user_id,
-            body: raw.body,
-            created_at: raw.created_at,
-          };
+            if (!this.myUserId) {
+              this.myUserId = await this.chatSvc.getMyUserId();
+            }
 
-          if (this.chatOpen && msg.chat_id === this.chatId) {
-            const yaExiste = this.messages.some((m) => m.id === msg.id);
-            if (yaExiste) return;
+            if (raw.user_id === this.myUserId) return;
 
-            const vm = this.chatSvc.toViewMessage(msg, this.myUserId!);
-            this.messages.push({
-              ...vm,
-              role: vm.from === "yo" ? "mozo" : "cliente",
-            });
-            this.scrollToBottomAfterRender();
-          }
+            if (this.chatOpen && this.chatId && raw.chat_id === this.chatId) {
+              return;
+            }
 
-          if (this.inboxOpen) {
-            await this.cargarInbox();
-          }
-          this.cdr.markForCheck();
-        }))
+            const msg: ChatMessage = {
+              id: raw.id,
+              chat_id: raw.chat_id,
+              user_id: raw.user_id,
+              body: raw.body,
+              created_at: raw.created_at,
+            };
+
+            if (this.chatOpen && msg.chat_id === this.chatId) {
+              const yaExiste = this.messages.some((m) => m.id === msg.id);
+              if (yaExiste) return;
+
+              const vm = this.chatSvc.toViewMessage(msg, this.myUserId!);
+              this.messages.push({
+                ...vm,
+                role: vm.from === "yo" ? "mozo" : "cliente",
+              });
+              this.scrollToBottomAfterRender();
+            }
+
+            if (this.inboxOpen) {
+              await this.cargarInbox();
+            }
+
+            this.cdr.markForCheck();
+          })
+      )
       .subscribe();
 
     const tk = this.push.getToken?.();

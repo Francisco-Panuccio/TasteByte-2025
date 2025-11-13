@@ -54,10 +54,6 @@
           >
             <img src="assets/images/reserva.png" alt="Reservas">
           </ion-button>
-        } @else {
-          <p class="texto_ingreso">
-            Escanee el código QR del restaurante para habilitar todas las funciones.
-          </p>
         }
       } @else {
           @if(!deliveryUnlock && !isDelivery) {
@@ -67,7 +63,7 @@
           }
 
           @if(!tieneMesa) { 
-            @if(!deliveryUnlock && !isDelivery) {} @else {
+            @if(deliveryUnlock && isDelivery) {
                 <ion-button class="btn_chat" (click)="openDeliveryChat()">
                   <img src="assets/home/consultar_delivery.png" alt="Consultar al Delivery">
                 </ion-button>
