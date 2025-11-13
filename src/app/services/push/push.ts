@@ -66,11 +66,14 @@ export class Push {
     }
 
     if (this.initialized) {
-      if (this.token)
+      if (this.token) {
         await this.upsertToken(this.token, usuarioRowId ?? null, role);
+      }
       this.resolveReadyOnce();
       return;
     }
+
+    this.initialized = true;
 
     await this.ensureChannels();
     await LocalNotifications.requestPermissions();
@@ -173,8 +176,6 @@ export class Push {
         }
       });
     }
-
-    this.initialized = true;
   }
 
   getToken(): string | null {

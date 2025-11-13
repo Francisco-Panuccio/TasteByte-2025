@@ -408,51 +408,6 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     } catch { }
   }
 
-  private async notifyDeliveryPeers(
-    chatId: string,
-    fromRole: 'delivery' | 'cliente',
-    preview: string
-  ): Promise<void> {
-    try {
-      const { data: parts } = await supabase
-        .from('delivery_chat_participants')
-        .select('role,push_token,user_id')
-        .eq('chat_id', chatId);
-
-      const targets = new Set<string>();
-      for (const p of parts ?? []) {
-        if ((p as any).role === fromRole) continue;
-
-        const tk = (p as any).push_token as string | null;
-        if (tk) {
-          targets.add(tk);
-          continue;
-        }
-
-        const uid = (p as any).user_id as string | null;
-        if (uid) {
-          const { data: toks } = await supabase
-            .from('push_tokens')
-            .select('token')
-            .eq('usuario_id', uid)
-            .eq('active', true)
-            .eq('revoked', false);
-          for (const t of toks ?? []) targets.add((t as any).token as string);
-        }
-      }
-
-      const list = Array.from(targets);
-      if (!list.length) return;
-
-      await this.push.send(
-        list,
-        'Nuevo mensaje',
-        preview?.slice(0, 100) || 'Toque para abrir el chat',
-        { tipo: 'delivery_chat', chatId }
-      );
-    } catch { }
-  }
-
   private async intentarDeliveryUnlock(): Promise<void> {
     if (this.mesaAsignadaId) return;
 
@@ -1174,7 +1129,6 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
     }
 
     this.deliverySeenIds.add(saved.id);
-    await this.notifyDeliveryPeers(this.deliveryChatId, 'cliente', txt);
   }
 
   private async ensureChatAndSubscribe(): Promise<void> {
