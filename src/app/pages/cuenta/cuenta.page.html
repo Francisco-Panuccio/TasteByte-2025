@@ -34,6 +34,8 @@
 
             @if(descuento > 0) {
               <p class="descuento">💸Descuento ({{descuento}}%): <br> - {{descuentoMonto | currency:"ARS":"symbol-narrow":"1.0-0"}}</p>
+            } @else {
+              <p class="descuento2">Sin descuento aplicado</p>
             }
 
             <div class="div_propina">
