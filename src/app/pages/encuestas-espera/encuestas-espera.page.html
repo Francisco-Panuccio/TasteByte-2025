@@ -4,7 +4,7 @@
     <img src="assets/icon/cubiertos.png" />
   </header>
 
-  <ion-content #buttonContainer>
+  <ion-content>
     <div class="div_main">
       <div class="div_data">
         <div class="div_photo">
@@ -67,10 +67,7 @@
           }
 
           @if(!tieneMesa) { 
-            @if(!deliveryUnlock && !isDelivery) {
-              
-
-            } @else {
+            @if(!deliveryUnlock && !isDelivery) {} @else {
                 <ion-button class="btn_chat" (click)="openDeliveryChat()">
                   <img src="assets/home/consultar_delivery.png" alt="Consultar al Delivery">
                 </ion-button>

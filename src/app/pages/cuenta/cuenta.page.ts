@@ -151,7 +151,7 @@ export class CuentaPage implements OnInit {
       const mesaNumero = (pedRow as any)?.mesas?.numero ?? mesaId ?? "NN";
       const isDelivery = mesaId == null;
       const body = isDelivery
-        ? "Cliente de reparto realizó su pago"
+        ? "Cliente a domicilio realizó su pago"
         : `Cliente Mesa (${mesaNumero}) realizó su pago`;
 
       await this.push.sendToRoles(

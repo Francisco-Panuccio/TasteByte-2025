@@ -184,11 +184,12 @@ export class RegisterPage implements OnInit {
 
       const usuarioDB = await this.usuarios.createFromUser(user, this.fotoUrl);
 
-      if (usuarioDB) { 
-        await this.mostrarToast("Registro exitoso"); 
-      } else {
-        await this.mostrarToast("Error al registrarse"); 
+      if (!usuarioDB) {
+        await this.mostrarToast("Error al registrarse");
+        throw new Error("No se pudo persistir el usuario en la base de datos");
       }
+
+      await this.mostrarToast("Registro exitoso");
 
       if (isCliente) {
         const clienteNombre = `${user.apellido} ${user.nombre}`;
@@ -201,6 +202,7 @@ export class RegisterPage implements OnInit {
             <p>Muchas gracias, esperamos que disfrute nuestras comidas en TasteByte.</p>`,
           "Registro Recibido - En Revisión"
         );
+        
         try {
           const { data: rows, error: tkErr } = await supabase
             .from("push_tokens")
@@ -222,13 +224,9 @@ export class RegisterPage implements OnInit {
         } catch { }
       }
 
-      if (isCliente) {
-        try { await supabase.auth.signOut(); } catch { }
-        await this.router.navigateByUrl("/login", { replaceUrl: true });
-        return;
-      }
-
-      await this.router.navigateByUrl(data.session ? "/home" : "/login", { replaceUrl: true });
+      try { await supabase.auth.signOut(); } catch { }
+      await this.router.navigateByUrl("/login", { replaceUrl: true });
+      return;
     } catch (e: any) {
       this.errorText = typeof e?.message === "string" ? e.message : "Error en el registro";
       this.errorMsg = true;

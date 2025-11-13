@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, NgZone, ViewChild, ChangeDetectorRef, AfterViewInit } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, NgZone, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { IonContent, IonModal, ToastController } from '@ionic/angular';
 import { Qr } from 'src/app/services/qr/qr';
@@ -30,7 +30,7 @@ interface AsignacionMesaRow {
   styleUrls: ['./encuestas-espera.page.scss'],
   standalone: false,
 })
-export class EncuestasEsperaPage implements OnInit, OnDestroy, AfterViewInit {
+export class EncuestasEsperaPage implements OnInit, OnDestroy {
   private qr = inject(Qr);
   private push = inject(Push);
   private zone = inject(NgZone);
@@ -78,7 +78,6 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy, AfterViewInit {
   newMsg = '';
   @ViewChild('chatContent') chatContent?: IonContent;
   @ViewChild('chatModal', { read: IonModal }) chatModal?: IonModal;
-  @ViewChild(IonContent, { static: false }) buttonContainer!: IonContent;
   private seenIds = new Set<string>();
 
   nombreCliente: string | undefined;
@@ -148,16 +147,6 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy, AfterViewInit {
 
     const params = await firstValueFrom(this.route.queryParams.pipe(take(1)));
     await this.procesarParams(params);
-  }
-
-  async ngAfterViewInit() {
-    const containerElement = await this.buttonContainer.getScrollElement();
-    const buttons = containerElement.querySelectorAll('ion-button');
-    if (buttons.length === 2) {
-      containerElement.classList.add('two-buttons');
-    } else {
-      containerElement.classList.remove('two-buttons');
-    }
   }
 
   private async procesarParams(params: any) {
@@ -1016,7 +1005,7 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy, AfterViewInit {
         await this.push.sendToRoles(
           ['dueño', 'supervisor'],
           'Cuenta Solicitada',
-          'Cliente de reparto solicita la cuenta',
+          'Cliente a domicilio solicita la cuenta',
           { tipo: 'pedir_cuenta_delivery', pedidoId: this.pedidoId }
         );
         this.mostrarToast('Aviso enviado.');

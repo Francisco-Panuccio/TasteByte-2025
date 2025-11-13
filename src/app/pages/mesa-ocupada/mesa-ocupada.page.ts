@@ -740,7 +740,7 @@ export class MesaOcupadaPage implements OnInit, OnDestroy, AfterViewInit {
       });
 
       try {
-        const title = this.deliveryFlag ? 'Nuevo Pedido de Reparto' : 'Nuevo Pedido Recibido';
+        const title = this.deliveryFlag ? 'Nuevo Pedido A Domicilio' : 'Nuevo Pedido Recibido';
         const body = this.deliveryFlag
           ? `Dirección: ${this.deliveryAddress || 'sin dirección'}`
           : `Mesa ${this.mesa?.numero ?? this.mesaId ?? 'NN'}: nuevo pedido del cliente.`;

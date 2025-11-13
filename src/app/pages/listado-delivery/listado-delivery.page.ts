@@ -96,15 +96,15 @@ export class ListadoDeliveryPage implements OnInit, OnDestroy {
     this.layers.clear();
   }
 
-getDireccionCorta(direccion: string | null): string {
-  if (!direccion) return '';
-  const partes = direccion.split(',');
-  if (partes.length < 5) {
-    return partes.join(',');
+  getDireccionCorta(direccion: string | null): string {
+    if (!direccion) return '';
+    const partes = direccion.split(',');
+    if (partes.length < 5) {
+      return partes.join(',');
+    }
+    const direccionCorta = partes.slice(0, 4).join(',') + ', ' + partes[partes.length - 2];
+    return direccionCorta;
   }
-  const direccionCorta = partes.slice(0, 4).join(',') + ', ' + partes[partes.length - 2];
-  return direccionCorta;
-}
 
   async cargar() {
     this.loading = true;
