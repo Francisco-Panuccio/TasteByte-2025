@@ -69,7 +69,11 @@
             <p class="total">💸Total: ${{ p.total }}</p>
           }
           @if(p.estado === "pendiente") {
-            <p class="fecha">🗓️{{ p.created_at | date:'short' }}</p>
+            <div class="div_items" *ngFor="let it of pedidoItemsByPedido[p.id]">
+              <p>● {{it.nombre | titlecase}}</p>
+              <p class="qnt">x{{it.cantidad}}</p>
+            </div>
+            <p class="fecha2">🗓️{{ p.created_at | date:'short' }}</p>
           }
           
           @if(p.estado === "recibido") {

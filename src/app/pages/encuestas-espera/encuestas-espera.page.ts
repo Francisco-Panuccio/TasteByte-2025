@@ -790,6 +790,12 @@ export class EncuestasEsperaPage implements OnInit, OnDestroy {
             }
             this.actualizarFlags();
           }
+
+          if (nuevoEstado === "recibido" && this.isDelivery) {
+            if (typeof window !== "undefined") {
+              window.location.reload();
+            }
+          }
         }
       )
       .on(
