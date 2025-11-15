@@ -391,7 +391,7 @@ Cuando el mozo entrega el pedido el cliente debe presionar un boton de confirmar
 - Branch: roman
 
 * Avallone
-- Objetivos: Punto 23 (Login con Google)
+- Objetivos: Punto 23 (Login con Google) - 30
 - Fecha Inicial: 20/10/2025
 - Fecha Final: 24/10/2025
 - Branch: avallone
@@ -399,7 +399,7 @@ Cuando el mozo entrega el pedido el cliente debe presionar un boton de confirmar
 
 ## Responsabilidades (Sexta Semana) 🛠️
 * Panuccio
-- Objetivos: Puntos 27 - 28 - 29 - 30
+- Objetivos: Puntos 27 - 28 - 29
 - Fecha Inicial: 24/10/2025
 - Fecha Final: 28/10/2025
 - Branch: panuccio/altas
