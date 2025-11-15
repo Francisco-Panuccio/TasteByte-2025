@@ -218,8 +218,6 @@ Cuando el mozo entrega el pedido el cliente debe presionar un boton de confirmar
   <img src="src/assets/imagesGithub/loading.jpeg" alt="Loading" width="400" height="800">
   <img src="src/assets/imagesGithub/login.jpeg" alt="Login" width="400" height="800">
   <img src="src/assets/imagesGithub/validacion.jpeg" alt="Validacion" width="400" height="800">
-  <img src="src/assets/imagesGithub/validacion-cuenta.jpeg" alt="Validacion Cuenta" width="400" height="800">
-  <img src="src/assets/imagesGithub/error-login.jpeg" alt="Error Login" width="400" height="800">
   <img src="src/assets/imagesGithub/register.jpeg" alt="Register" width="400" height="800">
   <img src="src/assets/imagesGithub/alta-empleado-1.jpeg" alt="Alta Empleado 1" width="400" height="800">
   <img src="src/assets/imagesGithub/alta-empleado-2.jpeg" alt="Alta Empleado 2" width="400" height="800">
