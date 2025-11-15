@@ -391,7 +391,7 @@ Cuando el mozo entrega el pedido el cliente debe presionar un boton de confirmar
 - Branch: roman
 
 * Avallone
-- Objetivos: Punto 23 (Login con Google) - 30
+- Objetivos: Punto 23 (Login con Google)
 - Fecha Inicial: 20/10/2025
 - Fecha Final: 24/10/2025
 - Branch: avallone
@@ -412,6 +412,12 @@ Cuando el mozo entrega el pedido el cliente debe presionar un boton de confirmar
   <img src="src/assets/imagesGithub/sin-pedidos-delivery.jpeg" alt="Sin Pedidos Delivery" width="400" height="800">
   <img src="src/assets/imagesGithub/sin-pedidos-delivery-dueno.jpeg" alt="Sin Pedidos Dueño Delivery" width="400" height="800">
 </p>
+
+* Avallone
+- Objetivos: Punto 30
+- Fecha Inicial: 25/10/2025
+- Fecha Final: 28/10/2025
+- Branch: avallone
 
 * Roman
 - Objetivos: Puntos 24 - 25 - 26
