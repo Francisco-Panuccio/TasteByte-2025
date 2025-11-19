@@ -182,6 +182,19 @@ Splash y sonidos: ok
 Correcciones Extra:
 Cuando el mozo entrega el pedido el cliente debe presionar un boton de confirmar recepcion. Si uds usaban el boton de finalizar pedido para eso, entonces cambienle el texto a confirnar recepcion
 
+## Correcciones Ferrero - Clase 12 (18/11/25)
+
+- TasteByte - Registro Cliente OK
+- TasteByte - Puntos 5 y 6 - Alta Cliente Maitre OK
+- TasteByte - Punto 7 - Rechazo Cliente OK
+- TasteByte - Punto 9 - Ingreso Anonimo OK
+- TasteByte - Punto 11 - Chat con Mozo OK
+- TasteByte - Punto 12 - Realizar Pedido OK
+- TasteByte - Punto 13 - Rechazar Pedido OK
+- TasteByte - Puntos 16, 17 y 18 - Finalizar Cocina y Bar OK
+- TasteByte - Punto 19 - Entregar Pedido OK
+- TasteByte - Puntos 21 y 22 - Realizar Pago y Liberar Mesa OK pero faltan los extras del recuperatorio del primer parcial, o seria eso que dice "recuperatorio (ambos 1 y 2)"?
+
 
 ## Responsabilidades (Primera Semana) 🛠️
 * Panuccio
